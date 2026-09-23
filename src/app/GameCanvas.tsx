@@ -67,8 +67,11 @@ export function GameCanvas() {
 
   return (
     <div className={styles.wrapper}>
-      <canvas ref={canvasRef} className={styles.canvas} />
-      <Hud score={score} pelletsRemaining={pelletsRemaining} levelComplete={levelComplete} />
+      <Hud score={score} pelletsRemaining={pelletsRemaining} />
+      <div className={styles.canvasContainer}>
+        <canvas ref={canvasRef} className={styles.canvas} />
+        {levelComplete && <div className={styles.levelComplete}>¡Nivel completado!</div>}
+      </div>
     </div>
   );
 }

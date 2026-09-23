@@ -1,9 +1,26 @@
 .wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.canvasContainer {
   position: relative;
-  display: inline-block;
 }
 
 .canvas {
   display: block;
   image-rendering: pixelated;
+}
+
+.levelComplete {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: monospace;
+  font-size: 22px;
+  font-weight: bold;
+  color: #38f0e8;
+  text-shadow: 0 0 8px #000000;
 }
