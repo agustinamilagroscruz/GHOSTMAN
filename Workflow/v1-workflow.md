@@ -6,9 +6,9 @@ Checklist de trabajo para llevar la V1 de GhostMan desde la generación de códi
 
 ## Etapa 0 — Preparación previa a la generación
 
-- [ ] Confirmar el modelo/agente y la interfaz efectivamente usados (sección 8.2) y anotarlos en el documento
-- [ ] Preparar el contexto fijo a entregar al agente (sección 8.3): secciones 4, 7.3, 2.3 y la restricción de arquitectura agnóstica de entidad
-- [ ] Crear el repositorio en GitHub y la rama de trabajo de la V1
+- [x] Confirmar el modelo/agente y la interfaz efectivamente usados (sección 8.2) y anotarlos en el documento
+- [x] Preparar el contexto fijo a entregar al agente (sección 8.3): secciones 4, 7.3, 2.3 y la restricción de arquitectura agnóstica de entidad
+- [x] Repositorio de GitHub ya existente, se trabaja sobre `main` (sin rama dedicada para la V1)
 - [ ] Dejar lista la tabla de registro de problemas (sección 8.5) para completar durante la sesión
 - [ ] Definir quién conduce los prompts y quién registra la sesión (no puede ser la misma persona, sección 6.2)
 
@@ -19,10 +19,10 @@ Checklist de trabajo para llevar la V1 de GhostMan desde la generación de códi
 Un checklist por incremento. Cada uno se cierra con commit propio.
 
 ### Incremento 1 — Andamiaje del proyecto y bucle de juego
-- [ ] Ejecutar Prompt 0 (contexto y andamiaje)
-- [ ] Verificar: el mapa del nivel 1 se dibuja y el bucle corre a velocidad estable
-- [ ] Registrar problemas encontrados en la tabla 8.5
-- [ ] Commit del incremento
+- [x] Ejecutar Prompt 0 (contexto y andamiaje)
+- [x] Verificar: el mapa del nivel 1 se dibuja y el bucle corre a velocidad estable
+- [x] Registrar problemas encontrados en la tabla 8.5
+- [x] Commit del incremento (`36a065a`)
 
 ### Incremento 2 — Movimiento de Pacman y colisión con muros (HU-01, HU-02)
 - [ ] Ejecutar Prompt 1

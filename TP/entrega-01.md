@@ -1177,8 +1177,8 @@ Cada incremento se cierra con un commit propio en GitHub. Esta granularidad tien
 
 | Agente / LLM | Interfaz | Uso previsto |
 |---|---|---|
-| `[completar: modelo y versión]` | `[completar: IDE, CLI o web]` | Generación de los incrementos de código |
-| `[completar: modelo y versión]` | `[completar]` | Revisión de código generado y consultas puntuales |
+| Claude Sonnet 4.5 | VS Code con GitHub Copilot (agente integrado) | Generación de los incrementos de código |
+| Claude Sonnet 4.5 | VS Code con GitHub Copilot (agente integrado) | Revisión de código generado, verificación de criterios de avance y consultas puntuales |
 
 La cátedra sugiere Claude, Gemini, ChatGPT y Ollama, e IDEs con planes educativos (VS Code con GitHub Copilot mediante GitHub Education, PyCharm mediante el Student Pack, o Cursor). El equipo debe registrar aquí la combinación efectivamente usada, con la versión del modelo, porque el comportamiento entre versiones difiere y el registro pierde valor si no es reproducible.
 
@@ -1397,7 +1397,8 @@ Pantallas de cierre:
 
 | # | Incremento | Prompt | Problema observado | Cómo se resolvió | ¿Requirió edición manual? |
 |---|---|---|---|---|---|
-|  |  |  |  |  |  |
+| 1 | 1 — Andamiaje | Prompt 0 | `create-next-app` rechazó el nombre del paquete por tener mayúsculas ("Ghostman") | Se generó el scaffold en un directorio temporal con un nombre válido en minúsculas y se copió el contenido a la raíz del repositorio, renombrando el campo `name` en `package.json` | Sí (paso de infraestructura, no de lógica de negocio) |
+| 2 | 1 — Andamiaje | Prompt 0 | El scaffold de `create-next-app` sobrescribió el `README.md` propio del repositorio con el README genérico de Next.js | Se restauró el contenido original del README y se agregaron enlaces a la especificación y al workflow | Sí |
 
 **Qué registrar en cada columna:**
 - **Problema observado:** qué devolvió el agente y en qué se apartó de lo pedido. Con la mayor literalidad posible: "generó el movimiento con la tecla mantenida en lugar de avance continuo", no "problemas con el movimiento".
