@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createFireworksState, renderFireworks, spawnFireworkBurst, updateFireworks } from "../game/fireworks";
 import { createKeyboardDirectionInput } from "../game/input";
 import { getMoverPosition } from "../game/movement";
 import { renderMap, renderPacman } from "../game/render";
@@ -27,6 +28,8 @@ export function GameCanvas() {
 
     const theme = LEVEL_THEMES[1];
     const input = createKeyboardDirectionInput();
+    const fireworks = createFireworksState();
+    let nextFireworkIn = 0;
 
     canvas.width = state.map.cols * CELL_SIZE;
     canvas.height = state.map.rows * CELL_SIZE;
@@ -50,12 +53,24 @@ export function GameCanvas() {
         lastLevelComplete = state.levelComplete;
         setLevelComplete(lastLevelComplete);
       }
+
+      updateFireworks(fireworks, dt);
+      if (state.levelComplete) {
+        nextFireworkIn -= dt;
+        if (nextFireworkIn <= 0) {
+          nextFireworkIn = 0.35;
+          const row = 1 + Math.random() * (state.map.rows - 2);
+          const col = 1 + Math.random() * (state.map.cols - 2);
+          spawnFireworkBurst(fireworks, row, col);
+        }
+      }
     };
 
     const render = () => {
       renderMap(ctx, state.map, theme, CELL_SIZE);
       const position = getMoverPosition(state.player);
       renderPacman(ctx, position.row, position.col, CELL_SIZE, state.player.direction);
+      renderFireworks(ctx, fireworks, CELL_SIZE);
     };
 
     const loop = startGameLoop(update, render);
@@ -70,7 +85,7 @@ export function GameCanvas() {
       <Hud score={score} pelletsRemaining={pelletsRemaining} />
       <div className={styles.canvasContainer}>
         <canvas ref={canvasRef} className={styles.canvas} />
-        {levelComplete && <div className={styles.levelComplete}>¡Nivel completado!</div>}
+        {levelComplete && <div className={styles.levelComplete}>🎉 ¡Nivel completado! 🎉</div>}
       </div>
     </div>
   );
