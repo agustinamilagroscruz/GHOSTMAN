@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createFireworksState, renderFireworks, spawnFireworkBurst, updateFireworks } from "../game/fireworks";
 import { createKeyboardDirectionInput } from "../game/input";
 import { getMoverPosition } from "../game/movement";
-import { renderMap, renderPacman } from "../game/render";
+import { renderGhost, renderMap, renderPacman } from "../game/render";
 import { startGameLoop } from "../game/loop";
 import { createInitialGameState, updateGameState, type GameState } from "../game/state";
 import { LEVEL_THEMES } from "../game/theme";
@@ -68,6 +68,10 @@ export function GameCanvas() {
 
     const render = () => {
       renderMap(ctx, state.map, theme, CELL_SIZE);
+      for (const ghost of state.ghosts) {
+        const ghostPosition = getMoverPosition(ghost);
+        renderGhost(ctx, ghostPosition.row, ghostPosition.col, CELL_SIZE, ghost.color);
+      }
       const position = getMoverPosition(state.player);
       renderPacman(ctx, position.row, position.col, CELL_SIZE, state.player.direction);
       renderFireworks(ctx, fireworks, CELL_SIZE);

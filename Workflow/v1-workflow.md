@@ -37,10 +37,10 @@ Un checklist por incremento. Cada uno se cierra con commit propio.
 - [x] Commit del incremento
 
 ### Incremento 4 — Fantasmas clásicos con IA chase/scatter (HU-16, HU-04)
-- [ ] Ejecutar Prompt 3
-- [ ] Verificar: los fantasmas persiguen y se dispersan de manera observable
-- [ ] Registrar problemas en la tabla 8.5
-- [ ] Commit del incremento
+- [x] Ejecutar Prompt 3
+- [x] Verificar: los fantasmas persiguen y se dispersan de manera observable
+- [x] Registrar problemas en la tabla 8.5
+- [x] Commit del incremento
 
 ### Incremento 5 — Vidas, colisión con fantasmas y Game Over (HU-08, HU-09, HU-10)
 - [ ] Ejecutar Prompt 4

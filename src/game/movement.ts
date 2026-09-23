@@ -12,11 +12,14 @@ export const DIRECTION_VECTORS: Readonly<Record<Direction, readonly [number, num
   right: [0, 1],
 };
 
-export interface Mover {
+export interface Positioned {
   row: number; // celda entera de la que parte
   col: number;
   progress: number; // 0..1, avance hacia la celda siguiente en `direction`
   direction: Direction | null; // dirección de avance actual
+}
+
+export interface Mover extends Positioned {
   desiredDirection: Direction | null; // última dirección pedida, aplicada en cuanto sea posible
   speed: number; // celdas por segundo
 }
@@ -25,14 +28,25 @@ export function createMover(row: number, col: number, speed: number): Mover {
   return { row, col, progress: 0, direction: null, desiredDirection: null, speed };
 }
 
-function isOpposite(a: Direction | null, b: Direction | null): boolean {
-  if (!a || !b) return false;
-  const [aRow, aCol] = DIRECTION_VECTORS[a];
-  const [bRow, bCol] = DIRECTION_VECTORS[b];
-  return aRow === -bRow && aCol === -bCol;
+export function getOppositeDirection(direction: Direction): Direction {
+  switch (direction) {
+    case "up":
+      return "down";
+    case "down":
+      return "up";
+    case "left":
+      return "right";
+    case "right":
+      return "left";
+  }
 }
 
-function canEnterCell(map: GameMap, row: number, col: number): boolean {
+function isOpposite(a: Direction | null, b: Direction | null): boolean {
+  if (!a || !b) return false;
+  return a === getOppositeDirection(b);
+}
+
+export function canEnterCell(map: GameMap, row: number, col: number): boolean {
   if (row < 0 || row >= map.rows || col < 0 || col >= map.cols) return false;
   return map.cells[row][col] === "path";
 }
@@ -85,10 +99,10 @@ export function updateMover(mover: Mover, map: GameMap, deltaSeconds: number): v
 }
 
 /** Posición interpolada para el renderizado (fila y columna fraccionarias). */
-export function getMoverPosition(mover: Mover): { row: number; col: number } {
-  if (!mover.direction || mover.progress === 0) {
-    return { row: mover.row, col: mover.col };
+export function getMoverPosition(entity: Positioned): { row: number; col: number } {
+  if (!entity.direction || entity.progress === 0) {
+    return { row: entity.row, col: entity.col };
   }
-  const [dRow, dCol] = DIRECTION_VECTORS[mover.direction];
-  return { row: mover.row + dRow * mover.progress, col: mover.col + dCol * mover.progress };
+  const [dRow, dCol] = DIRECTION_VECTORS[entity.direction];
+  return { row: entity.row + dRow * entity.progress, col: entity.col + dCol * entity.progress };
 }

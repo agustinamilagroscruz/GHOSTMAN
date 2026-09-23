@@ -96,3 +96,49 @@ export function renderPacman(
   ctx.closePath();
   ctx.fill();
 }
+
+export function renderGhost(
+  ctx: CanvasRenderingContext2D,
+  row: number,
+  col: number,
+  cellSize: number,
+  color: string
+): void {
+  const centerX = col * cellSize + cellSize / 2;
+  const centerY = row * cellSize + cellSize / 2;
+  const radius = cellSize * 0.45;
+  const domeCenterY = centerY - radius * 0.15;
+  const bottomY = centerY + radius;
+  const left = centerX - radius;
+  const right = centerX + radius;
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(centerX, domeCenterY, radius, Math.PI, 0);
+  ctx.lineTo(right, bottomY);
+
+  const bumpCount = 4;
+  const bumpWidth = (right - left) / bumpCount;
+  for (let i = bumpCount; i >= 1; i--) {
+    const bumpRight = left + i * bumpWidth;
+    const bumpLeft = bumpRight - bumpWidth;
+    ctx.lineTo((bumpLeft + bumpRight) / 2, bottomY - radius * 0.3);
+    ctx.lineTo(bumpLeft, bottomY);
+  }
+  ctx.closePath();
+  ctx.fill();
+
+  const eyeOffsetX = radius * 0.4;
+  const eyeRadius = radius * 0.22;
+  for (const side of [-1, 1]) {
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#16164a";
+    ctx.beginPath();
+    ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}

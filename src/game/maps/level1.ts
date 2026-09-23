@@ -5,10 +5,11 @@ const ROWS = 15;
 const COLS = 17;
 
 /**
- * Genera el mapa del nivel 1 como un corredor serpenteante: filas impares son
- * corredores horizontales completos, filas pares conectan un corredor con el
- * siguiente por un extremo alternado. El resultado es un laberinto simple y
- * totalmente conectado.
+ * Genera el mapa del nivel 1 como una grilla tipo "panal": las celdas interiores
+ * son transitables salvo aquellas en las que tanto la fila como la columna son
+ * pares, que quedan como pilares de muro. El resultado es un laberinto con
+ * intersecciones reales en cada cruce, necesarias para que la IA de los
+ * fantasmas (persecución/dispersión) tenga decisiones de dirección observables.
  */
 export function createLevel1Map(): GameMap {
   const cells: CellType[][] = Array.from({ length: ROWS }, () =>
@@ -16,15 +17,9 @@ export function createLevel1Map(): GameMap {
   );
 
   for (let row = 1; row < ROWS - 1; row++) {
-    const isCorridorRow = row % 2 === 1;
-
-    if (isCorridorRow) {
-      for (let col = 1; col < COLS - 1; col++) {
-        cells[row][col] = "path";
-      }
-    } else {
-      const connectorCol = row % 4 === 0 ? COLS - 2 : 1;
-      cells[row][connectorCol] = "path";
+    for (let col = 1; col < COLS - 1; col++) {
+      const isPillar = row % 2 === 0 && col % 2 === 0;
+      cells[row][col] = isPillar ? "wall" : "path";
     }
   }
 
