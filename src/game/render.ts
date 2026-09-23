@@ -102,7 +102,9 @@ export function renderGhost(
   row: number,
   col: number,
   cellSize: number,
-  color: string
+  color: string,
+  isVulnerable = false,
+  isWarning = false
 ): void {
   const centerX = col * cellSize + cellSize / 2;
   const centerY = row * cellSize + cellSize / 2;
@@ -112,7 +114,12 @@ export function renderGhost(
   const left = centerX - radius;
   const right = centerX + radius;
 
-  ctx.fillStyle = color;
+  if (isVulnerable) {
+    ctx.fillStyle = isWarning ? (Math.floor(Date.now() / 200) % 2 === 0 ? "#ffffff" : "#0000ff") : "#0000ff";
+  } else {
+    ctx.fillStyle = color;
+  }
+
   ctx.beginPath();
   ctx.arc(centerX, domeCenterY, radius, Math.PI, 0);
   ctx.lineTo(right, bottomY);
@@ -128,17 +135,33 @@ export function renderGhost(
   ctx.closePath();
   ctx.fill();
 
-  const eyeOffsetX = radius * 0.4;
-  const eyeRadius = radius * 0.22;
-  for (const side of [-1, 1]) {
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius, 0, Math.PI * 2);
-    ctx.fill();
+  if (!isVulnerable) {
+    const eyeOffsetX = radius * 0.4;
+    const eyeRadius = radius * 0.22;
+    for (const side of [-1, 1]) {
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius, 0, Math.PI * 2);
+      ctx.fill();
 
-    ctx.fillStyle = "#16164a";
-    ctx.beginPath();
-    ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius * 0.5, 0, Math.PI * 2);
-    ctx.fill();
+      ctx.fillStyle = "#16164a";
+      ctx.beginPath();
+      ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else {
+    const eyeOffsetX = radius * 0.3;
+    const eyeRadius = radius * 0.18;
+    for (const side of [-1, 1]) {
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#16164a";
+      ctx.beginPath();
+      ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 }

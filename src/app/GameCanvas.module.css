@@ -2,15 +2,20 @@
   display: inline-flex;
   flex-direction: column;
   gap: 8px;
+  width: 408px;
 }
 
 .canvasContainer {
   position: relative;
+  width: 408px;
+  height: 360px;
 }
 
 .canvas {
   display: block;
   image-rendering: pixelated;
+  width: 100%;
+  height: 100%;
 }
 
 .levelComplete {
@@ -37,4 +42,67 @@
   50% {
     transform: scale(1.08);
   }
+}
+
+.gameOver {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.85);
+  font-family: monospace;
+  color: #ff4444;
+  gap: 16px;
+  padding: 24px;
+}
+
+.gameOver h2 {
+  font-size: 48px;
+  font-weight: bold;
+  text-shadow: 0 0 15px #ff4444, 0 0 4px #000000;
+  margin: 0;
+  animation: gameover-pulse 1s ease-in-out infinite;
+}
+
+.gameOver p {
+  font-size: 24px;
+  color: #f8e34d;
+  margin: 0;
+  text-shadow: 0 0 8px #38f0e8;
+}
+
+@keyframes gameover-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.restartButton {
+  margin-top: 16px;
+  padding: 12px 32px;
+  font-family: monospace;
+  font-size: 20px;
+  font-weight: bold;
+  color: #000000;
+  background: #f8e34d;
+  border: 3px solid #38f0e8;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.restartButton:hover {
+  background: #fff06d;
+  transform: scale(1.05);
+}
+
+.restartButton:active {
+  transform: scale(0.98);
 }

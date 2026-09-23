@@ -43,10 +43,10 @@ Un checklist por incremento. Cada uno se cierra con commit propio.
 - [x] Commit del incremento
 
 ### Incremento 5 — Vidas, colisión con fantasmas y Game Over (HU-08, HU-09, HU-10)
-- [ ] Ejecutar Prompt 4
-- [ ] Verificar: se pierden vidas y la partida termina al agotarlas
-- [ ] Registrar problemas en la tabla 8.5
-- [ ] Commit del incremento
+- [x] Ejecutar Prompt 4
+- [x] Verificar: se pierden vidas y la partida termina al agotarlas
+- [x] Registrar problemas en la tabla 8.5
+- [x] Commit del incremento
 
 ### Incremento 6 — PowerUp, fantasmas vulnerables y comer fantasmas (HU-05, HU-06, HU-07)
 - [ ] Ejecutar Prompt 5

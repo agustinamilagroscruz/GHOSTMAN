@@ -11,4 +11,30 @@
   font-weight: bold;
   color: #f8e34d;
   letter-spacing: 0.5px;
+  width: 408px;
+  box-sizing: border-box;
+}
+
+.livesContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lifeIcon {
+  font-size: 20px;
+  filter: drop-shadow(0 0 4px #f8e34d);
+}
+
+.powerUpTimer {
+  font-size: 16px;
+  color: #00ffff;
+  text-shadow: 0 0 8px #00ffff;
+  animation: pulse 0.5s infinite;
+  white-space: nowrap;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
