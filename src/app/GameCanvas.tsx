@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createLevel1Map } from "../game/maps/level1";
-import { LEVEL_THEMES } from "../game/theme";
-import { renderMap } from "../game/render";
+import { createKeyboardDirectionInput } from "../game/input";
+import { getMoverPosition } from "../game/movement";
+import { renderMap, renderPacman } from "../game/render";
 import { startGameLoop } from "../game/loop";
+import { createInitialGameState, updateGameState } from "../game/state";
+import { LEVEL_THEMES } from "../game/theme";
 import styles from "./GameCanvas.module.css";
 
 const CELL_SIZE = 24;
@@ -17,20 +19,30 @@ export function GameCanvas() {
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    const map = createLevel1Map();
+    const state = createInitialGameState();
     const theme = LEVEL_THEMES[1];
+    const input = createKeyboardDirectionInput();
 
-    canvas.width = map.cols * CELL_SIZE;
-    canvas.height = map.rows * CELL_SIZE;
+    canvas.width = state.map.cols * CELL_SIZE;
+    canvas.height = state.map.rows * CELL_SIZE;
 
-    const render = () => renderMap(ctx, map, theme, CELL_SIZE);
-    const update = () => {
-      // El estado del juego (personajes, colisiones) se incorpora en los próximos incrementos.
+    const update = (dt: number) => {
+      updateGameState(state, dt, input.getDirection());
+    };
+
+    const render = () => {
+      renderMap(ctx, state.map, theme, CELL_SIZE);
+      const position = getMoverPosition(state.player);
+      renderPacman(ctx, position.row, position.col, CELL_SIZE, state.player.direction);
     };
 
     const loop = startGameLoop(update, render);
-    return () => loop.stop();
+    return () => {
+      loop.stop();
+      input.dispose();
+    };
   }, []);
 
   return <canvas ref={canvasRef} className={styles.canvas} />;
 }
+

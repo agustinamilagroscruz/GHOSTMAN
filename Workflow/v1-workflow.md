@@ -25,10 +25,10 @@ Un checklist por incremento. Cada uno se cierra con commit propio.
 - [x] Commit del incremento (`36a065a`)
 
 ### Incremento 2 — Movimiento de Pacman y colisión con muros (HU-01, HU-02)
-- [ ] Ejecutar Prompt 1
-- [ ] Verificar: Pacman recorre el laberinto sin atravesar muros
-- [ ] Registrar problemas en la tabla 8.5
-- [ ] Commit del incremento
+- [x] Ejecutar Prompt 1
+- [x] Verificar: Pacman recorre el laberinto sin atravesar muros
+- [x] Registrar problemas en la tabla 8.5
+- [x] Commit del incremento
 
 ### Incremento 3 — Esferas, contador y finalización de nivel (HU-03, HU-04, HU-14)
 - [ ] Ejecutar Prompt 2

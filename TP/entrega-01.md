@@ -1399,6 +1399,7 @@ Pantallas de cierre:
 |---|---|---|---|---|---|
 | 1 | 1 — Andamiaje | Prompt 0 | `create-next-app` rechazó el nombre del paquete por tener mayúsculas ("Ghostman") | Se generó el scaffold en un directorio temporal con un nombre válido en minúsculas y se copió el contenido a la raíz del repositorio, renombrando el campo `name` en `package.json` | Sí (paso de infraestructura, no de lógica de negocio) |
 | 2 | 1 — Andamiaje | Prompt 0 | El scaffold de `create-next-app` sobrescribió el `README.md` propio del repositorio con el README genérico de Next.js | Se restauró el contenido original del README y se agregaron enlaces a la especificación y al workflow | Sí |
+| 3 | 2 — Movimiento y colisiones | Prompt 1 | Al probar el movimiento en el navegador, el teclado no llegaba de forma consistente al juego: el overlay de desarrollo de Next.js ("devIndicators") interceptaba las teclas de flecha de manera intermitente | Se deshabilitó `devIndicators` en `next.config.ts`. No es un defecto de la lógica de movimiento: se verificó aislando el algoritmo fuera del navegador antes de aplicar el cambio | Sí (configuración de la herramienta, no de la lógica de juego) |
 
 **Qué registrar en cada columna:**
 - **Problema observado:** qué devolvió el agente y en qué se apartó de lo pedido. Con la mayor literalidad posible: "generó el movimiento con la tecla mantenida en lugar de avance continuo", no "problemas con el movimiento".
