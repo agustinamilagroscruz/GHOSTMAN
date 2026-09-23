@@ -1,3 +1,8 @@
+.wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .canvas {
   display: block;
   image-rendering: pixelated;

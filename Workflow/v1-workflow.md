@@ -31,10 +31,10 @@ Un checklist por incremento. Cada uno se cierra con commit propio.
 - [x] Commit del incremento
 
 ### Incremento 3 — Esferas, contador y finalización de nivel (HU-03, HU-04, HU-14)
-- [ ] Ejecutar Prompt 2
-- [ ] Verificar: el nivel se completa al consumir la última esfera
-- [ ] Registrar problemas en la tabla 8.5
-- [ ] Commit del incremento
+- [x] Ejecutar Prompt 2
+- [x] Verificar: el nivel se completa al consumir la última esfera
+- [x] Registrar problemas en la tabla 8.5
+- [x] Commit del incremento
 
 ### Incremento 4 — Fantasmas clásicos con IA chase/scatter (HU-16, HU-04)
 - [ ] Ejecutar Prompt 3
