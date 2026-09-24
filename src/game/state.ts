@@ -1,14 +1,22 @@
 import { createGhost, reverseGhostDirection, updateGhost, type Ghost, type GhostMode } from "./ghosts";
 import { createLevel1Map } from "./maps/level1";
 import { createMover, getMoverPosition, updateMover, type Direction, type Mover } from "./movement";
+import { ageFruits, createFruit, type Fruit } from "./fruits";
+import {
+  COMMON_PELLET_POINTS,
+  FRUIT_POINTS,
+  POWER_PELLET_POINTS,
+  computeLivesBonus,
+  computeTimeBonus,
+  createScoreBreakdown,
+  type ScoreBreakdown,
+  type ScoreCategory,
+} from "./scoring";
 import type { GameMap } from "./types";
 
 const PLAYER_SPEED_CELLS_PER_SECOND = 6;
 const PLAYER_SPAWN_ROW = 7;
 const PLAYER_SPAWN_COL = 8;
-
-const COMMON_PELLET_POINTS = 10;
-const POWER_PELLET_POINTS = 50;
 
 const GHOST_SPEED_CELLS_PER_SECOND = 6;
 const CHASE_DURATION_SECONDS = 20;
@@ -36,6 +44,16 @@ export interface GameState {
   powerUpActive: boolean;
   powerUpTimer: number;
   ghostsEatenInPowerUp: number;
+  /** Nivel en curso (1..3). */
+  level: number;
+  /** Segundos de juego transcurridos en el nivel en curso (para el bonus por tiempo). */
+  levelElapsed: number;
+  /** Bonus por tiempo otorgado al completar el nivel en curso (0 mientras se juega). */
+  lastLevelTimeBonus: number;
+  fruits: Fruit[];
+  scoreBreakdown: ScoreBreakdown;
+  /** true si la partida terminó ganada; el bonus por vidas solo aplica en ese caso. */
+  won: boolean;
 }
 
 function createLevel1Ghosts(rows: number, cols: number): Ghost[] {
@@ -101,7 +119,46 @@ export function createInitialGameState(): GameState {
     powerUpActive: false,
     powerUpTimer: 0,
     ghostsEatenInPowerUp: 0,
+    level: 1,
+    levelElapsed: 0,
+    lastLevelTimeBonus: 0,
+    fruits: [],
+    scoreBreakdown: createScoreBreakdown(),
+    won: false,
   };
+}
+
+/** Único punto de entrada para sumar puntaje: mantiene el desglose y el total sincronizados. */
+function addPoints(state: GameState, category: ScoreCategory, points: number): void {
+  if (points <= 0) return; // el puntaje nunca disminuye
+  state.score += points;
+  state.scoreBreakdown[category] += points;
+}
+
+/** Coloca una fruta en el mapa (la aparición periódica depende del nivel). */
+export function spawnFruit(state: GameState, row: number, col: number): void {
+  state.fruits.push(createFruit(row, col));
+}
+
+function consumeFruitAt(state: GameState, row: number, col: number): void {
+  const index = state.fruits.findIndex((fruit) => fruit.row === row && fruit.col === col);
+  if (index === -1) return;
+  state.fruits.splice(index, 1);
+  addPoints(state, "fruits", FRUIT_POINTS);
+}
+
+function completeLevel(state: GameState): void {
+  state.levelComplete = true;
+  state.lastLevelTimeBonus = computeTimeBonus(state.level, state.levelElapsed);
+  addPoints(state, "timeBonus", state.lastLevelTimeBonus);
+}
+
+/** Cierra la partida: el bonus por vidas se aplica una sola vez y solo en victoria. */
+export function finishGame(state: GameState, won: boolean): void {
+  if (state.gameOver || state.won) return;
+  state.won = won;
+  state.gameOver = !won;
+  addPoints(state, "livesBonus", computeLivesBonus(state.lives, won));
 }
 
 function consumePelletAt(state: GameState, row: number, col: number): void {
@@ -112,14 +169,14 @@ function consumePelletAt(state: GameState, row: number, col: number): void {
   state.pelletsRemaining -= 1;
 
   if (pellet === "power") {
-    state.score += POWER_PELLET_POINTS;
+    addPoints(state, "pellets", POWER_PELLET_POINTS);
     activatePowerUp(state);
   } else {
-    state.score += COMMON_PELLET_POINTS;
+    addPoints(state, "pellets", COMMON_PELLET_POINTS);
   }
 
   if (state.pelletsRemaining === 0) {
-    state.levelComplete = true;
+    completeLevel(state);
   }
 }
 
@@ -201,7 +258,7 @@ function checkGhostCollisions(state: GameState): void {
 
 function eatGhost(state: GameState, ghost: Ghost): void {
   const index = Math.min(state.ghostsEatenInPowerUp, GHOST_POINTS_SCALE.length - 1);
-  state.score += GHOST_POINTS_SCALE[index];
+  addPoints(state, "ghosts", GHOST_POINTS_SCALE[index]);
   state.ghostsEatenInPowerUp += 1;
 
   ghost.eaten = true;
@@ -215,8 +272,8 @@ function loseLife(state: GameState): void {
   endPowerUp(state);
 
   if (state.lives <= 0) {
-    state.gameOver = true;
     state.lives = 0;
+    finishGame(state, false);
   } else {
     resetPlayerPosition(state.player);
     resetGhostPositions(state.ghosts);
@@ -268,7 +325,9 @@ export function updateGameState(
   deltaSeconds: number,
   playerDesiredDirection: Direction | null
 ): void {
-  if (state.levelComplete || state.gameOver) return;
+  if (state.levelComplete || state.gameOver || state.won) return;
+
+  state.levelElapsed += deltaSeconds;
 
   const previousRow = state.player.row;
   const previousCol = state.player.col;
@@ -278,7 +337,9 @@ export function updateGameState(
 
   if (state.player.row !== previousRow || state.player.col !== previousCol) {
     consumePelletAt(state, state.player.row, state.player.col);
+    consumeFruitAt(state, state.player.row, state.player.col);
   }
+  state.fruits = ageFruits(state.fruits, deltaSeconds);
 
   updatePowerUp(state, deltaSeconds);
   updateGhostRespawns(state, deltaSeconds);

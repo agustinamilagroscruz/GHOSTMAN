@@ -177,3 +177,29 @@ export function renderGhost(
     }
   }
 }
+
+/** Fruta (cereza): dos frutos rojos con tallo verde, distinta de esferas y personajes. */
+export function renderFruit(ctx: CanvasRenderingContext2D, row: number, col: number, cellSize: number): void {
+  const x = col * cellSize;
+  const y = row * cellSize;
+  const r = cellSize * 0.18;
+
+  ctx.strokeStyle = "#3fbf3f";
+  ctx.lineWidth = Math.max(1, cellSize * 0.07);
+  ctx.beginPath();
+  ctx.moveTo(x + cellSize * 0.32, y + cellSize * 0.62);
+  ctx.quadraticCurveTo(x + cellSize * 0.5, y + cellSize * 0.2, x + cellSize * 0.7, y + cellSize * 0.18);
+  ctx.moveTo(x + cellSize * 0.66, y + cellSize * 0.64);
+  ctx.lineTo(x + cellSize * 0.7, y + cellSize * 0.18);
+  ctx.stroke();
+
+  ctx.fillStyle = "#e0102f";
+  for (const [cx, cy] of [
+    [0.32, 0.68],
+    [0.66, 0.7],
+  ] as const) {
+    ctx.beginPath();
+    ctx.arc(x + cellSize * cx, y + cellSize * cy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}

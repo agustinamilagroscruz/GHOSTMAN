@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { createFireworksState, renderFireworks, spawnFireworkBurst, updateFireworks } from "../game/fireworks";
 import { createKeyboardDirectionInput } from "../game/input";
 import { getMoverPosition } from "../game/movement";
-import { isBlinkOn, renderGhost, renderMap, renderPacman } from "../game/render";
+import { isBlinkOn, renderFruit, renderGhost, renderMap, renderPacman } from "../game/render";
 import { startGameLoop } from "../game/loop";
 import { createInitialGameState, isPowerUpWarning, updateGameState, type GameState } from "../game/state";
 import { LEVEL_THEMES } from "../game/theme";
 import { Hud } from "./Hud";
+import { ScoreBreakdownView } from "./ScoreBreakdownView";
 import styles from "./GameCanvas.module.css";
 
 const CELL_SIZE = 24;
@@ -24,6 +25,7 @@ export function GameCanvas() {
   const [gameOver, setGameOver] = useState(state.gameOver);
   const [powerUpActive, setPowerUpActive] = useState(state.powerUpActive);
   const [powerUpTimer, setPowerUpTimer] = useState(state.powerUpTimer);
+  const [levelTimeBonus, setLevelTimeBonus] = useState(state.lastLevelTimeBonus);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -59,6 +61,7 @@ export function GameCanvas() {
       }
       if (state.levelComplete !== lastLevelComplete) {
         lastLevelComplete = state.levelComplete;
+        setLevelTimeBonus(state.lastLevelTimeBonus);
         setLevelComplete(lastLevelComplete);
       }
       if (state.lives !== lastLives) {
@@ -92,6 +95,9 @@ export function GameCanvas() {
 
     const render = () => {
       renderMap(ctx, state.map, theme, CELL_SIZE);
+      for (const fruit of state.fruits) {
+        renderFruit(ctx, fruit.row, fruit.col, CELL_SIZE);
+      }
       const isWarning = isPowerUpWarning(state);
       const blinkOn = isBlinkOn(state.powerUpTimer);
       for (const ghost of state.ghosts) {
@@ -128,7 +134,7 @@ export function GameCanvas() {
           <canvas ref={canvasRef} className={styles.canvas} />
           <div className={styles.gameOver}>
             <h2>💀 Game Over</h2>
-            <p>Puntaje final: {score}</p>
+            <ScoreBreakdownView total={score} breakdown={state.scoreBreakdown} />
             <button className={styles.restartButton} onClick={() => window.location.reload()}>
               Volver a jugar
             </button>
@@ -143,7 +149,15 @@ export function GameCanvas() {
       <Hud score={score} pelletsRemaining={pelletsRemaining} lives={lives} powerUpActive={powerUpActive} powerUpTimer={powerUpTimer} />
       <div className={styles.canvasContainer}>
         <canvas ref={canvasRef} className={styles.canvas} />
-        {levelComplete && <div className={styles.levelComplete}>🎉 ¡Nivel completado! 🎉</div>}
+        {levelComplete && (
+          <div className={styles.levelComplete}>
+            <div className={styles.levelResult}>
+              <span>🎉 ¡Nivel completado! 🎉</span>
+              <small>Bonus por tiempo: {levelTimeBonus}</small>
+              <small>Puntaje: {score}</small>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

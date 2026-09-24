@@ -106,3 +106,40 @@
 .restartButton:active {
   transform: scale(0.98);
 }
+
+.breakdown {
+  border-collapse: collapse;
+  font-family: monospace;
+  font-size: 15px;
+  color: #ffffff;
+  min-width: 260px;
+}
+
+.breakdown td {
+  padding: 3px 8px;
+  text-align: left;
+}
+
+.breakdown td:last-child {
+  text-align: right;
+  color: #f8e34d;
+}
+
+.breakdownTotal td {
+  border-top: 2px solid #38f0e8;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.levelResult {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.levelResult small {
+  font-size: 16px;
+  color: #ffffff;
+  text-shadow: none;
+}
