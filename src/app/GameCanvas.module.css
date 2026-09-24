@@ -55,12 +55,12 @@
   background: rgba(0, 0, 0, 0.85);
   font-family: monospace;
   color: #ff4444;
-  gap: 16px;
-  padding: 24px;
+  gap: 10px;
+  padding: 16px;
 }
 
 .gameOver h2 {
-  font-size: 48px;
+  font-size: 34px;
   font-weight: bold;
   text-shadow: 0 0 15px #ff4444, 0 0 4px #000000;
   margin: 0;
@@ -85,7 +85,7 @@
 }
 
 .restartButton {
-  margin-top: 16px;
+  margin-top: 6px;
   padding: 12px 32px;
   font-family: monospace;
   font-size: 20px;
@@ -150,4 +150,26 @@
 
 .victory h2 {
   text-shadow: 0 0 15px #7cfc00, 0 0 4px #000000;
+}
+
+.paused {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.65);
+  font-family: monospace;
+  font-size: 34px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 0 10px #38f0e8;
+}
+
+.paused small {
+  font-size: 15px;
+  font-weight: normal;
+  color: #f8e34d;
 }

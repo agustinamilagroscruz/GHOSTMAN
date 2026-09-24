@@ -7,7 +7,14 @@ import { createKeyboardDirectionInput } from "../game/input";
 import { getMoverPosition } from "../game/movement";
 import { isBlinkOn, renderFruit, renderGhost, renderMap, renderPacman } from "../game/render";
 import { startGameLoop } from "../game/loop";
-import { createInitialGameState, isPowerUpWarning, updateGameState, type GameState } from "../game/state";
+import {
+  createInitialGameState,
+  isPowerUpWarning,
+  restartGame,
+  togglePause,
+  updateGameState,
+  type GameState,
+} from "../game/state";
 import { LEVEL_THEMES } from "../game/theme";
 import { Hud } from "./Hud";
 import { ScoreBreakdownView } from "./ScoreBreakdownView";
@@ -27,6 +34,7 @@ interface UiSnapshot {
   won: boolean;
   powerUpActive: boolean;
   powerUpTimer: number;
+  paused: boolean;
 }
 
 function takeSnapshot(state: GameState): UiSnapshot {
@@ -41,6 +49,7 @@ function takeSnapshot(state: GameState): UiSnapshot {
     won: state.won,
     powerUpActive: state.powerUpActive,
     powerUpTimer: Math.ceil(state.powerUpTimer * 10) / 10,
+    paused: state.paused,
   };
 }
 
@@ -52,13 +61,17 @@ export function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [state] = useState<GameState>(() => createInitialGameState());
   const [ui, setUi] = useState<UiSnapshot>(() => takeSnapshot(state));
+  const restartRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    const input = createKeyboardDirectionInput();
+    const input = createKeyboardDirectionInput({
+      onTogglePause: () => togglePause(state),
+      isPaused: () => state.paused,
+    });
     const fireworks = createFireworksState();
     let nextFireworkIn = 0;
 
@@ -80,6 +93,7 @@ export function GameCanvas() {
         setUi(snapshot);
       }
 
+      if (state.paused) return;
       updateFireworks(fireworks, dt);
       if (state.levelComplete || state.won) {
         nextFireworkIn -= dt;
@@ -116,6 +130,14 @@ export function GameCanvas() {
       renderFireworks(ctx, fireworks, CELL_SIZE);
     };
 
+    restartRef.current = () => {
+      restartGame(state);
+      input.reset();
+      fireworks.particles = [];
+      lastSnapshot = takeSnapshot(state);
+      setUi(lastSnapshot);
+    };
+
     const loop = startGameLoop(update, render);
     return () => {
       loop.stop();
@@ -148,11 +170,17 @@ export function GameCanvas() {
             </div>
           </div>
         )}
+        {ui.paused && (
+          <div className={styles.paused} data-testid="pause-overlay">
+            <span>⏸ PAUSA</span>
+            <small>ESC para continuar</small>
+          </div>
+        )}
         {ui.gameOver && (
           <div className={styles.gameOver}>
             <h2>💀 Game Over</h2>
             <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} />
-            <button className={styles.restartButton} onClick={() => window.location.reload()}>
+            <button className={styles.restartButton} autoFocus onClick={() => restartRef.current()}>
               Volver a jugar
             </button>
           </div>
@@ -161,7 +189,7 @@ export function GameCanvas() {
           <div className={`${styles.gameOver} ${styles.victory}`}>
             <h2>🏆 ¡Victoria!</h2>
             <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} />
-            <button className={styles.restartButton} onClick={() => window.location.reload()}>
+            <button className={styles.restartButton} autoFocus onClick={() => restartRef.current()}>
               Volver a jugar
             </button>
           </div>

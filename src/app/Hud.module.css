@@ -2,15 +2,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 14px;
+  padding: 8px 10px;
   border: 2px solid #38f0e8;
   border-radius: 4px;
   background: #000000;
   font-family: monospace;
-  font-size: 18px;
+  font-size: 13px;
   font-weight: bold;
   color: #f8e34d;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  gap: 6px;
   width: 408px;
   box-sizing: border-box;
 }
@@ -18,16 +20,16 @@
 .livesContainer {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 2px;
 }
 
 .lifeIcon {
-  font-size: 20px;
+  font-size: 12px;
   filter: drop-shadow(0 0 4px #f8e34d);
 }
 
 .powerUpTimer {
-  font-size: 16px;
+  font-size: 13px;
   color: #00ffff;
   text-shadow: 0 0 8px #00ffff;
   animation: pulse 0.5s infinite;

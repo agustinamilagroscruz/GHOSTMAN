@@ -70,6 +70,8 @@ export interface GameState {
   won: boolean;
   /** Fuente de azar inyectable (reaparición como espectro, posición de frutas). */
   random: RandomSource;
+  /** En pausa no se mueve nada y todos los temporizadores quedan detenidos. */
+  paused: boolean;
 }
 
 function levelDefinition(state: GameState): LevelDefinition {
@@ -150,11 +152,30 @@ export function createInitialGameState(random: RandomSource = Math.random): Game
     lives: INITIAL_LIVES,
     gameOver: false,
     won: false,
+    paused: false,
     scoreBreakdown: createScoreBreakdown(),
     random,
   } as GameState;
   loadLevel(state, 1);
   return state;
+}
+
+/**
+ * Volver a jugar: partida nueva desde el nivel 1, 3 vidas, puntaje 0 y mapas restablecidos.
+ * Reutiliza el mismo objeto de estado para que el bucle de juego en curso lo siga usando.
+ */
+export function restartGame(state: GameState): void {
+  Object.assign(state, createInitialGameState(state.random));
+}
+
+export function isGameFinished(state: GameState): boolean {
+  return state.gameOver || state.won;
+}
+
+/** ESC: pausa o reanuda. No tiene efecto con la partida terminada. */
+export function togglePause(state: GameState): void {
+  if (isGameFinished(state)) return;
+  state.paused = !state.paused;
 }
 
 /** Único punto de entrada para sumar puntaje: mantiene el desglose y el total sincronizados. */
@@ -406,7 +427,7 @@ export function updateGameState(
   deltaSeconds: number,
   playerDesiredDirection: Direction | null
 ): void {
-  if (state.gameOver || state.won) return;
+  if (state.gameOver || state.won || state.paused) return;
 
   if (state.levelComplete) {
     updateLevelTransition(state, deltaSeconds);
