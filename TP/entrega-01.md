@@ -67,7 +67,7 @@ El equipo optó por completar primero la especificación de requerimientos y el 
 En consecuencia, en este documento:
 
 - Las secciones 1 a 7, 9, 10 y 11 están **completas**: requerimientos, estrategia de pruebas, casos de prueba y trazabilidad.
-- La sección 8 contiene el **plan de implementación con AI y los prompts ya redactados**, listos para ejecutarse, más la plantilla de registro de incidencias de la sesión de generación.
+- La sección 8 contiene el **plan de implementación con AI, los prompts y el registro de la sesión de generación ya ejecutada**: los nueve incrementos de la V1 están generados, cada uno con su commit, y los problemas encontrados están registrados en la tabla 8.5 y analizados en 8.6.
 - Las secciones 12 y 13 contienen los **instrumentos de reporte** (estructura de datos, métricas y criterios de clasificación) con las tablas preparadas para consolidar los resultados de la ejecución.
 
 ---
@@ -1151,7 +1151,7 @@ Los actores que aparecen en las historias son:
 
 ## 8. Implementación de la aplicación con AI
 
-> **Estado de esta sección.** Contiene la estrategia de generación, los agentes seleccionados y los prompts ya redactados, listos para ejecutarse. Las subsecciones 8.5 y 8.6 son los instrumentos de registro de la sesión de generación y se completan durante la sesión: no llevan contenido anticipado, porque su valor está en registrar lo que efectivamente devolvió el modelo y no lo que esperábamos que devolviera.
+> **Estado de esta sección.** Contiene la estrategia de generación, los agentes utilizados y los prompts. La sesión de generación de la V1 está **completa** (incrementos 1 a 9): las subsecciones 8.5 y 8.6 registran lo que efectivamente devolvió el modelo, no lo que esperábamos que devolviera.
 
 ### 8.1 Estrategia de generación
 
@@ -1179,6 +1179,9 @@ Cada incremento se cierra con un commit propio en GitHub. Esta granularidad tien
 |---|---|---|
 | Claude Sonnet 4.5 | VS Code con GitHub Copilot (agente integrado) | Generación de los incrementos de código |
 | Claude Sonnet 4.5 | VS Code con GitHub Copilot (agente integrado) | Revisión de código generado, verificación de criterios de avance y consultas puntuales |
+| Claude Opus 5.5 | Claude (modo Cowork, app de escritorio) con acceso a la carpeta del repositorio | Generación de los incrementos 6 a 9 (Prompts 5 a 8) y verificación de sus criterios de avance |
+
+**Cambio de agente a partir del Incremento 6.** Los incrementos 1 a 5 se generaron con Claude Sonnet 4.5 desde VS Code con GitHub Copilot. Los incrementos 6 a 9 se generaron con Claude Opus 5.5 desde Claude (modo Cowork), que trabaja sobre la carpeta local del repositorio y puede ejecutar comandos (compilación, lint, scripts de verificación y un navegador sin interfaz para capturas). Lo registramos porque el cambio de modelo y de interfaz es una variable que afecta la comparación entre incrementos: en la segunda mitad el agente verificó sus propios criterios de avance con scripts antes de cerrar cada commit, y eso cambió el tipo de problema que quedó registrado en la tabla 8.5 (ver 8.6).
 
 La cátedra sugiere Claude, Gemini, ChatGPT y Ollama, e IDEs con planes educativos (VS Code con GitHub Copilot mediante GitHub Education, PyCharm mediante el Student Pack, o Cursor). El equipo debe registrar aquí la combinación efectivamente usada, con la versión del modelo, porque el comportamiento entre versiones difiere y el registro pierde valor si no es reproducible.
 
@@ -1401,6 +1404,15 @@ Pantallas de cierre:
 | 2 | 1 — Andamiaje | Prompt 0 | El scaffold de `create-next-app` sobrescribió el `README.md` propio del repositorio con el README genérico de Next.js | Se restauró el contenido original del README y se agregaron enlaces a la especificación y al workflow | Sí |
 | 3 | 2 — Movimiento y colisiones | Prompt 1 | Al probar el movimiento en el navegador, el teclado no llegaba de forma consistente al juego: el overlay de desarrollo de Next.js ("devIndicators") interceptaba las teclas de flecha de manera intermitente | Se deshabilitó `devIndicators` en `next.config.ts`. No es un defecto de la lógica de movimiento: se verificó aislando el algoritmo fuera del navegador antes de aplicar el cambio | Sí (configuración de la herramienta, no de la lógica de juego) |
 | 4 | 4 — IA de fantasmas | Prompt 3 | El mapa placeholder del Incremento 1 era un único corredor serpenteante sin bifurcaciones: los fantasmas no tenían ninguna intersección real donde elegir dirección, por lo que la persecución/dispersión no habría sido observable | Se rediseñó `createLevel1Map` con un patrón de "panal" (pilares de muro en filas y columnas pares), que genera intersecciones de 4 direcciones en todo el mapa | Sí |
+| 5 | 6 — PowerUp | Prompt 5 | El commit del Incremento 5 (`30478b8`) ya traía una versión parcial del PowerUp que se apartaba del Prompt 5 en cuatro puntos: el fantasma comido volvía **al instante** a su esquina en lugar de salir del mapa 5 s; el diseño vulnerable dependía del PowerUp global, así que un fantasma recién reaparecido no podía distinguirse; los fantasmas **invertían la marcha al terminar** el PowerUp (la sección 4.7 solo admite la reversa al iniciarlo); y el parpadeo se calculaba con el reloj del sistema, por lo que seguiría parpadeando con el juego detenido | Al ejecutar el Prompt 5 el agente reescribió el PowerUp: estado vulnerable y "comido" por fantasma, temporizador de reaparición de 5 s, sin reversa al terminar, y parpadeo derivado del temporizador del PowerUp | No |
+| 6 | 6 — PowerUp | Prompt 5 | La colisión Pacman–fantasma (Incremento 5) comparaba solo la celda de partida de cada personaje. Un script de verificación del agente mostró que si Pacman y un fantasma se cruzan de frente en un corredor pueden intercambiar celdas sin que se detecte el contacto: ni se pierde la vida ni se come al fantasma | Se reemplazó por la distancia entre las posiciones interpoladas (contacto a menos de media celda). El caso "cruce de frente" quedó en el script de verificación | No |
+| 7 | 7 — Puntaje y frutas | Prompt 6 | El Prompt 6 pide frutas de 100 puntos con vida de 15 s, pero ni el prompt ni la HU-12 dicen cuándo aparecen en los niveles 1 y 2. El agente implementó la fruta como entidad (puntaje, vida de 15 s, no la consumen los fantasmas) y dejó su aparición para el Prompt 7, que solo la define para el nivel 3. En consecuencia **en los niveles 1 y 2 no aparecen frutas** | Se dejó así, porque coincide con la sección 4.4. Queda como consulta de especificación (ver 8.6) | No |
+| 8 | 7 — Puntaje y frutas | Prompt 6 | "10 puntos por cada segundo restante" admite dos lecturas con segundos fraccionarios (proporcional o por segundo entero). El agente eligió **segundos enteros** (se descarta la fracción): con 100,5 s en el nivel 1 quedan 19 s y el bonus es 190 | Decisión documentada en el código (`computeTimeBonus`). Los casos de prueba de bonus por tiempo deben calcular el esperado con segundos enteros | No |
+| 9 | 8 — Niveles y espectro | Prompt 7 | El script de verificación del agente midió dos usos de la habilidad del espectro separados por 2,3 s: al perder una vida se reiniciaban las posiciones **y también el cooldown** de 10 s | Se corrigió para que perder una vida o reaparecer no reinicie el cooldown | No |
+| 10 | 8 — Niveles y espectro | Prompt 7 | El espectro podía quitarle una vida a Pacman **mientras todavía estaba cruzando el muro**, antes de que empezaran a correr los 3 s sin poder comer: el contacto ocurría durante la última media celda del cruce | Se consideró "cruzando el muro" como parte del estado en que no puede comer, y se dibuja igual (translúcido con contorno punteado) | No |
+| 11 | 8 — Niveles y espectro | Prompt 7 | Con los parámetros pedidos (una fruta cada 20 s, desaparece a los 15 s) **nunca pueden coexistir 2 frutas**: cada una desaparece 5 s antes de que aparezca la siguiente. El límite de 2 simultáneas está implementado, pero en juego normal no se alcanza | No es un defecto del código sino una interacción entre parámetros de la sección 4.4. Se registra para decidir si se ajusta la especificación (ver 8.6) | No |
+| 12 | 9 — Pausa y cierre | Prompt 8 | Al agregar el número de nivel al HUD (Prompt 7) la barra superior dejó de entrar en su ancho: en la captura del navegador el texto se partía en dos líneas y el temporizador del PowerUp quedaba fuera del recuadro | Se compactó el HUD (tamaño de fuente y separaciones) y se verificó de nuevo con captura | No |
+| 13 | 9 — Pausa y cierre | Prompt 8 | La compilación de producción (`next build`) falla en entornos sin acceso a `fonts.googleapis.com`, porque el `layout.tsx` generado en el Incremento 1 descarga las fuentes Geist con `next/font/google`. No afecta el despliegue en Vercel, que tiene acceso a Internet | Sin cambios en el código. Para compilar localmente sin red hay que tener acceso a Google Fonts o pasar a `next/font/local` | No |
 
 **Qué registrar en cada columna:**
 - **Problema observado:** qué devolvió el agente y en qué se apartó de lo pedido. Con la mayor literalidad posible: "generó el movimiento con la tecla mantenida en lugar de avance continuo", no "problemas con el movimiento".
@@ -1409,13 +1421,26 @@ Pantallas de cierre:
 
 ### 8.6 Observaciones sobre la implementación con AI
 
-*A completar al cierre de la sesión de generación.* Puntos a cubrir:
+**Cantidad de prompts.** Se usaron los 9 prompts planificados (Prompt 0 a Prompt 8), uno por incremento, y cada incremento cerró con su commit (`36a065a`, `14aa9a3`, `cb02fe1`, `8eaff47`, `30478b8`, `ab060e7`, `433946f`, `a772d15`, `0a54fcb`). No hizo falta ningún prompt de corrección adicional del equipo. En los incrementos 6 a 9 las correcciones de las filas 6, 9, 10 y 12 de la tabla 8.5 las hizo el propio agente dentro del mismo prompt, después de ejecutar sus scripts de verificación o una captura en el navegador. Las registramos igual, porque muestran que la primera versión que generó el agente tenía el problema.
 
-- Cantidad de prompts efectivamente usados frente a los 9 planificados.
-- Requerimientos que el agente implementó correctamente en el primer intento y requerimientos que necesitaron reformulación.
-- Tipos de requerimiento donde el agente falló con más frecuencia. Nuestra hipótesis previa, a confirmar o refutar con los datos: los criterios con **valores numéricos explícitos** (duraciones, cooldowns, escalas de puntos) se implementan bien en el primer intento, y los que describen **interacciones entre estados** (qué ocurre con la escala de puntos si se consume una esfera grande durante el parpadeo, o con el PowerUp al perder una vida) requieren corrección.
-- Funcionalidad que el agente agregó sin que se le pidiera, y qué se hizo con ella.
-- Relación observada entre la precisión del prompt y la cantidad de defectos posteriores encontrados en la ejecución de pruebas.
+**Qué salió bien en el primer intento.** Los criterios con **valores numéricos explícitos** se implementaron bien a la primera en todos los incrementos: duración del PowerUp (8 s), aviso de 2 s, escala 200/400/800/1600, reaparición a los 5 s, 100 puntos por fruta y 15 s de vida, tiempos objetivo de 120/150/180 s, 500 por vida, velocidad del espectro al 70 %, cooldown de 10 s, 3 s sin comer, fruta cada 20 s. Esto confirma la primera parte de nuestra hipótesis.
+
+**Dónde falló el agente.** Todos los problemas de lógica de los incrementos 6 a 9 (filas 5, 6, 9 y 10) son **interacciones entre estados**, no valores: qué pasa con el cooldown cuando se pierde una vida, cuándo empieza el lapso sin comer respecto del cruce del muro, qué diseño tiene un fantasma que reaparece con el PowerUp activo, qué ocurre cuando dos personajes intercambian de celda en el mismo paso. Confirma la segunda parte de la hipótesis, con un matiz: los problemas no aparecieron en las interacciones que el prompt mencionaba explícitamente (esfera grande durante el parpadeo, PowerUp al perder una vida, fantasma que reaparece vulnerable). Esas salieron bien. Fallaron las interacciones que **nadie escribió**: ningún prompt dice "el cooldown sobrevive a la pérdida de una vida". El agente acierta en lo que se le pide de manera explícita y en lo implícito rellena con lo más simple (reiniciar todo, comparar celdas enteras).
+
+**Problemas de especificación descubiertos al generar.** Tres filas de la tabla 8.5 no son defectos del código sino huecos o inconsistencias de nuestros requerimientos, y hay que resolverlos antes de ejecutar los casos de prueba afectados:
+- Fila 7: no está definido si aparecen frutas en los niveles 1 y 2. HU-12 y los casos de prueba de frutas suponen que hay frutas, pero según la sección 4.4 solo aparecen en el nivel 3.
+- Fila 8: el bonus por tiempo con segundos fraccionarios. Proponemos agregar a la sección 4.2 "segundos enteros restantes".
+- Fila 11: con una fruta cada 20 s y 15 s de vida nunca coexisten 2 frutas, así que el máximo de 2 simultáneas no se puede observar en juego normal. O se acorta el intervalo o se alarga la vida de la fruta, o se acepta que el límite solo se verifica como regla.
+
+Además, al registrar la sesión encontramos una **inconsistencia de numeración entre la sección 8 y la 7.3**. El título del Prompt 8 dice "HU-19, HU-20", pero en la 7.3 la pausa es la HU-20, la pantalla de cierre es la HU-19 y la barra espaciadora es la HU-21. El título del Prompt 7 omite la HU-16, que el prompt sí implementa (fantasma comido en el nivel 1 reaparece clásico). La tabla 8.1 es la correcta.
+
+**Funcionalidad agregada sin pedirla.** Pantalla de resultado de nivel durante 3 s antes de pasar al siguiente (la HU-04 pide mostrar el resultado pero no dice cuánto tiempo), fuegos artificiales al completar un nivel (vienen del Incremento 3) y foco automático en el botón "Volver a jugar" para que Enter lo active (coherente con la sección 4.6). Se conservaron las tres porque no contradicen ningún criterio de aceptación. Las tres son comportamiento no especificado: si la ejecución encuentra un problema en ellas, se clasifica como defecto de funcionalidad no especificada.
+
+**Desvíos que quedan en el código y que la ejecución de pruebas debería detectar.** Vienen del Incremento 5 y no se corrigieron durante la generación, porque no forman parte de los prompts 5 a 8. Los dejamos anotados para no presentarlos luego como hallazgos sorpresivos:
+- HU-09: el contador de vidas está en la barra superior, no en el extremo inferior izquierdo, y usa un círculo amarillo genérico, no el ícono de Pacman.
+- Al perder una vida, Pacman y los fantasmas vuelven a su posición inicial sin pausa ni aviso previo. No viola ningún criterio, pero es poco visible para quien ejecuta los casos.
+
+**Precisión del prompt y defectos posteriores.** Esta relación se completa al cerrar la ejecución del ciclo 1 (sección 12), cruzando los defectos detectados con el incremento y el prompt que los introdujo. Como punto de partida, los prompts más largos y con más interacciones enumeradas (5 y 7) fueron los que menos problemas de lógica dejaron sin resolver dentro del propio incremento.
 
 ---
 
@@ -2383,7 +2408,7 @@ La aplicación de las técnicas de diseño mostró rendimientos muy distintos se
 
 | # | Actividad | Responsable |
 |---|---|---|
-| 1 | Ejecutar la sesión de vibe-coding de la V1 con los 9 prompts de la sección 8.4, registrando prompts y problemas en las tablas 8.5 y 8.6 | Equipo completo, con registro a cargo de un integrante que no conduzca el prompt |
+| 1 | ~~Ejecutar la sesión de vibe-coding de la V1 con los 9 prompts de la sección 8.4, registrando prompts y problemas en las tablas 8.5 y 8.6~~ **Completado**: incrementos 1 a 9 generados y registrados (8.5 y 8.6). Pendiente: resolver las tres consultas de especificación de la sección 8.6 antes de ejecutar los casos de frutas y de bonus por tiempo | Equipo completo |
 | 2 | Desplegar la V1 en Vercel y registrar la URL y el commit bajo prueba | Savoia |
 | 3 | Cargar los 66 casos de la V1 en la hoja `Casos de prueba` de Google Sheets | Cruz, Luzzi |
 | 4 | Verificar los criterios de entrada de la sección 9.7 y ejecutar el primer ciclo sobre los 35 casos de prioridad Alta | Rodriguez Castro, Tsai |
@@ -2406,7 +2431,11 @@ La aplicación de las técnicas de diseño mostró rendimientos muy distintos se
 
 Los prompts planificados están transcriptos en la sección 8.4. Los prompts de corrección que surjan durante la sesión de generación se transcriben acá, en orden cronológico, referenciados desde la columna correspondiente de la tabla 8.5.
 
-*A completar durante la sesión de vibe-coding.*
+**Sesión de generación de la V1.** No hizo falta ningún prompt de corrección adicional del equipo: los nueve incrementos se generaron con los prompts 0 a 8 tal como están en la sección 8.4. Las correcciones registradas en la tabla 8.5 se resolvieron de alguna de estas tres maneras:
+
+- Por edición manual del equipo (filas 1 a 4, incrementos 1 a 4).
+- Por el propio agente dentro del mismo prompt, después de ejecutar sus scripts de verificación o una captura en el navegador (filas 5, 6, 9, 10 y 12, incrementos 6 a 9).
+- Como decisión o consulta de especificación sin cambio de código (filas 7, 8, 11 y 13).
 
 ### Anexo B — Evidencia de la ejecución
 

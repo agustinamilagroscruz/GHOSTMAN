@@ -49,33 +49,33 @@ Un checklist por incremento. Cada uno se cierra con commit propio.
 - [x] Commit del incremento
 
 ### Incremento 6 — PowerUp, fantasmas vulnerables y comer fantasmas (HU-05, HU-06, HU-07)
-- [ ] Ejecutar Prompt 5
-- [ ] Verificar: el ciclo completo del PowerUp funciona con su aviso de fin
-- [ ] Registrar problemas en la tabla 8.5
-- [ ] Commit del incremento
+- [x] Ejecutar Prompt 5
+- [x] Verificar: el ciclo completo del PowerUp funciona con su aviso de fin
+- [x] Registrar problemas en la tabla 8.5
+- [x] Commit del incremento (`ab060e7`)
 
 ### Incremento 7 — Puntaje, frutas y desglose final (HU-11, HU-12, HU-13)
-- [ ] Ejecutar Prompt 6
-- [ ] Verificar: el puntaje coincide con la fórmula de la sección 4.2
-- [ ] Registrar problemas en la tabla 8.5
-- [ ] Commit del incremento
+- [x] Ejecutar Prompt 6
+- [x] Verificar: el puntaje coincide con la fórmula de la sección 4.2
+- [x] Registrar problemas en la tabla 8.5
+- [x] Commit del incremento (`433946f`)
 
 ### Incremento 8 — Tres niveles, mapas propios y progresión de dificultad (HU-15, HU-17, HU-18)
-- [ ] Ejecutar Prompt 7
-- [ ] Verificar: los tres niveles se juegan en orden con su composición de fantasmas
-- [ ] Registrar problemas en la tabla 8.5
-- [ ] Commit del incremento
+- [x] Ejecutar Prompt 7
+- [x] Verificar: los tres niveles se juegan en orden con su composición de fantasmas
+- [x] Registrar problemas en la tabla 8.5
+- [x] Commit del incremento (`a772d15`)
 
 ### Incremento 9 — Pausa y pantallas de fin de partida (HU-19, HU-20, HU-21)
-- [ ] Ejecutar Prompt 8
-- [ ] Verificar: la partida se pausa y se puede reiniciar desde la pantalla de cierre
-- [ ] Registrar problemas en la tabla 8.5
-- [ ] Commit del incremento
+- [x] Ejecutar Prompt 8
+- [x] Verificar: la partida se pausa y se puede reiniciar desde la pantalla de cierre
+- [x] Registrar problemas en la tabla 8.5
+- [x] Commit del incremento (`0a54fcb`)
 
 ### Cierre de la etapa de generación
-- [ ] Completar la sección 8.5 (registro de problemas) con todas las filas de la sesión
-- [ ] Redactar la sección 8.6 (observaciones sobre la implementación con AI)
-- [ ] Transcribir en el Anexo A los prompts de corrección que no estaban planificados
+- [x] Completar la sección 8.5 (registro de problemas) con todas las filas de la sesión
+- [x] Redactar la sección 8.6 (observaciones sobre la implementación con AI)
+- [x] Transcribir en el Anexo A los prompts de corrección que no estaban planificados
 
 ---
 
