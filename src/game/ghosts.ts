@@ -10,7 +10,13 @@ export interface Ghost extends Positioned {
   id: GhostId;
   color: string;
   scatterTarget: { row: number; col: number };
+  spawn: { row: number; col: number };
   speed: number;
+  /** Diseño vulnerable: huye de Pacman y puede ser comido (PowerUp activo). */
+  vulnerable: boolean;
+  /** Comido y fuera del mapa, esperando reaparecer en `spawn`. */
+  eaten: boolean;
+  respawnTimer: number;
 }
 
 const ALL_DIRECTIONS: readonly Direction[] = ["up", "down", "left", "right"];
@@ -23,7 +29,20 @@ export function createGhost(
   color: string,
   scatterTarget: { row: number; col: number }
 ): Ghost {
-  return { id, row, col, progress: 0, direction: null, speed, color, scatterTarget };
+  return {
+    id,
+    row,
+    col,
+    progress: 0,
+    direction: null,
+    speed,
+    color,
+    scatterTarget,
+    spawn: { row, col },
+    vulnerable: false,
+    eaten: false,
+    respawnTimer: 0,
+  };
 }
 
 function squaredDistance(aRow: number, aCol: number, bRow: number, bCol: number): number {

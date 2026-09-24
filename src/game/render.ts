@@ -97,6 +97,15 @@ export function renderPacman(
   ctx.fill();
 }
 
+const VULNERABLE_COLOR = "#2121de";
+const VULNERABLE_FLASH_COLOR = "#ffffff";
+const BLINK_PERIOD_SECONDS = 0.2;
+
+/** Fase del parpadeo derivada del temporizador del PowerUp (se congela si el juego se detiene). */
+export function isBlinkOn(powerUpTimer: number): boolean {
+  return Math.floor(powerUpTimer / BLINK_PERIOD_SECONDS) % 2 === 0;
+}
+
 export function renderGhost(
   ctx: CanvasRenderingContext2D,
   row: number,
@@ -104,7 +113,8 @@ export function renderGhost(
   cellSize: number,
   color: string,
   isVulnerable = false,
-  isWarning = false
+  isWarning = false,
+  blinkOn = false
 ): void {
   const centerX = col * cellSize + cellSize / 2;
   const centerY = row * cellSize + cellSize / 2;
@@ -115,7 +125,9 @@ export function renderGhost(
   const right = centerX + radius;
 
   if (isVulnerable) {
-    ctx.fillStyle = isWarning ? (Math.floor(Date.now() / 200) % 2 === 0 ? "#ffffff" : "#0000ff") : "#0000ff";
+    // El parpadeo alterna blanco / azul vulnerable; el blanco no existe en ningún
+    // otro diseño, así que se distingue del vulnerable estable y del normal.
+    ctx.fillStyle = isWarning && blinkOn ? VULNERABLE_FLASH_COLOR : VULNERABLE_COLOR;
   } else {
     ctx.fillStyle = color;
   }

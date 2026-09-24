@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { createFireworksState, renderFireworks, spawnFireworkBurst, updateFireworks } from "../game/fireworks";
 import { createKeyboardDirectionInput } from "../game/input";
 import { getMoverPosition } from "../game/movement";
-import { renderGhost, renderMap, renderPacman } from "../game/render";
+import { isBlinkOn, renderGhost, renderMap, renderPacman } from "../game/render";
 import { startGameLoop } from "../game/loop";
-import { createInitialGameState, updateGameState, type GameState } from "../game/state";
+import { createInitialGameState, isPowerUpWarning, updateGameState, type GameState } from "../game/state";
 import { LEVEL_THEMES } from "../game/theme";
 import { Hud } from "./Hud";
 import styles from "./GameCanvas.module.css";
@@ -92,11 +92,21 @@ export function GameCanvas() {
 
     const render = () => {
       renderMap(ctx, state.map, theme, CELL_SIZE);
+      const isWarning = isPowerUpWarning(state);
+      const blinkOn = isBlinkOn(state.powerUpTimer);
       for (const ghost of state.ghosts) {
+        if (ghost.eaten) continue; // comido: fuera del mapa hasta reaparecer
         const ghostPosition = getMoverPosition(ghost);
-        const isVulnerable = state.powerUpActive;
-        const isWarning = state.powerUpActive && state.powerUpTimer <= 2;
-        renderGhost(ctx, ghostPosition.row, ghostPosition.col, CELL_SIZE, ghost.color, isVulnerable, isWarning);
+        renderGhost(
+          ctx,
+          ghostPosition.row,
+          ghostPosition.col,
+          CELL_SIZE,
+          ghost.color,
+          ghost.vulnerable,
+          isWarning,
+          blinkOn
+        );
       }
       const position = getMoverPosition(state.player);
       renderPacman(ctx, position.row, position.col, CELL_SIZE, state.player.direction);
