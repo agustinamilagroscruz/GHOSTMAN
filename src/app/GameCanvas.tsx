@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createFireworksState, renderFireworks, spawnFireworkBurst, updateFireworks } from "../game/fireworks";
+import { isPhasing } from "../game/ghosts";
 import { createKeyboardDirectionInput } from "../game/input";
 import { getMoverPosition } from "../game/movement";
 import { isBlinkOn, renderFruit, renderGhost, renderMap, renderPacman } from "../game/render";
@@ -14,25 +15,49 @@ import styles from "./GameCanvas.module.css";
 
 const CELL_SIZE = 24;
 
+/** Lo que la interfaz React necesita del estado del juego; se actualiza solo cuando cambia. */
+interface UiSnapshot {
+  score: number;
+  pelletsRemaining: number;
+  lives: number;
+  level: number;
+  levelComplete: boolean;
+  levelTimeBonus: number;
+  gameOver: boolean;
+  won: boolean;
+  powerUpActive: boolean;
+  powerUpTimer: number;
+}
+
+function takeSnapshot(state: GameState): UiSnapshot {
+  return {
+    score: state.score,
+    pelletsRemaining: state.pelletsRemaining,
+    lives: state.lives,
+    level: state.level,
+    levelComplete: state.levelComplete,
+    levelTimeBonus: state.lastLevelTimeBonus,
+    gameOver: state.gameOver,
+    won: state.won,
+    powerUpActive: state.powerUpActive,
+    powerUpTimer: Math.ceil(state.powerUpTimer * 10) / 10,
+  };
+}
+
+function sameSnapshot(a: UiSnapshot, b: UiSnapshot): boolean {
+  return (Object.keys(a) as Array<keyof UiSnapshot>).every((key) => a[key] === b[key]);
+}
+
 export function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [state] = useState<GameState>(() => createInitialGameState());
-
-  const [score, setScore] = useState(state.score);
-  const [pelletsRemaining, setPelletsRemaining] = useState(state.pelletsRemaining);
-  const [levelComplete, setLevelComplete] = useState(state.levelComplete);
-  const [lives, setLives] = useState(state.lives);
-  const [gameOver, setGameOver] = useState(state.gameOver);
-  const [powerUpActive, setPowerUpActive] = useState(state.powerUpActive);
-  const [powerUpTimer, setPowerUpTimer] = useState(state.powerUpTimer);
-  const [levelTimeBonus, setLevelTimeBonus] = useState(state.lastLevelTimeBonus);
+  const [ui, setUi] = useState<UiSnapshot>(() => takeSnapshot(state));
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    const theme = LEVEL_THEMES[1];
     const input = createKeyboardDirectionInput();
     const fireworks = createFireworksState();
     let nextFireworkIn = 0;
@@ -40,49 +65,23 @@ export function GameCanvas() {
     canvas.width = state.map.cols * CELL_SIZE;
     canvas.height = state.map.rows * CELL_SIZE;
 
-    let lastScore = state.score;
-    let lastPelletsRemaining = state.pelletsRemaining;
-    let lastLevelComplete = state.levelComplete;
-    let lastLives = state.lives;
-    let lastGameOver = state.gameOver;
-    let lastPowerUpActive = state.powerUpActive;
-    let lastPowerUpTimer = state.powerUpTimer;
+    let lastSnapshot = takeSnapshot(state);
 
     const update = (dt: number) => {
       updateGameState(state, dt, input.getDirection());
 
-      if (state.score !== lastScore) {
-        lastScore = state.score;
-        setScore(lastScore);
-      }
-      if (state.pelletsRemaining !== lastPelletsRemaining) {
-        lastPelletsRemaining = state.pelletsRemaining;
-        setPelletsRemaining(lastPelletsRemaining);
-      }
-      if (state.levelComplete !== lastLevelComplete) {
-        lastLevelComplete = state.levelComplete;
-        setLevelTimeBonus(state.lastLevelTimeBonus);
-        setLevelComplete(lastLevelComplete);
-      }
-      if (state.lives !== lastLives) {
-        lastLives = state.lives;
-        setLives(lastLives);
-      }
-      if (state.gameOver !== lastGameOver) {
-        lastGameOver = state.gameOver;
-        setGameOver(lastGameOver);
-      }
-      if (state.powerUpActive !== lastPowerUpActive) {
-        lastPowerUpActive = state.powerUpActive;
-        setPowerUpActive(lastPowerUpActive);
-      }
-      if (state.powerUpTimer !== lastPowerUpTimer) {
-        lastPowerUpTimer = state.powerUpTimer;
-        setPowerUpTimer(lastPowerUpTimer);
+      const snapshot = takeSnapshot(state);
+      if (!sameSnapshot(snapshot, lastSnapshot)) {
+        // Nueva vida o nuevo nivel: Pacman arranca quieto hasta que se indique una dirección.
+        if (snapshot.lives !== lastSnapshot.lives || snapshot.level !== lastSnapshot.level) {
+          input.reset();
+        }
+        lastSnapshot = snapshot;
+        setUi(snapshot);
       }
 
       updateFireworks(fireworks, dt);
-      if (state.levelComplete) {
+      if (state.levelComplete || state.won) {
         nextFireworkIn -= dt;
         if (nextFireworkIn <= 0) {
           nextFireworkIn = 0.35;
@@ -94,7 +93,7 @@ export function GameCanvas() {
     };
 
     const render = () => {
-      renderMap(ctx, state.map, theme, CELL_SIZE);
+      renderMap(ctx, state.map, LEVEL_THEMES[state.level], CELL_SIZE);
       for (const fruit of state.fruits) {
         renderFruit(ctx, fruit.row, fruit.col, CELL_SIZE);
       }
@@ -103,16 +102,14 @@ export function GameCanvas() {
       for (const ghost of state.ghosts) {
         if (ghost.eaten) continue; // comido: fuera del mapa hasta reaparecer
         const ghostPosition = getMoverPosition(ghost);
-        renderGhost(
-          ctx,
-          ghostPosition.row,
-          ghostPosition.col,
-          CELL_SIZE,
-          ghost.color,
-          ghost.vulnerable,
+        renderGhost(ctx, ghostPosition.row, ghostPosition.col, CELL_SIZE, {
+          color: ghost.color,
+          isSpecter: ghost.kind === "specter",
+          isHarmless: ghost.noEatTimer > 0 || isPhasing(ghost),
+          isVulnerable: ghost.vulnerable,
           isWarning,
-          blinkOn
-        );
+          blinkOn,
+        });
       }
       const position = getMoverPosition(state.player);
       renderPacman(ctx, position.row, position.col, CELL_SIZE, state.player.direction);
@@ -126,41 +123,50 @@ export function GameCanvas() {
     };
   }, [state]);
 
-  if (gameOver) {
-    return (
-      <div className={styles.wrapper}>
-        <Hud score={score} pelletsRemaining={pelletsRemaining} lives={lives} />
-        <div className={styles.canvasContainer}>
-          <canvas ref={canvasRef} className={styles.canvas} />
+  const hud = (
+    <Hud
+      score={ui.score}
+      pelletsRemaining={ui.pelletsRemaining}
+      lives={ui.lives}
+      level={ui.level}
+      powerUpActive={ui.powerUpActive}
+      powerUpTimer={ui.powerUpTimer}
+    />
+  );
+
+  return (
+    <div className={styles.wrapper}>
+      {hud}
+      <div className={styles.canvasContainer}>
+        <canvas ref={canvasRef} className={styles.canvas} />
+        {ui.levelComplete && !ui.won && (
+          <div className={styles.levelComplete}>
+            <div className={styles.levelResult}>
+              <span>🎉 ¡Nivel {ui.level} completado! 🎉</span>
+              <small>Bonus por tiempo: {ui.levelTimeBonus}</small>
+              <small>Puntaje: {ui.score}</small>
+            </div>
+          </div>
+        )}
+        {ui.gameOver && (
           <div className={styles.gameOver}>
             <h2>💀 Game Over</h2>
-            <ScoreBreakdownView total={score} breakdown={state.scoreBreakdown} />
+            <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} />
             <button className={styles.restartButton} onClick={() => window.location.reload()}>
               Volver a jugar
             </button>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.wrapper}>
-      <Hud score={score} pelletsRemaining={pelletsRemaining} lives={lives} powerUpActive={powerUpActive} powerUpTimer={powerUpTimer} />
-      <div className={styles.canvasContainer}>
-        <canvas ref={canvasRef} className={styles.canvas} />
-        {levelComplete && (
-          <div className={styles.levelComplete}>
-            <div className={styles.levelResult}>
-              <span>🎉 ¡Nivel completado! 🎉</span>
-              <small>Bonus por tiempo: {levelTimeBonus}</small>
-              <small>Puntaje: {score}</small>
-            </div>
+        )}
+        {ui.won && (
+          <div className={`${styles.gameOver} ${styles.victory}`}>
+            <h2>🏆 ¡Victoria!</h2>
+            <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} />
+            <button className={styles.restartButton} onClick={() => window.location.reload()}>
+              Volver a jugar
+            </button>
           </div>
         )}
       </div>
     </div>
   );
 }
-
-

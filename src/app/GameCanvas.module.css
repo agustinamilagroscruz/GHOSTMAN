@@ -143,3 +143,11 @@
   color: #ffffff;
   text-shadow: none;
 }
+
+.victory {
+  color: #7cfc00;
+}
+
+.victory h2 {
+  text-shadow: 0 0 15px #7cfc00, 0 0 4px #000000;
+}

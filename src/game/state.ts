@@ -1,7 +1,16 @@
-import { createGhost, reverseGhostDirection, updateGhost, type Ghost, type GhostMode } from "./ghosts";
-import { createLevel1Map } from "./maps/level1";
-import { createMover, getMoverPosition, updateMover, type Direction, type Mover } from "./movement";
+import {
+  canGhostHarm,
+  clearSpecterState,
+  createGhost,
+  reverseGhostDirection,
+  setGhostKind,
+  updateGhost,
+  type Ghost,
+  type GhostMode,
+} from "./ghosts";
 import { ageFruits, createFruit, type Fruit } from "./fruits";
+import { LAST_LEVEL, LEVELS, MAX_SIMULTANEOUS_FRUITS, type LevelDefinition } from "./levels";
+import { createMover, getMoverPosition, updateMover, type Direction, type Mover } from "./movement";
 import {
   COMMON_PELLET_POINTS,
   FRUIT_POINTS,
@@ -15,10 +24,7 @@ import {
 import type { GameMap } from "./types";
 
 const PLAYER_SPEED_CELLS_PER_SECOND = 6;
-const PLAYER_SPAWN_ROW = 7;
-const PLAYER_SPAWN_COL = 8;
 
-const GHOST_SPEED_CELLS_PER_SECOND = 6;
 const CHASE_DURATION_SECONDS = 20;
 const SCATTER_DURATION_SECONDS = 7;
 
@@ -29,6 +35,10 @@ const GHOST_RESPAWN_SECONDS = 5;
 const GHOST_POINTS_SCALE = [200, 400, 800, 1600] as const;
 /** Distancia (en celdas) entre centros a partir de la cual Pacman y un fantasma se tocan. */
 const CONTACT_DISTANCE = 0.5;
+/** Segundos que se muestra el resultado del nivel antes de pasar al siguiente. */
+export const LEVEL_TRANSITION_SECONDS = 3;
+
+export type RandomSource = () => number;
 
 export interface GameState {
   map: GameMap;
@@ -50,19 +60,20 @@ export interface GameState {
   levelElapsed: number;
   /** Bonus por tiempo otorgado al completar el nivel en curso (0 mientras se juega). */
   lastLevelTimeBonus: number;
+  /** Cuenta regresiva del resultado de nivel antes de cargar el siguiente. */
+  levelTransitionTimer: number;
   fruits: Fruit[];
+  /** Segundos acumulados desde la última aparición de fruta (solo niveles con frutas). */
+  fruitSpawnTimer: number;
   scoreBreakdown: ScoreBreakdown;
   /** true si la partida terminó ganada; el bonus por vidas solo aplica en ese caso. */
   won: boolean;
+  /** Fuente de azar inyectable (reaparición como espectro, posición de frutas). */
+  random: RandomSource;
 }
 
-function createLevel1Ghosts(rows: number, cols: number): Ghost[] {
-  return [
-    createGhost("blinky", 1, 1, GHOST_SPEED_CELLS_PER_SECOND, "#ff0000", { row: 1, col: cols - 2 }),
-    createGhost("pinky", 1, cols - 2, GHOST_SPEED_CELLS_PER_SECOND, "#ffb8ff", { row: 1, col: 1 }),
-    createGhost("inky", rows - 2, 1, GHOST_SPEED_CELLS_PER_SECOND, "#00ffff", { row: rows - 2, col: cols - 2 }),
-    createGhost("clyde", rows - 2, cols - 2, GHOST_SPEED_CELLS_PER_SECOND, "#ffb851", { row: rows - 2, col: 1 }),
-  ];
+function levelDefinition(state: GameState): LevelDefinition {
+  return LEVELS[state.level];
 }
 
 function countPellets(map: GameMap): number {
@@ -75,57 +86,75 @@ function countPellets(map: GameMap): number {
   return count;
 }
 
+function createLevelGhosts(definition: LevelDefinition): Ghost[] {
+  return definition.ghosts.map((setup) =>
+    createGhost(setup.id, setup.spawn.row, setup.spawn.col, definition.initialGhostKind, setup.color, setup.scatterTarget)
+  );
+}
+
 function placeGhostAtSpawn(ghost: Ghost): void {
   ghost.row = ghost.spawn.row;
   ghost.col = ghost.spawn.col;
   ghost.progress = 0;
   ghost.direction = null;
+  ghost.phaseCellsLeft = 0;
+  ghost.noEatTimer = 0;
 }
 
 function resetGhostPositions(ghosts: Ghost[]): void {
   for (const ghost of ghosts) {
     placeGhostAtSpawn(ghost);
+    clearSpecterState(ghost);
     ghost.vulnerable = false;
     ghost.eaten = false;
     ghost.respawnTimer = 0;
   }
 }
 
-function resetPlayerPosition(player: Mover): void {
-  player.row = PLAYER_SPAWN_ROW;
-  player.col = PLAYER_SPAWN_COL;
-  player.progress = 0;
-  player.direction = null;
-  player.desiredDirection = null;
+function resetPlayerPosition(state: GameState): void {
+  const spawn = levelDefinition(state).playerSpawn;
+  state.player.row = spawn.row;
+  state.player.col = spawn.col;
+  state.player.progress = 0;
+  state.player.direction = null;
+  state.player.desiredDirection = null;
 }
 
-export function createInitialGameState(): GameState {
-  const map = createLevel1Map();
-  map.pellets[PLAYER_SPAWN_ROW][PLAYER_SPAWN_COL] = "none";
+/** Carga un nivel conservando puntaje, desglose y vidas. */
+function loadLevel(state: GameState, level: number): void {
+  const definition = LEVELS[level];
+  const map = definition.createMap();
+  map.pellets[definition.playerSpawn.row][definition.playerSpawn.col] = "none";
 
-  const player = createMover(PLAYER_SPAWN_ROW, PLAYER_SPAWN_COL, PLAYER_SPEED_CELLS_PER_SECOND);
+  state.level = level;
+  state.map = map;
+  state.player = createMover(definition.playerSpawn.row, definition.playerSpawn.col, PLAYER_SPEED_CELLS_PER_SECOND);
+  state.ghosts = createLevelGhosts(definition);
+  state.ghostMode = "chase";
+  state.ghostModeTimer = 0;
+  state.pelletsRemaining = countPellets(map);
+  state.levelComplete = false;
+  state.levelElapsed = 0;
+  state.lastLevelTimeBonus = 0;
+  state.levelTransitionTimer = 0;
+  state.fruits = [];
+  state.fruitSpawnTimer = 0;
+  state.powerUpActive = false;
+  state.powerUpTimer = 0;
+  state.ghostsEatenInPowerUp = 0;
+}
 
-  return {
-    map,
-    player,
-    ghosts: createLevel1Ghosts(map.rows, map.cols),
-    ghostMode: "chase",
-    ghostModeTimer: 0,
+export function createInitialGameState(random: RandomSource = Math.random): GameState {
+  const state = {
     score: 0,
-    pelletsRemaining: countPellets(map),
-    levelComplete: false,
     lives: INITIAL_LIVES,
     gameOver: false,
-    powerUpActive: false,
-    powerUpTimer: 0,
-    ghostsEatenInPowerUp: 0,
-    level: 1,
-    levelElapsed: 0,
-    lastLevelTimeBonus: 0,
-    fruits: [],
-    scoreBreakdown: createScoreBreakdown(),
     won: false,
-  };
+    scoreBreakdown: createScoreBreakdown(),
+    random,
+  } as GameState;
+  loadLevel(state, 1);
+  return state;
 }
 
 /** Único punto de entrada para sumar puntaje: mantiene el desglose y el total sincronizados. */
@@ -135,9 +164,43 @@ function addPoints(state: GameState, category: ScoreCategory, points: number): v
   state.scoreBreakdown[category] += points;
 }
 
-/** Coloca una fruta en el mapa (la aparición periódica depende del nivel). */
+/** Coloca una fruta en el mapa. */
 export function spawnFruit(state: GameState, row: number, col: number): void {
   state.fruits.push(createFruit(row, col));
+}
+
+function isCellOccupiedByCharacter(state: GameState, row: number, col: number): boolean {
+  const entities = [state.player, ...state.ghosts.filter((ghost) => !ghost.eaten)];
+  return entities.some((entity) => {
+    const position = getMoverPosition(entity);
+    return Math.abs(position.row - row) < 1 && Math.abs(position.col - col) < 1;
+  });
+}
+
+/** Nivel 3: una fruta cada 20 s en una celda transitable libre, máximo 2 simultáneas. */
+function updateFruitSpawns(state: GameState, deltaSeconds: number): void {
+  const interval = levelDefinition(state).fruitSpawnIntervalSeconds;
+  if (interval === null) return;
+
+  state.fruitSpawnTimer += deltaSeconds;
+  if (state.fruitSpawnTimer < interval) return;
+  state.fruitSpawnTimer -= interval;
+
+  if (state.fruits.length >= MAX_SIMULTANEOUS_FRUITS) return;
+
+  const candidates: Array<{ row: number; col: number }> = [];
+  for (let row = 0; row < state.map.rows; row++) {
+    for (let col = 0; col < state.map.cols; col++) {
+      if (state.map.cells[row][col] !== "path") continue;
+      if (state.fruits.some((fruit) => fruit.row === row && fruit.col === col)) continue;
+      if (isCellOccupiedByCharacter(state, row, col)) continue;
+      candidates.push({ row, col });
+    }
+  }
+  if (candidates.length === 0) return;
+
+  const cell = candidates[Math.min(candidates.length - 1, Math.floor(state.random() * candidates.length))];
+  spawnFruit(state, cell.row, cell.col);
 }
 
 function consumeFruitAt(state: GameState, row: number, col: number): void {
@@ -149,8 +212,21 @@ function consumeFruitAt(state: GameState, row: number, col: number): void {
 
 function completeLevel(state: GameState): void {
   state.levelComplete = true;
+  state.levelTransitionTimer = LEVEL_TRANSITION_SECONDS;
   state.lastLevelTimeBonus = computeTimeBonus(state.level, state.levelElapsed);
   addPoints(state, "timeBonus", state.lastLevelTimeBonus);
+}
+
+/** Tras mostrar el resultado del nivel: pasa al siguiente o, si era el 3, victoria. */
+function updateLevelTransition(state: GameState, deltaSeconds: number): void {
+  state.levelTransitionTimer -= deltaSeconds;
+  if (state.levelTransitionTimer > 0) return;
+
+  if (state.level >= LAST_LEVEL) {
+    finishGame(state, true);
+  } else {
+    loadLevel(state, state.level + 1);
+  }
 }
 
 /** Cierra la partida: el bonus por vidas se aplica una sola vez y solo en victoria. */
@@ -229,6 +305,9 @@ function updateGhostRespawns(state: GameState, deltaSeconds: number): void {
       ghost.eaten = false;
       ghost.respawnTimer = 0;
       placeGhostAtSpawn(ghost);
+      // Nivel 1: siempre clásico. Nivel 2: 50 % espectro. Nivel 3: siempre espectro.
+      const chance = levelDefinition(state).specterRespawnChance;
+      setGhostKind(ghost, chance > 0 && state.random() < chance ? "specter" : "classic");
       // Si el PowerUp sigue activo reaparece vulnerable y la escala continúa.
       ghost.vulnerable = state.powerUpActive;
     }
@@ -236,7 +315,7 @@ function updateGhostRespawns(state: GameState, deltaSeconds: number): void {
 }
 
 function checkGhostCollisions(state: GameState): void {
-  if (state.levelComplete || state.gameOver) return;
+  if (state.levelComplete || state.gameOver || state.won) return;
 
   const player = getMoverPosition(state.player);
 
@@ -249,7 +328,7 @@ function checkGhostCollisions(state: GameState): void {
 
     if (ghost.vulnerable) {
       eatGhost(state, ghost);
-    } else {
+    } else if (canGhostHarm(ghost)) {
       loseLife(state);
       return; // un único contacto descuenta como máximo una vida
     }
@@ -275,7 +354,7 @@ function loseLife(state: GameState): void {
     state.lives = 0;
     finishGame(state, false);
   } else {
-    resetPlayerPosition(state.player);
+    resetPlayerPosition(state);
     resetGhostPositions(state.ghosts);
     state.ghostMode = "chase";
     state.ghostModeTimer = 0;
@@ -316,7 +395,9 @@ function updateGhosts(state: GameState, deltaSeconds: number): void {
       targetCol = target.col;
     }
 
-    updateGhost(ghost, state.map, deltaSeconds, targetRow, targetCol);
+    // El espectro usa su habilidad solo para perseguir a Pacman.
+    const allowPhase = !ghost.vulnerable && state.ghostMode === "chase";
+    updateGhost(ghost, state.map, deltaSeconds, targetRow, targetCol, allowPhase);
   }
 }
 
@@ -325,7 +406,12 @@ export function updateGameState(
   deltaSeconds: number,
   playerDesiredDirection: Direction | null
 ): void {
-  if (state.levelComplete || state.gameOver || state.won) return;
+  if (state.gameOver || state.won) return;
+
+  if (state.levelComplete) {
+    updateLevelTransition(state, deltaSeconds);
+    return;
+  }
 
   state.levelElapsed += deltaSeconds;
 
@@ -340,11 +426,12 @@ export function updateGameState(
     consumeFruitAt(state, state.player.row, state.player.col);
   }
   state.fruits = ageFruits(state.fruits, deltaSeconds);
+  if (state.levelComplete) return;
 
+  updateFruitSpawns(state, deltaSeconds);
   updatePowerUp(state, deltaSeconds);
   updateGhostRespawns(state, deltaSeconds);
   updateGhostMode(state, deltaSeconds);
   updateGhosts(state, deltaSeconds);
   checkGhostCollisions(state);
 }
-

@@ -15,6 +15,8 @@ const DIRECTION_BY_KEY: Readonly<Record<string, Direction>> = {
 
 export interface KeyboardDirectionInput {
   getDirection(): Direction | null;
+  /** Olvida la última dirección pedida (al reiniciar posiciones o cambiar de nivel). */
+  reset(): void;
   dispose(): void;
 }
 
@@ -39,6 +41,9 @@ export function createKeyboardDirectionInput(): KeyboardDirectionInput {
 
   return {
     getDirection: () => currentDirection,
+    reset: () => {
+      currentDirection = null;
+    },
     dispose: () => window.removeEventListener("keydown", handleKeyDown),
   };
 }

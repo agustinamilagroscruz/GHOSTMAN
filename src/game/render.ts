@@ -41,12 +41,14 @@ function drawWallCell(
   ctx.fillStyle = theme.wallFill;
   ctx.fillRect(x, y, size, size);
 
-  ctx.strokeStyle = theme.wallStripe;
-  ctx.lineWidth = Math.max(1, size * 0.08);
-  ctx.beginPath();
-  ctx.moveTo(x + size * 0.2, y + size * 0.8);
-  ctx.lineTo(x + size * 0.8, y + size * 0.2);
-  ctx.stroke();
+  if (theme.wallStripe) {
+    ctx.strokeStyle = theme.wallStripe;
+    ctx.lineWidth = Math.max(1, size * 0.08);
+    ctx.beginPath();
+    ctx.moveTo(x + size * 0.2, y + size * 0.8);
+    ctx.lineTo(x + size * 0.8, y + size * 0.2);
+    ctx.stroke();
+  }
 
   ctx.strokeStyle = theme.wallOutline;
   ctx.lineWidth = Math.max(1, size * 0.06);
@@ -106,16 +108,25 @@ export function isBlinkOn(powerUpTimer: number): boolean {
   return Math.floor(powerUpTimer / BLINK_PERIOD_SECONDS) % 2 === 0;
 }
 
+export interface GhostAppearance {
+  color: string;
+  /** Espectro: cuerpo translúcido con contorno blanco, distinguible del clásico. */
+  isSpecter: boolean;
+  /** Espectro que acaba de atravesar un muro y no puede comer (3 s): casi transparente y contorno punteado. */
+  isHarmless: boolean;
+  isVulnerable: boolean;
+  isWarning: boolean;
+  blinkOn: boolean;
+}
+
 export function renderGhost(
   ctx: CanvasRenderingContext2D,
   row: number,
   col: number,
   cellSize: number,
-  color: string,
-  isVulnerable = false,
-  isWarning = false,
-  blinkOn = false
+  appearance: GhostAppearance
 ): void {
+  const { color, isSpecter, isHarmless, isVulnerable, isWarning, blinkOn } = appearance;
   const centerX = col * cellSize + cellSize / 2;
   const centerY = row * cellSize + cellSize / 2;
   const radius = cellSize * 0.45;
@@ -130,6 +141,11 @@ export function renderGhost(
     ctx.fillStyle = isWarning && blinkOn ? VULNERABLE_FLASH_COLOR : VULNERABLE_COLOR;
   } else {
     ctx.fillStyle = color;
+  }
+
+  ctx.save();
+  if (!isVulnerable && isSpecter) {
+    ctx.globalAlpha = isHarmless ? 0.25 : 0.6;
   }
 
   ctx.beginPath();
@@ -147,34 +163,28 @@ export function renderGhost(
   ctx.closePath();
   ctx.fill();
 
-  if (!isVulnerable) {
-    const eyeOffsetX = radius * 0.4;
-    const eyeRadius = radius * 0.22;
-    for (const side of [-1, 1]) {
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius, 0, Math.PI * 2);
-      ctx.fill();
+  if (!isVulnerable && isSpecter) {
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = isHarmless ? "#9a9a9a" : "#ffffff";
+    ctx.lineWidth = Math.max(1, cellSize * 0.07);
+    ctx.setLineDash(isHarmless ? [cellSize * 0.12, cellSize * 0.1] : []);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
 
-      ctx.fillStyle = "#16164a";
-      ctx.beginPath();
-      ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius * 0.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  } else {
-    const eyeOffsetX = radius * 0.3;
-    const eyeRadius = radius * 0.18;
-    for (const side of [-1, 1]) {
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius, 0, Math.PI * 2);
-      ctx.fill();
+  const eyeOffsetX = radius * (isVulnerable ? 0.3 : 0.4);
+  const eyeRadius = radius * (isVulnerable ? 0.18 : 0.22);
+  for (const side of [-1, 1]) {
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius, 0, Math.PI * 2);
+    ctx.fill();
 
-      ctx.fillStyle = "#16164a";
-      ctx.beginPath();
-      ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius * 0.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    ctx.fillStyle = "#16164a";
+    ctx.beginPath();
+    ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius * 0.5, 0, Math.PI * 2);
+    ctx.fill();
   }
 }
 
