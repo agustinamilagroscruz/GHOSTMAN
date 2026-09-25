@@ -52,25 +52,25 @@ Un checklist por incremento. Cada uno se cierra con commit propio.
 - [x] Ejecutar Prompt 5
 - [x] Verificar: el ciclo completo del PowerUp funciona con su aviso de fin
 - [x] Registrar problemas en la tabla 8.5
-- [x] Commit del incremento (`ab060e7`)
+- [x] Commit del incremento (`f1269aa`)
 
 ### Incremento 7 — Puntaje, frutas y desglose final (HU-11, HU-12, HU-13)
 - [x] Ejecutar Prompt 6
 - [x] Verificar: el puntaje coincide con la fórmula de la sección 4.2
 - [x] Registrar problemas en la tabla 8.5
-- [x] Commit del incremento (`433946f`)
+- [x] Commit del incremento (`11eafa1`)
 
 ### Incremento 8 — Tres niveles, mapas propios y progresión de dificultad (HU-15, HU-17, HU-18)
 - [x] Ejecutar Prompt 7
 - [x] Verificar: los tres niveles se juegan en orden con su composición de fantasmas
 - [x] Registrar problemas en la tabla 8.5
-- [x] Commit del incremento (`a772d15`)
+- [x] Commit del incremento (`246cb2a`)
 
 ### Incremento 9 — Pausa y pantallas de fin de partida (HU-19, HU-20, HU-21)
 - [x] Ejecutar Prompt 8
 - [x] Verificar: la partida se pausa y se puede reiniciar desde la pantalla de cierre
 - [x] Registrar problemas en la tabla 8.5
-- [x] Commit del incremento (`0a54fcb`)
+- [x] Commit del incremento (`7429ec3`)
 
 ### Cierre de la etapa de generación
 - [x] Completar la sección 8.5 (registro de problemas) con todas las filas de la sesión
