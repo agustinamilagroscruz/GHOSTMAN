@@ -177,12 +177,14 @@ Esta sección concentra los valores numéricos y las reglas que gobiernan el jue
 | 2º fantasma comido en el mismo PowerUp | 400 |
 | 3er fantasma comido en el mismo PowerUp | 800 |
 | 4º fantasma comido en el mismo PowerUp | 1600 |
-| Bonus por tiempo | 10 por cada segundo restante respecto del tiempo objetivo del nivel |
+| Bonus por tiempo | 10 por cada segundo **entero** restante respecto del tiempo objetivo del nivel |
 | Bonus por vida sobrante al terminar la partida | 500 por vida |
 
 **Reglas del encadenamiento:** la escala de 200/400/800/1600 se reinicia al terminar cada PowerUp. Consumir una nueva esfera grande mientras el PowerUp está activo reinicia el temporizador del efecto y **también** la escala de puntos.
 
 **Tiempo objetivo por nivel:** nivel 1 = 120 s, nivel 2 = 150 s, nivel 3 = 180 s. Si el jugador supera el tiempo objetivo, el bonus por tiempo es 0 y nunca negativo.
+
+**Segundos enteros:** el bonus se calcula sobre los segundos enteros restantes, descartando la fracción. Ejemplo: si el nivel 1 se completa en 100,5 s, quedan 19,5 s, se cuentan 19 y el bonus es 190. El tiempo que se mide es el de juego efectivo: no incluye las pausas.
 
 ### 4.3 PowerUp de Pacman
 
@@ -205,7 +207,9 @@ Esta sección concentra los valores numéricos y las reglas que gobiernan el jue
 | 2 | Cada fantasma comido por Pacman **puede** regresar como fantasma con poderes (probabilidad del 50 %) |
 | 3 | Todos los fantasmas tienen poderes desde el inicio del nivel. Además aparecen frutas en posiciones aleatorias del mapa a medida que transcurre el tiempo |
 
-**Frutas del nivel 3:** aparece una fruta cada 20 segundos en una celda transitable aleatoria que no esté ocupada por un personaje. Puede haber como máximo 2 frutas simultáneas en el mapa. Una fruta no consumida desaparece a los 15 segundos.
+**Frutas del nivel 3:** las frutas aparecen **únicamente en el nivel 3**; en los niveles 1 y 2 no hay frutas. Aparece una fruta cada **7 segundos** en una celda transitable aleatoria que no esté ocupada por un personaje. Puede haber como máximo 2 frutas simultáneas en el mapa. Una fruta no consumida desaparece a los 15 segundos. Si al cumplirse los 7 segundos ya hay 2 frutas en el mapa, esa aparición se omite y se espera a la siguiente.
+
+Con estos valores la secuencia desde el inicio del nivel es: fruta a los 7 s; segunda fruta a los 14 s (coexisten 2); a los 21 s no aparece una tercera porque siguen las dos anteriores; a los 22 s desaparece la primera; a los 28 s aparece una nueva. El intervalo original de 20 s se reemplazó por 7 s (decisión 16 de la sección 5).
 
 ### 4.5 Progresión de la dificultad en modo GhostMan
 
@@ -275,6 +279,8 @@ El ciclo es de **20 segundos de persecución y 7 de dispersión**, repetido dura
 
 Al derivar casos de prueba de la pre-entrega encontramos puntos que no permitían un resultado pass/fail inequívoco, y en dos casos contradicciones internas del documento. Los resolvimos antes de generar la aplicación. Cada decisión se registra con su fundamento, porque son requerimientos que no figuran en la pre-entrega y el equipo debe poder rastrear de dónde salieron.
 
+Las decisiones 1 a 13 surgieron del diseño de los casos de prueba, antes de generar la aplicación. Las decisiones 14 a 16 surgieron **durante la generación** (tabla 8.5, filas 7, 8 y 11) y se resolvieron antes de ejecutar los casos de prueba.
+
 | # | Ambigüedad o contradicción detectada | Decisión adoptada | Fundamento |
 |---|---|---|---|
 | 1 | La sección "Modo Pacman" indica que en el nivel 1 todos los fantasmas son de tipo común; la sección "Niveles" indica nivel 1 con comunes **más algunos especiales** | En el nivel 1 **todos los fantasmas son de tipo clásico** | Es la formulación de la sección que describe las reglas del modo, y sostiene la curva de dificultad: si el nivel 1 ya tuviera poderes, la progresión de los niveles 2 y 3 perdería sentido |
@@ -290,6 +296,9 @@ Al derivar casos de prueba de la pre-entrega encontramos puntos que no permitía
 | 11 | En modo GhostMan no se indica qué ocurre si Pacman consume todas las esferas antes de ser derrotado 3 veces | El jugador pierde la partida y se muestra Game Over | Es el objetivo declarado del modo, "evitar que Pacman complete el nivel": que Pacman lo complete es la condición de derrota |
 | 12 | No se indica si el progreso del nivel se conserva al perder una vida | Se conservan las esferas consumidas y el puntaje; se reinician las posiciones de los personajes | Es el comportamiento del juego de referencia. La alternativa (reiniciar las esferas) volvería los niveles largos casi imposibles de completar con 3 vidas |
 | 13 | No se indica el efecto de la fruta falsa cuando Pacman tiene el PowerUp activo | No lo afecta durante el PowerUp | Durante el PowerUp Pacman es inmune a los fantasmas; que un objeto colocado por un fantasma sí lo matara contradiría esa inmunidad |
+| 14 | HU-12 habla de "las frutas que aparecen en el mapa" sin decir en qué niveles; la sección 4.4 solo las define para el nivel 3 | Las frutas aparecen **únicamente en el nivel 3** | Se sigue la especificación general de la pre-entrega, que presenta las frutas dinámicas como un rasgo del nivel 3. Detectado durante la generación (tabla 8.5, fila 7) |
+| 15 | "10 puntos por cada segundo restante" no dice qué hacer con la fracción de segundo | Se cuentan los **segundos enteros** restantes, descartando la fracción | Da un único resultado esperado para cada tiempo medido, y es la lectura habitual de un "por segundo". Detectado durante la generación (tabla 8.5, fila 8) |
+| 16 | Con una fruta cada 20 s y 15 s de vida, cada fruta desaparece antes de que aparezca la siguiente: nunca coexisten 2 y el máximo de 2 simultáneas no se puede observar | El intervalo entre frutas pasa de 20 s a **7 s**; la vida de 15 s y el máximo de 2 se mantienen | La vida de 15 s ya la verifican la HU-12 y el CP-041, y el intervalo no lo usa ningún caso. Con 7 s coexisten 2 frutas y el máximo actúa de verdad (a los 21 s se omite una aparición), así que admite un caso pass/fail. Con 10 s coexistirían 2, pero nunca se intentaría una tercera. Detectado durante la generación (tabla 8.5, fila 11) |
 
 **Pendiente de definición:** no incorporamos túneles laterales de teletransporte (los pasajes que en el juego original conectan los bordes del mapa) porque la pre-entrega no los menciona. Queda como consulta al diseño de los tres mapas: si los mapas definidos los incluyen, hay que agregar la historia de usuario y sus casos de prueba, y revisar HU-02.
 
@@ -1346,6 +1355,8 @@ Implementá el puntaje completo:
 
 #### Prompt 7 — Niveles y progresión (HU-15, HU-17, HU-18)
 
+> **Nota de trazabilidad.** El título de este prompt omite la HU-16: el prompt también la implementa (el fantasma comido en el nivel 1 reaparece siempre como clásico). La referencia correcta es la tabla 8.1. El intervalo de 20 s entre frutas que figura abajo es el texto que se ejecutó; después se cambió a 7 s (decisión 16 de la sección 5, prompt de corrección C-1 del Anexo A).
+
 ```
 Implementá los tres niveles:
 
@@ -1374,6 +1385,8 @@ PowerUp activo, el espectro se puede comer como cualquier otro fantasma.
 ```
 
 #### Prompt 8 — Pausa y cierre de partida (HU-19, HU-20)
+
+> **Nota de trazabilidad.** Según la sección 7.3 y la tabla 8.1, este prompt cubre la HU-19 (pantallas de cierre), la HU-20 (pausa) y la HU-21 (barra espaciadora sin efecto), aunque el título solo nombra las dos primeras. La HU-21 ya estaba resuelta desde el Prompt 1. La referencia correcta es la tabla 8.1; el título se conserva tal como se ejecutó.
 
 ```
 Últimos dos comportamientos de esta versión:
@@ -1406,13 +1419,14 @@ Pantallas de cierre:
 | 4 | 4 — IA de fantasmas | Prompt 3 | El mapa placeholder del Incremento 1 era un único corredor serpenteante sin bifurcaciones: los fantasmas no tenían ninguna intersección real donde elegir dirección, por lo que la persecución/dispersión no habría sido observable | Se rediseñó `createLevel1Map` con un patrón de "panal" (pilares de muro en filas y columnas pares), que genera intersecciones de 4 direcciones en todo el mapa | Sí |
 | 5 | 6 — PowerUp | Prompt 5 | El commit del Incremento 5 (`30478b8`) ya traía una versión parcial del PowerUp que se apartaba del Prompt 5 en cuatro puntos: el fantasma comido volvía **al instante** a su esquina en lugar de salir del mapa 5 s; el diseño vulnerable dependía del PowerUp global, así que un fantasma recién reaparecido no podía distinguirse; los fantasmas **invertían la marcha al terminar** el PowerUp (la sección 4.7 solo admite la reversa al iniciarlo); y el parpadeo se calculaba con el reloj del sistema, por lo que seguiría parpadeando con el juego detenido | Al ejecutar el Prompt 5 el agente reescribió el PowerUp: estado vulnerable y "comido" por fantasma, temporizador de reaparición de 5 s, sin reversa al terminar, y parpadeo derivado del temporizador del PowerUp | No |
 | 6 | 6 — PowerUp | Prompt 5 | La colisión Pacman–fantasma (Incremento 5) comparaba solo la celda de partida de cada personaje. Un script de verificación del agente mostró que si Pacman y un fantasma se cruzan de frente en un corredor pueden intercambiar celdas sin que se detecte el contacto: ni se pierde la vida ni se come al fantasma | Se reemplazó por la distancia entre las posiciones interpoladas (contacto a menos de media celda). El caso "cruce de frente" quedó en el script de verificación | No |
-| 7 | 7 — Puntaje y frutas | Prompt 6 | El Prompt 6 pide frutas de 100 puntos con vida de 15 s, pero ni el prompt ni la HU-12 dicen cuándo aparecen en los niveles 1 y 2. El agente implementó la fruta como entidad (puntaje, vida de 15 s, no la consumen los fantasmas) y dejó su aparición para el Prompt 7, que solo la define para el nivel 3. En consecuencia **en los niveles 1 y 2 no aparecen frutas** | Se dejó así, porque coincide con la sección 4.4. Queda como consulta de especificación (ver 8.6) | No |
-| 8 | 7 — Puntaje y frutas | Prompt 6 | "10 puntos por cada segundo restante" admite dos lecturas con segundos fraccionarios (proporcional o por segundo entero). El agente eligió **segundos enteros** (se descarta la fracción): con 100,5 s en el nivel 1 quedan 19 s y el bonus es 190 | Decisión documentada en el código (`computeTimeBonus`). Los casos de prueba de bonus por tiempo deben calcular el esperado con segundos enteros | No |
+| 7 | 7 — Puntaje y frutas | Prompt 6 | El Prompt 6 pide frutas de 100 puntos con vida de 15 s, pero ni el prompt ni la HU-12 dicen cuándo aparecen en los niveles 1 y 2. El agente implementó la fruta como entidad (puntaje, vida de 15 s, no la consumen los fantasmas) y dejó su aparición para el Prompt 7, que solo la define para el nivel 3. En consecuencia **en los niveles 1 y 2 no aparecen frutas** | El equipo confirmó que las frutas aparecen únicamente en el nivel 3 (decisión 14 de la sección 5, texto aclarado en la sección 4.4). No requirió cambios de código | No |
+| 8 | 7 — Puntaje y frutas | Prompt 6 | "10 puntos por cada segundo restante" admite dos lecturas con segundos fraccionarios (proporcional o por segundo entero). El agente eligió **segundos enteros** (se descarta la fracción): con 100,5 s en el nivel 1 quedan 19 s y el bonus es 190 | El equipo adoptó los segundos enteros (decisión 15 de la sección 5). Se actualizaron la sección 4.2 y el resultado esperado del CP-042. No requirió cambios de código | No |
 | 9 | 8 — Niveles y espectro | Prompt 7 | El script de verificación del agente midió dos usos de la habilidad del espectro separados por 2,3 s: al perder una vida se reiniciaban las posiciones **y también el cooldown** de 10 s | Se corrigió para que perder una vida o reaparecer no reinicie el cooldown | No |
 | 10 | 8 — Niveles y espectro | Prompt 7 | El espectro podía quitarle una vida a Pacman **mientras todavía estaba cruzando el muro**, antes de que empezaran a correr los 3 s sin poder comer: el contacto ocurría durante la última media celda del cruce | Se consideró "cruzando el muro" como parte del estado en que no puede comer, y se dibuja igual (translúcido con contorno punteado) | No |
-| 11 | 8 — Niveles y espectro | Prompt 7 | Con los parámetros pedidos (una fruta cada 20 s, desaparece a los 15 s) **nunca pueden coexistir 2 frutas**: cada una desaparece 5 s antes de que aparezca la siguiente. El límite de 2 simultáneas está implementado, pero en juego normal no se alcanza | No es un defecto del código sino una interacción entre parámetros de la sección 4.4. Se registra para decidir si se ajusta la especificación (ver 8.6) | No |
+| 11 | 8 — Niveles y espectro | Prompt 7 | Con los parámetros pedidos (una fruta cada 20 s, desaparece a los 15 s) **nunca pueden coexistir 2 frutas**: cada una desaparece 5 s antes de que aparezca la siguiente. El límite de 2 simultáneas está implementado, pero en juego normal no se alcanza | El equipo decidió bajar el intervalo a 7 s (decisión 16 de la sección 5). Se corrigió con el prompt C-1 del Anexo A (fila 14) | No |
 | 12 | 9 — Pausa y cierre | Prompt 8 | Al agregar el número de nivel al HUD (Prompt 7) la barra superior dejó de entrar en su ancho: en la captura del navegador el texto se partía en dos líneas y el temporizador del PowerUp quedaba fuera del recuadro | Se compactó el HUD (tamaño de fuente y separaciones) y se verificó de nuevo con captura | No |
 | 13 | 9 — Pausa y cierre | Prompt 8 | La compilación de producción (`next build`) falla en entornos sin acceso a `fonts.googleapis.com`, porque el `layout.tsx` generado en el Incremento 1 descarga las fuentes Geist con `next/font/google`. No afecta el despliegue en Vercel, que tiene acceso a Internet | Sin cambios en el código. Para compilar localmente sin red hay que tener acceso a Google Fonts o pasar a `next/font/local` | No |
+| 14 | 8 — Niveles y espectro | C-1 (corrección) | Corrección pedida por el equipo para resolver la fila 11: pasar el intervalo entre frutas del nivel 3 de 20 s a 7 s | El agente cambió el parámetro del nivel 3 y verificó con su script la secuencia 7 s → 1 fruta, 14 s → 2, 21 s → sigue en 2 (se omite la tercera), 22 s → 1, 28 s → 2; en 120 s nunca hubo más de 2 frutas, y en los niveles 1 y 2 no aparece ninguna | No |
 
 **Qué registrar en cada columna:**
 - **Problema observado:** qué devolvió el agente y en qué se apartó de lo pedido. Con la mayor literalidad posible: "generó el movimiento con la tecla mantenida en lugar de avance continuo", no "problemas con el movimiento".
@@ -1421,22 +1435,24 @@ Pantallas de cierre:
 
 ### 8.6 Observaciones sobre la implementación con AI
 
-**Cantidad de prompts.** Se usaron los 9 prompts planificados (Prompt 0 a Prompt 8), uno por incremento, y cada incremento cerró con su commit (`36a065a`, `14aa9a3`, `cb02fe1`, `8eaff47`, `30478b8`, `ab060e7`, `433946f`, `a772d15`, `0a54fcb`). No hizo falta ningún prompt de corrección adicional del equipo. En los incrementos 6 a 9 las correcciones de las filas 6, 9, 10 y 12 de la tabla 8.5 las hizo el propio agente dentro del mismo prompt, después de ejecutar sus scripts de verificación o una captura en el navegador. Las registramos igual, porque muestran que la primera versión que generó el agente tenía el problema.
+**Cantidad de prompts.** Se usaron los 9 prompts planificados (Prompt 0 a Prompt 8), uno por incremento, y cada incremento cerró con su commit (`36a065a`, `14aa9a3`, `cb02fe1`, `8eaff47`, `30478b8`, `ab060e7`, `433946f`, `a772d15`, `0a54fcb`). Hubo **un único prompt de corrección** del equipo (C-1, Anexo A). No corrigió un error del agente sino un problema de nuestra especificación: el intervalo entre frutas (fila 14). En los incrementos 6 a 9 las correcciones de las filas 6, 9, 10 y 12 de la tabla 8.5 las hizo el propio agente dentro del mismo prompt, después de ejecutar sus scripts de verificación o una captura en el navegador. Las registramos igual, porque muestran que la primera versión que generó el agente tenía el problema.
 
 **Qué salió bien en el primer intento.** Los criterios con **valores numéricos explícitos** se implementaron bien a la primera en todos los incrementos: duración del PowerUp (8 s), aviso de 2 s, escala 200/400/800/1600, reaparición a los 5 s, 100 puntos por fruta y 15 s de vida, tiempos objetivo de 120/150/180 s, 500 por vida, velocidad del espectro al 70 %, cooldown de 10 s, 3 s sin comer, fruta cada 20 s. Esto confirma la primera parte de nuestra hipótesis.
 
 **Dónde falló el agente.** Todos los problemas de lógica de los incrementos 6 a 9 (filas 5, 6, 9 y 10) son **interacciones entre estados**, no valores: qué pasa con el cooldown cuando se pierde una vida, cuándo empieza el lapso sin comer respecto del cruce del muro, qué diseño tiene un fantasma que reaparece con el PowerUp activo, qué ocurre cuando dos personajes intercambian de celda en el mismo paso. Confirma la segunda parte de la hipótesis, con un matiz: los problemas no aparecieron en las interacciones que el prompt mencionaba explícitamente (esfera grande durante el parpadeo, PowerUp al perder una vida, fantasma que reaparece vulnerable). Esas salieron bien. Fallaron las interacciones que **nadie escribió**: ningún prompt dice "el cooldown sobrevive a la pérdida de una vida". El agente acierta en lo que se le pide de manera explícita y en lo implícito rellena con lo más simple (reiniciar todo, comparar celdas enteras).
 
-**Problemas de especificación descubiertos al generar.** Tres filas de la tabla 8.5 no son defectos del código sino huecos o inconsistencias de nuestros requerimientos, y hay que resolverlos antes de ejecutar los casos de prueba afectados:
-- Fila 7: no está definido si aparecen frutas en los niveles 1 y 2. HU-12 y los casos de prueba de frutas suponen que hay frutas, pero según la sección 4.4 solo aparecen en el nivel 3.
-- Fila 8: el bonus por tiempo con segundos fraccionarios. Proponemos agregar a la sección 4.2 "segundos enteros restantes".
-- Fila 11: con una fruta cada 20 s y 15 s de vida nunca coexisten 2 frutas, así que el máximo de 2 simultáneas no se puede observar en juego normal. O se acorta el intervalo o se alarga la vida de la fruta, o se acepta que el límite solo se verifica como regla.
+**Problemas de especificación descubiertos al generar.** Tres filas de la tabla 8.5 no son defectos del código sino huecos o inconsistencias de nuestros requerimientos. Los resolvimos en equipo antes de ejecutar los casos de prueba y quedaron en la sección 5 como decisiones 14 a 16:
+- Fila 7: las frutas aparecen únicamente en el nivel 3 (decisión 14).
+- Fila 8: el bonus por tiempo se calcula con segundos enteros (decisión 15). Se actualizó el resultado esperado del CP-042.
+- Fila 11: el intervalo entre frutas pasa a 7 s para que puedan coexistir 2 y el máximo sea observable (decisión 16, prompt C-1).
 
-Además, al registrar la sesión encontramos una **inconsistencia de numeración entre la sección 8 y la 7.3**. El título del Prompt 8 dice "HU-19, HU-20", pero en la 7.3 la pausa es la HU-20, la pantalla de cierre es la HU-19 y la barra espaciadora es la HU-21. El título del Prompt 7 omite la HU-16, que el prompt sí implementa (fantasma comido en el nivel 1 reaparece clásico). La tabla 8.1 es la correcta.
+La fila 11 es la más interesante para la conclusión de la entrega. Cada parámetro, leído por separado, era correcto y verificable. La contradicción solo aparecía al combinarlos en el tiempo, y ni la revisión de los requerimientos ni el diseño de los casos de prueba la detectaron: la detectó el agente al generar la secuencia real de apariciones.
+
+**Diferencia de numeración entre la sección 8.4 y la 7.3.** El título del Prompt 7 omite la HU-16, que el prompt sí implementa. El título del Prompt 8 dice "HU-19, HU-20", pero cubre la HU-19 (pantallas de cierre), la HU-20 (pausa) y la HU-21 (barra espaciadora). Tomamos como referencia la **tabla 8.1**, que coincide con la 7.3 y con la matriz de trazabilidad. Los títulos de los prompts se conservan tal como se ejecutaron, con una nota de trazabilidad en cada uno.
 
 **Funcionalidad agregada sin pedirla.** Pantalla de resultado de nivel durante 3 s antes de pasar al siguiente (la HU-04 pide mostrar el resultado pero no dice cuánto tiempo), fuegos artificiales al completar un nivel (vienen del Incremento 3) y foco automático en el botón "Volver a jugar" para que Enter lo active (coherente con la sección 4.6). Se conservaron las tres porque no contradicen ningún criterio de aceptación. Las tres son comportamiento no especificado: si la ejecución encuentra un problema en ellas, se clasifica como defecto de funcionalidad no especificada.
 
-**Desvíos que quedan en el código y que la ejecución de pruebas debería detectar.** Vienen del Incremento 5 y no se corrigieron durante la generación, porque no forman parte de los prompts 5 a 8. Los dejamos anotados para no presentarlos luego como hallazgos sorpresivos:
+**Desvíos que quedan en el código y que la ejecución de pruebas debería detectar.** Vienen del Incremento 5. Por decisión del equipo **no se corrigen durante la generación**: pertenecen a un incremento ya cerrado y se dejan para que los detecten los casos de prueba (por ejemplo, los de la HU-09) y se reporten como defectos por el circuito normal de la sección 13. Los anotamos para que no aparezcan luego como hallazgos inesperados:
 - HU-09: el contador de vidas está en la barra superior, no en el extremo inferior izquierdo, y usa un círculo amarillo genérico, no el ícono de Pacman.
 - Al perder una vida, Pacman y los fantasmas vuelven a su posición inicial sin pausa ni aviso previo. No viola ningún criterio, pero es poco visible para quien ejecuta los casos.
 
@@ -1825,7 +1841,7 @@ Notación de estados usada en las precondiciones:
 *HU-13 · Prioridad: Media · Técnica: Valores límite*
 - **Precondiciones:** Partida en curso (N1).
 - **Pasos:** 1) Completar el nivel 1 en menos de 120 segundos, registrando el tiempo empleado. 2) Verificar el bonus por tiempo en el desglose.
-- **Resultado esperado:** El bonus por tiempo es igual a 10 multiplicado por los segundos restantes respecto de los 120 segundos objetivo.
+- **Resultado esperado:** El bonus por tiempo es igual a 10 multiplicado por los segundos **enteros** restantes respecto de los 120 segundos objetivo, descartando la fracción. Por ejemplo, un tiempo de 100,5 s deja 19 s y da un bonus de 190 (sección 4.2).
 
 **CP-043 · Bonus por tiempo al exceder el tiempo objetivo**
 *HU-13 · Prioridad: Media · Técnica: Valores límite*
@@ -2392,6 +2408,8 @@ La última columna permite contrastar la distribución observada con el riesgo e
 
 **Sobre la especificación de requerimientos.** El pasaje de la propuesta de la pre-entrega a historias de usuario con criterios de aceptación verificables expuso **13 puntos que no admitían un resultado pass/fail inequívoco**, dos de ellos contradicciones internas del propio documento (sección 5). Ninguna era evidente en la lectura del documento de propuesta: aparecieron al intentar escribir un resultado esperado con valor pass/fail. Es la constatación práctica del criterio visto en clase de que un requerimiento para el cual no se puede diseñar un caso de prueba no está listo para desarrollo.
 
+La generación de la aplicación expuso **3 puntos más** (decisiones 14 a 16), que pasaron inadvertidos tanto en la revisión de los requerimientos como en el diseño de los casos de prueba. El más ilustrativo es el de las frutas del nivel 3: cada parámetro era correcto por separado, pero combinados hacían que el máximo de 2 frutas simultáneas nunca pudiera darse. Hay defectos de especificación que recién aparecen cuando los requerimientos se ejecutan.
+
 Dos de esos hallazgos requerían decisiones de diseño, no solo de redacción: la ausencia de una pantalla de fin de partida en la V1 (que habría dejado la versión sin forma de reiniciar una partida) y la contradicción sobre el efecto de la fruta falsa del Naval. Ambos se habrían descubierto durante el desarrollo o, peor, después, y el costo de corregirlos habría sido mayor: **cuanto más tarde se detecta un defecto, más costoso es corregirlo**.
 
 **Sobre la especificación de parámetros.** Concentrar los valores numéricos en una sección propia (sección 4) tuvo un efecto que no habíamos anticipado al planificarla: es la sección que se entrega al agente de AI como contexto, y cada valor que contiene es un valor que el agente no va a inventar por su cuenta. Un valor inventado por el modelo produce un caso de prueba que falla por discrepancia de especificación y no por un defecto real, y ese tipo de falso positivo consume tiempo de análisis sin aportar información sobre la calidad del producto.
@@ -2408,7 +2426,7 @@ La aplicación de las técnicas de diseño mostró rendimientos muy distintos se
 
 | # | Actividad | Responsable |
 |---|---|---|
-| 1 | ~~Ejecutar la sesión de vibe-coding de la V1 con los 9 prompts de la sección 8.4, registrando prompts y problemas en las tablas 8.5 y 8.6~~ **Completado**: incrementos 1 a 9 generados y registrados (8.5 y 8.6). Pendiente: resolver las tres consultas de especificación de la sección 8.6 antes de ejecutar los casos de frutas y de bonus por tiempo | Equipo completo |
+| 1 | ~~Ejecutar la sesión de vibe-coding de la V1 con los 9 prompts de la sección 8.4, registrando prompts y problemas en las tablas 8.5 y 8.6~~ **Completado**: incrementos 1 a 9 generados y registrados (8.5 y 8.6), y consultas de especificación resueltas (decisiones 14 a 16 de la sección 5) | Equipo completo |
 | 2 | Desplegar la V1 en Vercel y registrar la URL y el commit bajo prueba | Savoia |
 | 3 | Cargar los 66 casos de la V1 en la hoja `Casos de prueba` de Google Sheets | Cruz, Luzzi |
 | 4 | Verificar los criterios de entrada de la sección 9.7 y ejecutar el primer ciclo sobre los 35 casos de prioridad Alta | Rodriguez Castro, Tsai |
@@ -2431,11 +2449,25 @@ La aplicación de las técnicas de diseño mostró rendimientos muy distintos se
 
 Los prompts planificados están transcriptos en la sección 8.4. Los prompts de corrección que surjan durante la sesión de generación se transcriben acá, en orden cronológico, referenciados desde la columna correspondiente de la tabla 8.5.
 
-**Sesión de generación de la V1.** No hizo falta ningún prompt de corrección adicional del equipo: los nueve incrementos se generaron con los prompts 0 a 8 tal como están en la sección 8.4. Las correcciones registradas en la tabla 8.5 se resolvieron de alguna de estas tres maneras:
+**Sesión de generación de la V1.** Los nueve incrementos se generaron con los prompts 0 a 8 tal como están en la sección 8.4. Las correcciones registradas en la tabla 8.5 se resolvieron de alguna de estas cuatro maneras:
 
 - Por edición manual del equipo (filas 1 a 4, incrementos 1 a 4).
 - Por el propio agente dentro del mismo prompt, después de ejecutar sus scripts de verificación o una captura en el navegador (filas 5, 6, 9, 10 y 12, incrementos 6 a 9).
-- Como decisión o consulta de especificación sin cambio de código (filas 7, 8, 11 y 13).
+- Como decisión de especificación del equipo, registrada en la sección 5, sin cambio de código (filas 7, 8 y 13).
+- Con un prompt de corrección del equipo (fila 14, prompt C-1, en respuesta a la fila 11).
+
+#### C-1 — Intervalo de aparición de frutas en el nivel 3 (corrige la fila 11 de la tabla 8.5)
+
+```
+Con una fruta cada 20 segundos y 15 segundos de vida nunca coexisten 2 frutas,
+así que el máximo de 2 simultáneas no se cumple en la práctica. Decidimos:
+- Las frutas aparecen únicamente en el nivel 3; en los niveles 1 y 2 no hay.
+- En el nivel 3 aparece una fruta cada 7 segundos (en lugar de 20).
+- La vida de cada fruta sigue siendo 15 segundos y el máximo sigue siendo 2
+  simultáneas: si al cumplirse los 7 segundos ya hay 2, esa aparición se omite.
+Verificá que a los 14 s coexistan 2 frutas y que a los 21 s no aparezca una
+tercera.
+```
 
 ### Anexo B — Evidencia de la ejecución
 

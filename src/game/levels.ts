@@ -62,7 +62,9 @@ export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
     ghosts: CORNER_GHOSTS,
     initialGhostKind: "specter",
     specterRespawnChance: 1,
-    fruitSpawnIntervalSeconds: 20,
+    // 7 s (y no 20 s) para que con 15 s de vida puedan coexistir 2 frutas y el máximo
+    // sea observable: a los 21 s no aparece una tercera (decisión del equipo, sección 5).
+    fruitSpawnIntervalSeconds: 7,
   },
 };
 
