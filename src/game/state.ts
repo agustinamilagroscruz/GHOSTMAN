@@ -23,7 +23,7 @@ import {
 } from "./scoring";
 import type { GameMap } from "./types";
 
-const PLAYER_SPEED_CELLS_PER_SECOND = 6;
+const PLAYER_SPEED_CELLS_PER_SECOND = 5;
 
 const CHASE_DURATION_SECONDS = 20;
 const SCATTER_DURATION_SECONDS = 7;

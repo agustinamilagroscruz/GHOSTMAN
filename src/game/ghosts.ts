@@ -8,7 +8,7 @@ export type GhostMode = "chase" | "scatter";
 /** Tipos disponibles en la V1 (sección 3): clásico y espectro. */
 export type GhostKind = "classic" | "specter";
 
-export const CLASSIC_GHOST_SPEED = 6; // celdas por segundo
+export const CLASSIC_GHOST_SPEED = 5; // celdas por segundo
 /** El espectro es un 30 % más lento que el clásico. */
 export const SPECTER_SPEED_FACTOR = 0.7;
 export const SPECTER_PHASE_COOLDOWN_SECONDS = 10;
