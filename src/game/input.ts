@@ -22,6 +22,8 @@ export interface KeyboardInputOptions {
 
 export interface KeyboardDirectionInput {
   getDirection(): Direction | null;
+  /** true si se presionó la barra espaciadora desde la última consulta (y la olvida). */
+  consumePowerPress(): boolean;
   /** Olvida la última dirección pedida (al reiniciar posiciones o cambiar de nivel). */
   reset(): void;
   dispose(): void;
@@ -29,11 +31,14 @@ export interface KeyboardDirectionInput {
 
 export function createKeyboardDirectionInput(options: KeyboardInputOptions = {}): KeyboardDirectionInput {
   let currentDirection: Direction | null = null;
+  let powerPressed = false;
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    // La barra espaciadora no tiene efecto en modo Pacman y no debe scrollear la página.
+    // Barra espaciadora: poder del fantasma (modo GhostMan). En modo Pacman el estado del juego
+    // la ignora. Nunca scrollea la página, y mantenerla apretada no repite la activación.
     if (event.code === "Space") {
       event.preventDefault();
+      if (!event.repeat && !options.isPaused?.()) powerPressed = true;
       return;
     }
 
@@ -55,8 +60,14 @@ export function createKeyboardDirectionInput(options: KeyboardInputOptions = {})
 
   return {
     getDirection: () => currentDirection,
+    consumePowerPress: () => {
+      const pressed = powerPressed;
+      powerPressed = false;
+      return pressed;
+    },
     reset: () => {
       currentDirection = null;
+      powerPressed = false;
     },
     dispose: () => window.removeEventListener("keydown", handleKeyDown),
   };

@@ -40,8 +40,15 @@ export interface Ghost extends Mover {
   /** Comido y fuera del mapa, esperando reaparecer en `spawn`. */
   eaten: boolean;
   respawnTimer: number;
-  /** Espectro: segundos hasta poder volver a atravesar un muro. */
-  phaseCooldown: number;
+  /** Segundos hasta poder volver a usar el poder (cualquier tipo). Sobrevive al reinicio del nivel. */
+  powerCooldown: number;
+  /**
+   * Dirección de avance (decisión 24): la última en la que se movió. Se conserva aunque el
+   * fantasma quede detenido contra un muro; es null solo si no se movió desde que apareció.
+   */
+  facing: Direction | null;
+  /** Fantasma del jugador: activó el cruce a mitad de celda y termina de llegar antes de entrar al muro. */
+  phasePending: boolean;
   /** Espectro: celdas que le faltan recorrer para completar el cruce (2 = muro + salida). */
   phaseCellsLeft: number;
   /** Espectro: segundos durante los que no puede comer a Pacman tras atravesar un muro. */
@@ -85,7 +92,9 @@ export function createGhost(
     vulnerable: false,
     eaten: false,
     respawnTimer: 0,
-    phaseCooldown: 0,
+    powerCooldown: 0,
+    facing: null,
+    phasePending: false,
     phaseCellsLeft: 0,
     noEatTimer: 0,
   };
@@ -104,9 +113,11 @@ export function setGhostKind(ghost: Ghost, kind: GhostKind): void {
  */
 export function clearSpecterState(ghost: Ghost): void {
   ghost.phaseCellsLeft = 0;
+  ghost.phasePending = false;
   ghost.noEatTimer = 0;
 }
 
+/** Cruzando el muro (muro + salida). El tramo previo de `phasePending` no cuenta: ahí todavía puede comer. */
 export function isPhasing(ghost: Ghost): boolean {
   return ghost.phaseCellsLeft > 0;
 }
@@ -202,12 +213,12 @@ function decide(ghost: Ghost, map: GameMap, targetRow: number, targetCol: number
   // Durante el cruce la dirección está fijada: una sola pared, sin encadenar muros contiguos.
   if (isPhasing(ghost)) return;
 
-  const canPhase = allowPhase && ghost.kind === "specter" && ghost.phaseCooldown <= 0;
+  const canPhase = allowPhase && ghost.kind === "specter" && ghost.powerCooldown <= 0;
   const choice = chooseDirection(map, ghost.row, ghost.col, ghost.direction, targetRow, targetCol, canPhase);
   ghost.direction = choice.direction;
   if (choice.phase) {
     ghost.phaseCellsLeft = 2;
-    ghost.phaseCooldown = SPECTER_PHASE_COOLDOWN_SECONDS;
+    ghost.powerCooldown = SPECTER_PHASE_COOLDOWN_SECONDS;
   }
 }
 
@@ -219,7 +230,7 @@ export function updateGhost(
   targetCol: number,
   allowPhase = false
 ): void {
-  if (ghost.phaseCooldown > 0) ghost.phaseCooldown = Math.max(0, ghost.phaseCooldown - deltaSeconds);
+  if (ghost.powerCooldown > 0) ghost.powerCooldown = Math.max(0, ghost.powerCooldown - deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
 
   if (ghost.progress === 0) {
@@ -252,13 +263,54 @@ export function updateGhost(
 
 /**
  * Fantasma del jugador (modo GhostMan): mismo movimiento que Pacman, con avance continuo,
- * giro anticipado e inversión de marcha libre. Los temporizadores del espectro siguen corriendo.
+ * giro anticipado e inversión de marcha libre. Durante el cruce de un muro el espectro avanza
+ * en línea recta sin leer el teclado, como el espectro de la IA.
  */
 export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: number, desiredDirection: Direction | null): void {
-  if (ghost.phaseCooldown > 0) ghost.phaseCooldown = Math.max(0, ghost.phaseCooldown - deltaSeconds);
+  if (ghost.powerCooldown > 0) ghost.powerCooldown = Math.max(0, ghost.powerCooldown - deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
+
+  if (ghost.phasePending || isPhasing(ghost)) {
+    advancePlayerPhase(ghost, map, deltaSeconds);
+    return;
+  }
+
   ghost.desiredDirection = desiredDirection;
   updateMover(ghost, map, deltaSeconds);
+  if (ghost.direction) ghost.facing = ghost.direction;
+}
+
+/** Cruce del espectro del jugador: dirección fija, sin chequear muros hasta la celda de salida. */
+function advancePlayerPhase(ghost: Ghost, map: GameMap, deltaSeconds: number): void {
+  if (!ghost.facing) {
+    clearSpecterState(ghost);
+    return;
+  }
+  ghost.direction = ghost.facing;
+  ghost.progress += ghost.speed * deltaSeconds;
+
+  while (ghost.progress >= 1) {
+    const [dRow, dCol] = DIRECTION_VECTORS[ghost.facing];
+    ghost.row += dRow;
+    ghost.col += dCol;
+    ghost.progress -= 1;
+
+    if (ghost.phasePending) {
+      // Llegó a la celda contigua al muro: empieza el cruce (muro + salida).
+      ghost.phasePending = false;
+      ghost.phaseCellsLeft = 2;
+      continue;
+    }
+    ghost.phaseCellsLeft -= 1;
+    if (ghost.phaseCellsLeft > 0) continue; // sigue dentro del muro
+
+    // Salió del muro: 3 s sin poder derrotar a Pacman, y queda parado en el centro de la
+    // celda de salida para que el movimiento normal retome desde ahí.
+    ghost.noEatTimer = SPECTER_NO_EAT_SECONDS;
+    ghost.progress = 0;
+    if (!canEnterCell(map, ghost.row + dRow, ghost.col + dCol)) ghost.direction = null;
+    break;
+  }
 }
 
 /** Única excepción a la regla de no reversa: se fuerza al cambiar entre persecución y dispersión. */

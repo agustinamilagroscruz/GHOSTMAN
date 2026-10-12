@@ -14,6 +14,7 @@ import { ageFruits, createFruit, type Fruit } from "./fruits";
 import { LAST_LEVEL, LEVELS, MAX_SIMULTANEOUS_FRUITS, type LevelDefinition } from "./levels";
 import { createMover, getMoverPosition, updateMover, type Direction, type Mover } from "./movement";
 import { decidePacmanDirection } from "./pacmanAi";
+import { tryActivateGhostPower } from "./powers";
 import {
   COMMON_PELLET_POINTS,
   FRUIT_POINTS,
@@ -145,6 +146,8 @@ function placeGhostAtSpawn(ghost: Ghost): void {
   ghost.progress = 0;
   ghost.direction = null;
   ghost.desiredDirection = null;
+  ghost.facing = null;
+  ghost.phasePending = false;
   ghost.phaseCellsLeft = 0;
   ghost.noEatTimer = 0;
 }
@@ -533,7 +536,9 @@ function updateGhosts(state: GameState, deltaSeconds: number, playerDirection: D
 export function updateGameState(
   state: GameState,
   deltaSeconds: number,
-  playerDesiredDirection: Direction | null
+  playerDesiredDirection: Direction | null,
+  /** Barra espaciadora presionada desde el paso anterior (solo tiene efecto en modo GhostMan). */
+  playerPowerRequested = false
 ): void {
   const isPacmanMode = state.config.mode === "pacman";
   if (state.gameOver || state.won || state.paused) return;
@@ -575,6 +580,10 @@ export function updateGameState(
   updatePowerUp(state, deltaSeconds);
   updateGhostRespawns(state, deltaSeconds);
   updateGhostMode(state, deltaSeconds);
+  if (!isPacmanMode && playerPowerRequested) {
+    const playerGhost = getPlayerGhost(state);
+    if (playerGhost) tryActivateGhostPower(playerGhost, state.map, state.random);
+  }
   updateGhosts(state, deltaSeconds, isPacmanMode ? null : playerDesiredDirection);
   checkGhostCollisions(state);
 }

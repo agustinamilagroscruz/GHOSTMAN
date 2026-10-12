@@ -5,6 +5,7 @@ import { createFireworksState, renderFireworks, spawnFireworkBurst, updateFirewo
 import { isPhasing } from "../game/ghosts";
 import { createKeyboardDirectionInput } from "../game/input";
 import { getMoverPosition } from "../game/movement";
+import { isPowerReady } from "../game/powers";
 import { isBlinkOn, renderFruit, renderGhost, renderMap, renderPacman } from "../game/render";
 import { startGameLoop } from "../game/loop";
 import {
@@ -35,6 +36,8 @@ interface UiSnapshot {
   levelPelletsLeftBonus: number;
   /** Modo GhostMan: segundos enteros que faltan para que reaparezca el fantasma del jugador (0 = en juego). */
   playerRespawnSeconds: number;
+  /** Modo GhostMan (HU-32): null si el fantasma no tiene poder; si no, si está disponible. */
+  powerReady: boolean | null;
   gameOver: boolean;
   won: boolean;
   powerUpActive: boolean;
@@ -52,6 +55,7 @@ function takeSnapshot(state: GameState): UiSnapshot {
     levelTimeBonus: state.lastLevelTimeBonus,
     levelPelletsLeftBonus: state.lastLevelPelletsLeftBonus,
     playerRespawnSeconds: playerRespawnSeconds(state),
+    powerReady: playerPowerReady(state),
     gameOver: state.gameOver,
     won: state.won,
     powerUpActive: state.powerUpActive,
@@ -63,6 +67,11 @@ function takeSnapshot(state: GameState): UiSnapshot {
 function playerRespawnSeconds(state: GameState): number {
   const ghost = getPlayerGhost(state);
   return ghost?.eaten ? Math.ceil(ghost.respawnTimer) : 0;
+}
+
+function playerPowerReady(state: GameState): boolean | null {
+  const ghost = getPlayerGhost(state);
+  return ghost ? isPowerReady(ghost) : null;
 }
 
 function sameSnapshot(a: UiSnapshot, b: UiSnapshot): boolean {
@@ -99,7 +108,7 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
     let lastSnapshot = takeSnapshot(state);
 
     const update = (dt: number) => {
-      updateGameState(state, dt, input.getDirection());
+      updateGameState(state, dt, input.getDirection(), input.consumePowerPress());
 
       const snapshot = takeSnapshot(state);
       if (!sameSnapshot(snapshot, lastSnapshot)) {
@@ -225,7 +234,7 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
           </div>
         )}
       </div>
-      {isGhostman && <GhostmanStatusBar pacmanLives={ui.lives} />}
+      {isGhostman && <GhostmanStatusBar pacmanLives={ui.lives} powerReady={ui.powerReady} />}
     </div>
   );
 }
@@ -234,9 +243,19 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
  * Modo GhostMan, extremo inferior izquierdo: vidas de Pacman en el nivel con el ícono del
  * fantasma, que sirven a la vez de contador de derrotas e identifican el modo (decisión 18).
  */
-function GhostmanStatusBar({ pacmanLives }: { pacmanLives: number }) {
+function GhostmanStatusBar({ pacmanLives, powerReady }: { pacmanLives: number; powerReady: boolean | null }) {
   return (
     <div className={styles.statusBar} data-testid="ghostman-status">
+      {powerReady !== null && (
+        <span
+          className={powerReady ? styles.powerStar : `${styles.powerStar} ${styles.powerStarCooldown}`}
+          data-testid="power-indicator"
+          data-ready={powerReady}
+          title={powerReady ? "Poder disponible (barra espaciadora)" : "Poder en cooldown"}
+        >
+          ⭐
+        </span>
+      )}
       <span className={styles.statusLabel}>Vidas de Pacman</span>
       <span data-testid="pacman-lives" data-lives={pacmanLives}>
         {Array.from({ length: pacmanLives }, (_, i) => (
