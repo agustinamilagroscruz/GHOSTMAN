@@ -66,11 +66,11 @@ Un checklist por incremento. Cada uno se cierra con commit propio sobre `main`, 
 - [x] Commit del incremento (`34978df`)
 
 ### Incremento 16 — Fantasmas especiales en el modo Pacman (HU-43)
-- [ ] Ejecutar Prompt 15
-- [ ] Decidir si el cooldown del espectro de la IA sigue corriendo mientras está comido (tabla 7.5, fila 18)
-- [ ] Verificar: composición de los niveles 2 y 3, y uso de los poderes por la IA
-- [ ] Jugar una partida completa en modo Pacman para descartar regresiones evidentes
-- [ ] Registrar problemas en la tabla 7.5
+- [x] Ejecutar Prompt 15
+- [ ] Decidir si el cooldown del espectro de la IA sigue corriendo mientras está comido (tabla 7.5, filas 18 y 25) — **sigue pendiente: el incremento mantiene el comportamiento de la V1**
+- [x] Verificar: composición de los niveles 2 y 3, y uso de los poderes por la IA
+- [ ] Jugar una partida completa en modo Pacman para descartar regresiones evidentes — simulada en el núcleo con la IA de Pacman en los tres niveles (sin errores, desglose consistente); falta una partida manual en el navegador
+- [x] Registrar problemas en la tabla 7.5
 - [ ] Commit del incremento
 
 ### Incremento 17 — Dificultad del modo GhostMan (HU-33, HU-34)

@@ -106,9 +106,14 @@ export function createGhost(
   };
 }
 
-/** Cambia el tipo del fantasma (p. ej. al reaparecer como espectro en el nivel 2). */
+/**
+ * Cambia el tipo del fantasma (p. ej. al reaparecer con poderes en el nivel 2). La penalidad
+ * de velocidad del acelerado es del tipo anterior y se descarta; el cooldown se conserva, para
+ * que reaparecer no habilite un uso antes de tiempo (mismo criterio que la HU-18).
+ */
 export function setGhostKind(ghost: Ghost, kind: GhostKind): void {
   ghost.kind = kind;
+  ghost.slowTimer = 0;
   ghost.speed = speedForKind(kind);
   clearSpecterState(ghost);
 }
@@ -236,7 +241,8 @@ export function updateGhost(
   targetCol: number,
   allowPhase = false
 ): void {
-  if (ghost.powerCooldown > 0) ghost.powerCooldown = tickTimer(ghost.powerCooldown, deltaSeconds);
+  // Cooldown y penalidad del acelerado (incremento 16: el acelerado de la IA también la tiene).
+  tickPlayerPowerTimers(ghost, deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
 
   if (ghost.progress === 0) {
@@ -287,8 +293,8 @@ export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: numb
 }
 
 /**
- * Temporizadores del poder del jugador, que corren también mientras está comido: cooldown y
- * penalidad de velocidad del acelerado (al terminar, recupera su velocidad base).
+ * Temporizadores del poder: cooldown y penalidad de velocidad del acelerado (al terminar,
+ * recupera su velocidad base). Los del fantasma del jugador corren también mientras está comido.
  */
 export function tickPlayerPowerTimers(ghost: Ghost, deltaSeconds: number): void {
   if (ghost.powerCooldown > 0) ghost.powerCooldown = tickTimer(ghost.powerCooldown, deltaSeconds);

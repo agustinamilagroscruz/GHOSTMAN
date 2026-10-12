@@ -12,16 +12,25 @@ import {
   type GhostMode,
 } from "./ghosts";
 import {
+  canPlaceFakeFruit,
   EXPLOSION_DISPLAY_SECONDS,
   explosionCells,
   type Explosion,
   type FakeFruit,
 } from "./fakeFruits";
 import { ageFruits, createFruit, type Fruit } from "./fruits";
-import { LAST_LEVEL, LEVELS, MAX_SIMULTANEOUS_FRUITS, type LevelDefinition } from "./levels";
-import { createMover, getMoverPosition, updateMover, type Direction, type Mover } from "./movement";
+import { LAST_LEVEL, LEVELS, MAX_SIMULTANEOUS_FRUITS, POWERED_GHOST_KINDS, type LevelDefinition } from "./levels";
+import {
+  canEnterCell,
+  createMover,
+  DIRECTION_VECTORS,
+  getMoverPosition,
+  updateMover,
+  type Direction,
+  type Mover,
+} from "./movement";
 import { decidePacmanDirection } from "./pacmanAi";
-import { tryActivateGhostPower } from "./powers";
+import { tryAcceleratedDash, tryActivateGhostPower, tryJumperTeleport, tryNavalPlaceFruit } from "./powers";
 import { tickTimer } from "./timers";
 import {
   COMMON_PELLET_POINTS,
@@ -39,6 +48,11 @@ import {
 import type { GameMap } from "./types";
 
 const PACMAN_SPEED_CELLS_PER_SECOND = 5;
+
+/** Modo Pacman (sección 4.9): el saltarín de la IA salta si Pacman está a esta distancia Manhattan o menos. */
+export const AI_JUMPER_TRIGGER_CELLS = 10;
+/** Modo Pacman (sección 4.9): el acelerado de la IA hace el dash si Pacman está a esta distancia Manhattan o menos. */
+export const AI_DASH_TRIGGER_CELLS = 6;
 
 const CHASE_DURATION_SECONDS = 20;
 const SCATTER_DURATION_SECONDS = 7;
@@ -137,7 +151,7 @@ function countPellets(map: GameMap): number {
 function createLevelGhosts(definition: LevelDefinition, config: GameConfig): Ghost[] {
   return definition.ghosts.map((setup, index) => {
     if (config.mode === "pacman") {
-      return createGhost(setup.id, setup.spawn.row, setup.spawn.col, definition.initialGhostKind, setup.color, setup.scatterTarget);
+      return createGhost(setup.id, setup.spawn.row, setup.spawn.col, definition.initialGhostKinds[index], setup.color, setup.scatterTarget);
     }
     const isPlayer = index === 0;
     const kind = isPlayer ? (config.playerGhostKind ?? "classic") : "classic";
@@ -415,14 +429,24 @@ function updateGhostRespawns(state: GameState, deltaSeconds: number): void {
       placeGhostAtSpawn(ghost);
       // Modo GhostMan: el fantasma del jugador conserva su tipo y los de la IA siguen clásicos.
       if (state.config.mode === "pacman") {
-        // Nivel 1: siempre clásico. Nivel 2: 50 % espectro. Nivel 3: siempre espectro.
-        const chance = levelDefinition(state).specterRespawnChance;
-        setGhostKind(ghost, chance > 0 && state.random() < chance ? "specter" : "classic");
+        setGhostKind(ghost, respawnKind(state));
       }
       // Si el PowerUp sigue activo reaparece vulnerable y la escala continúa.
       ghost.vulnerable = state.powerUpActive;
     }
   }
+}
+
+/**
+ * Modo Pacman: tipo con el que reaparece un fantasma comido (sección 4.9). Nivel 1: siempre
+ * clásico. Nivel 2: con poderes con un 50 % de probabilidad. Nivel 3: siempre con poderes. Con
+ * poderes, el tipo es uno de los cuatro al azar y en forma uniforme.
+ */
+function respawnKind(state: GameState): GhostKind {
+  const chance = levelDefinition(state).poweredRespawnChance;
+  if (chance <= 0 || state.random() >= chance) return "classic";
+  const index = Math.min(POWERED_GHOST_KINDS.length - 1, Math.floor(state.random() * POWERED_GHOST_KINDS.length));
+  return POWERED_GHOST_KINDS[index];
 }
 
 function checkGhostCollisions(state: GameState): void {
@@ -637,6 +661,48 @@ function updateGhosts(state: GameState, deltaSeconds: number, playerDirection: D
     // El espectro usa su habilidad solo para perseguir a Pacman.
     const allowPhase = !ghost.vulnerable && state.ghostMode === "chase";
     updateGhost(ghost, state.map, deltaSeconds, targetRow, targetCol, allowPhase);
+    if (state.config.mode === "pacman") triggerAiGhostPower(state, ghost);
+    if (state.levelComplete || state.gameOver) return;
+  }
+}
+
+/** Distancia Manhattan entre la celda que ocupa (visualmente) un personaje y la de otro. */
+function manhattanCells(a: { row: number; col: number }, b: { row: number; col: number }): number {
+  return Math.abs(Math.round(a.row) - Math.round(b.row)) + Math.abs(Math.round(a.col) - Math.round(b.col));
+}
+
+/**
+ * Modo Pacman: la IA usa el poder del saltarín, el naval y el acelerado con las condiciones de
+ * la sección 4.9, reutilizando las implementaciones del modo GhostMan (powers.ts). El espectro
+ * conserva el comportamiento de la V1, que decide el cruce dentro de su movimiento. Ningún
+ * fantasma usa su poder mientras está vulnerable.
+ */
+function triggerAiGhostPower(state: GameState, ghost: Ghost): void {
+  if (ghost.eaten || ghost.vulnerable || ghost.powerCooldown > 0) return;
+  // La dirección de avance de la IA es la de su movimiento (decisión 24 aplicada a la IA).
+  if (ghost.direction) ghost.facing = ghost.direction;
+
+  const chasing = state.ghostMode === "chase";
+  const from = getMoverPosition(ghost);
+  const distance = manhattanCells(from, getMoverPosition(state.pacman));
+
+  switch (ghost.kind) {
+    case "jumper":
+      if (chasing && distance <= AI_JUMPER_TRIGGER_CELLS) tryJumperTeleport(ghost, state.map, state.random);
+      break;
+    case "naval": {
+      const row = Math.round(from.row);
+      const col = Math.round(from.col);
+      if (canPlaceFakeFruit(state.fakeFruits, row, col)) tryNavalPlaceFruit(ghost, state.fakeFruits);
+      break;
+    }
+    case "accelerated": {
+      if (!chasing || distance > AI_DASH_TRIGGER_CELLS || !ghost.facing) break;
+      const [dRow, dCol] = DIRECTION_VECTORS[ghost.facing];
+      if (!canEnterCell(state.map, Math.round(from.row) + dRow, Math.round(from.col) + dCol)) break;
+      if (tryAcceleratedDash(ghost, state.map)) checkDashContact(state, ghost, from);
+      break;
+    }
   }
 }
 

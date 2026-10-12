@@ -4,7 +4,7 @@ import { createLevel2Map } from "./maps/level2";
 import { createLevel3Map } from "./maps/level3";
 import type { GameMap } from "./types";
 
-// Definición de los tres niveles de la V1 (secciones 2.1 y 4.4).
+// Definición de los tres niveles (V1: secciones 2.1 y 4.4; V2: sección 4.9, HU-43).
 
 export const LAST_LEVEL = 3;
 
@@ -20,10 +20,13 @@ export interface LevelDefinition {
   createMap: () => GameMap;
   pacmanSpawn: { row: number; col: number };
   ghosts: readonly GhostSetup[];
-  /** Tipo con el que arrancan los cuatro fantasmas. */
-  initialGhostKind: GhostKind;
-  /** Probabilidad de que un fantasma comido reaparezca como espectro (0, 0.5 o 1). */
-  specterRespawnChance: number;
+  /** Modo Pacman: tipo con el que arranca cada fantasma, en el orden de `ghosts`. */
+  initialGhostKinds: readonly GhostKind[];
+  /**
+   * Modo Pacman: probabilidad de que un fantasma comido reaparezca con poderes (0, 0,5 o 1).
+   * En ese caso el tipo se elige al azar, en forma uniforme, entre los cuatro con poderes.
+   */
+  poweredRespawnChance: number;
   /** Segundos entre apariciones de frutas; null si el nivel no tiene frutas. */
   fruitSpawnIntervalSeconds: number | null;
 }
@@ -42,8 +45,8 @@ export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
     createMap: createLevel1Map,
     pacmanSpawn: { row: 7, col: 8 },
     ghosts: CORNER_GHOSTS,
-    initialGhostKind: "classic",
-    specterRespawnChance: 0,
+    initialGhostKinds: ["classic", "classic", "classic", "classic"],
+    poweredRespawnChance: 0,
     fruitSpawnIntervalSeconds: null,
   },
   2: {
@@ -51,8 +54,8 @@ export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
     createMap: createLevel2Map,
     pacmanSpawn: { row: 7, col: 8 },
     ghosts: CORNER_GHOSTS,
-    initialGhostKind: "classic",
-    specterRespawnChance: 0.5,
+    initialGhostKinds: ["classic", "classic", "classic", "classic"],
+    poweredRespawnChance: 0.5,
     fruitSpawnIntervalSeconds: null,
   },
   3: {
@@ -60,8 +63,9 @@ export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
     createMap: createLevel3Map,
     pacmanSpawn: { row: 7, col: 8 },
     ghosts: CORNER_GHOSTS,
-    initialGhostKind: "specter",
-    specterRespawnChance: 1,
+    // Uno de cada tipo con poderes (decisión 23): composición determinista y verificable a la vista.
+    initialGhostKinds: ["specter", "jumper", "naval", "accelerated"],
+    poweredRespawnChance: 1,
     // 7 s (y no 20 s) para que con 15 s de vida puedan coexistir 2 frutas y el máximo
     // sea observable: a los 21 s no aparece una tercera (decisión del equipo, sección 5).
     fruitSpawnIntervalSeconds: 7,
@@ -69,3 +73,6 @@ export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
 };
 
 export const MAX_SIMULTANEOUS_FRUITS = 2;
+
+/** Tipos con poderes, para la reaparición al azar del modo Pacman (sección 4.9). */
+export const POWERED_GHOST_KINDS: readonly GhostKind[] = ["specter", "jumper", "naval", "accelerated"];

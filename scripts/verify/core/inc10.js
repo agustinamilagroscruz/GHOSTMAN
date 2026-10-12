@@ -74,11 +74,13 @@ check(st.getPlayerGhost(s).kind === "jumper", "GhostMan N3: el jugador conserva 
 st.restartGame(s);
 check(s.level === 1 && s.config.mode === "ghostman" && st.getPlayerGhost(s).kind === "jumper", "volver a jugar repite modo y fantasma desde el nivel 1");
 
-// Modo Pacman N3 sin cambios: cuatro espectros
+// Modo Pacman N3: uno de cada tipo con poderes (cambió a propósito en el incremento 16, HU-43;
+// hasta el 15 eran cuatro espectros, como en la V1)
 s = st.createInitialGameState(undefined, seeded());
 s.level = 2; s.levelComplete = true; s.levelTransitionTimer = 0.01;
 run(s, 0.05, null);
-check(s.ghosts.every(g => g.kind === "specter" && !g.controlledByPlayer), "modo Pacman N3: cuatro espectros (sin cambios respecto de la V1)");
+check(s.ghosts.map(g => g.kind).join() === "specter,jumper,naval,accelerated" && s.ghosts.every(g => !g.controlledByPlayer),
+  "modo Pacman N3: uno de cada tipo con poderes (incremento 16)");
 
 console.log(fails ? `\n${fails} FALLAS` : "\nTodo OK");
 process.exit(fails ? 1 : 0);
