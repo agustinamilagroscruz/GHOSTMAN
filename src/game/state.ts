@@ -13,6 +13,7 @@ import {
 import { ageFruits, createFruit, type Fruit } from "./fruits";
 import { LAST_LEVEL, LEVELS, MAX_SIMULTANEOUS_FRUITS, type LevelDefinition } from "./levels";
 import { createMover, getMoverPosition, updateMover, type Direction, type Mover } from "./movement";
+import { decidePacmanDirection } from "./pacmanAi";
 import {
   COMMON_PELLET_POINTS,
   FRUIT_POINTS,
@@ -220,6 +221,9 @@ export function togglePause(state: GameState): void {
 /** Único punto de entrada para sumar puntaje: mantiene el desglose y el total sincronizados. */
 function addPoints(state: GameState, category: ScoreCategory, points: number): void {
   if (points <= 0) return; // el puntaje nunca disminuye
+  // Modo GhostMan: lo que hace Pacman (IA) no suma puntos al jugador. El puntaje propio
+  // de este modo (sección 4.4) llega con el incremento 12.
+  if (state.config.mode !== "pacman") return;
   state.score += points;
   state.scoreBreakdown[category] += points;
 }
@@ -391,7 +395,8 @@ function checkGhostCollisions(state: GameState): void {
 
     if (ghost.vulnerable) {
       eatGhost(state, ghost);
-    } else if (canGhostHarm(ghost)) {
+    } else if (state.config.mode === "pacman" && canGhostHarm(ghost)) {
+      // Modo GhostMan: las derrotas de Pacman llegan con el incremento 12.
       loseLife(state);
       return; // un único contacto descuenta como máximo una vida
     }
@@ -487,9 +492,21 @@ export function updateGameState(
   const previousRow = state.pacman.row;
   const previousCol = state.pacman.col;
 
-  // Modo GhostMan: Pacman queda quieto hasta que tenga su IA (incremento 11).
-  state.pacman.desiredDirection = isPacmanMode ? playerDesiredDirection : null;
-  updateMover(state.pacman, state.map, deltaSeconds);
+  if (isPacmanMode) {
+    state.pacman.desiredDirection = playerDesiredDirection;
+    updateMover(state.pacman, state.map, deltaSeconds);
+  } else {
+    // Modo GhostMan: a Pacman lo mueve la IA, que decide en cada celda a la que llega (sección 4.7).
+    updateMover(state.pacman, state.map, deltaSeconds, (pacman) =>
+      decidePacmanDirection({
+        map: state.map,
+        pacman,
+        ghosts: state.ghosts,
+        powerUpActive: state.powerUpActive,
+        fruits: state.fruits,
+      })
+    );
+  }
 
   if (state.pacman.row !== previousRow || state.pacman.col !== previousCol) {
     consumePelletAt(state, state.pacman.row, state.pacman.col);
@@ -503,6 +520,5 @@ export function updateGameState(
   updateGhostRespawns(state, deltaSeconds);
   updateGhostMode(state, deltaSeconds);
   updateGhosts(state, deltaSeconds, isPacmanMode ? null : playerDesiredDirection);
-  // Modo GhostMan: las derrotas de Pacman y el ser comido llegan con el incremento 12.
-  if (isPacmanMode) checkGhostCollisions(state);
+  checkGhostCollisions(state);
 }

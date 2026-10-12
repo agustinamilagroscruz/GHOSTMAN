@@ -65,7 +65,13 @@ function resolveDirectionAtCell(map: GameMap, mover: Mover): void {
   }
 }
 
-export function updateMover(mover: Mover, map: GameMap, deltaSeconds: number): void {
+/**
+ * Elige la dirección deseada parado en el centro de una celda. Lo usa un personaje controlado
+ * por IA (Pacman en modo GhostMan): decide en cada celda a la que llega, no antes.
+ */
+export type CellDecision = (mover: Mover) => Direction | null;
+
+export function updateMover(mover: Mover, map: GameMap, deltaSeconds: number, decideAtCell?: CellDecision): void {
   // La inversión de marcha se acepta en cualquier momento, incluso a mitad de corredor.
   if (isOpposite(mover.direction, mover.desiredDirection)) {
     if (mover.progress > 0 && mover.direction) {
@@ -78,6 +84,7 @@ export function updateMover(mover: Mover, map: GameMap, deltaSeconds: number): v
   }
 
   if (mover.progress === 0) {
+    if (decideAtCell) mover.desiredDirection = decideAtCell(mover);
     resolveDirectionAtCell(map, mover);
   }
 
@@ -90,6 +97,7 @@ export function updateMover(mover: Mover, map: GameMap, deltaSeconds: number): v
     mover.row += dRow;
     mover.col += dCol;
     mover.progress -= 1;
+    if (decideAtCell) mover.desiredDirection = decideAtCell(mover);
     resolveDirectionAtCell(map, mover);
     if (!mover.direction) {
       mover.progress = 0;

@@ -26,12 +26,12 @@ Un checklist por incremento. Cada uno se cierra con commit propio sobre `main`, 
 - [x] Ejecutar Prompt 9
 - [x] Verificar: desde el menú se llega a una partida en la que el jugador mueve al fantasma elegido, y el modo Pacman funciona igual que en la V1
 - [x] Registrar problemas en la tabla 7.5
-- [ ] Commit del incremento
+- [x] Commit del incremento (`bd9f52a`)
 
 ### Incremento 11 — IA de Pacman (HU-24)
-- [ ] Ejecutar Prompt 10
-- [ ] Verificar: Pacman completa el nivel 1 sin interferencia y huye de un fantasma que se le acerca
-- [ ] Registrar problemas en la tabla 7.5
+- [x] Ejecutar Prompt 10
+- [x] Verificar: Pacman completa el nivel 1 sin interferencia y huye de un fantasma que se le acerca
+- [x] Registrar problemas en la tabla 7.5
 - [ ] Commit del incremento
 
 ### Incremento 12 — Reglas del modo GhostMan (HU-25, HU-26, HU-27)
