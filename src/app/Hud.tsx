@@ -1,43 +1,27 @@
-import type { GameMode } from "../game/state";
 import styles from "./Hud.module.css";
 
 interface HudProps {
   score: number;
   pelletsRemaining: number;
-  lives?: number;
   level?: number;
-  /** El ícono del contador de vidas identifica el modo en curso (HU-22). */
-  mode?: GameMode;
   powerUpActive?: boolean;
   powerUpTimer?: number;
 }
 
+/** Barra superior: nivel, puntaje, esferas y PowerUp. Las vidas van en la barra inferior (HU-09, DEF-001). */
 export function Hud({
   score,
   pelletsRemaining,
-  lives = 3,
   level = 1,
-  mode = "pacman",
   powerUpActive = false,
   powerUpTimer = 0,
 }: HudProps) {
-  // Modo GhostMan: las vidas (de Pacman) van en la barra inferior, con el ícono del fantasma.
-  const lifeIcons =
-    mode === "pacman"
-      ? Array.from({ length: lives }, (_, i) => (
-          <span key={i} className={styles.lifeIcon} data-testid="life-icon">
-            🟡
-          </span>
-        ))
-      : null;
-
   return (
     <div className={styles.hud}>
       <span data-testid="hud-level">Nivel {level}</span>
       <span>Puntaje: {score}</span>
       <span>Esferas: {pelletsRemaining}</span>
       <div className={styles.livesContainer}>
-        {lifeIcons}
         {powerUpActive && (
           <span className={styles.powerUpTimer}>
             {powerUpTimer <= 2 ? "⚡" : "✨"} {powerUpTimer.toFixed(1)}s

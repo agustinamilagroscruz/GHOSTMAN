@@ -63,7 +63,12 @@ const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fail
   await page.waitForSelector("[data-testid=main-menu]");
   await page.keyboard.press("Enter");
   await page.waitForSelector("canvas");
-  check((await page.textContent("[data-testid=life-icon]")) === "🟡", "modo Pacman: ícono de vidas de Pacman");
+  // DEF-001 (corregido en la V2): las vidas del modo Pacman van abajo a la izquierda, con el ícono de Pacman.
+  check((await page.getAttribute("[data-testid=life-icon]", "data-icon")) === "pacman" && (await page.locator("[data-testid=life-icon]").count()) === 3,
+    "modo Pacman: 3 íconos de vidas de Pacman");
+  const bar = await page.locator("[data-testid=pacman-status]").boundingBox();
+  const map = await page.locator("canvas").boundingBox();
+  check(bar.y > map.y + map.height - 1 && Math.abs(bar.x - map.x) < 2, "modo Pacman: las vidas están debajo del mapa, a la izquierda (DEF-001)");
   const scrollBefore = await page.evaluate(() => window.scrollY);
   await page.keyboard.press("ArrowLeft");
   await page.waitForTimeout(800);

@@ -687,6 +687,7 @@ incluye a las dinámicas.
 | 28 | 17 — Dificultad del modo GhostMan | Prompt 16 | **Hueco de especificación:** si una esfera grande dinámica apareciera sobre una pared destruida y después Pacman fuera derrotado, al restablecerse la pared la esfera quedaría dentro del muro y el nivel no se podría completar. Lo mismo con una fruta real del nivel 3 | Las esferas dinámicas no aparecen sobre paredes destruidas, y una fruta real que había aparecido sobre una desaparece con ella al restablecerse. Además, la regla "sin esfera" hace que en los primeros segundos del nivel casi no haya celdas candidatas: si no hay ninguna, la aparición se omite, igual que con las frutas | No |
 | 29 | 17 — Dificultad del modo GhostMan | Prompt 16 | La suite de navegador `inc12-reglas-ghostman.js`, que espera hasta 7 minutos a que termine una partida del modo GhostMan sin intervención, venció el tiempo de espera. No es un defecto: con la destrucción de paredes, Pacman tarda más en ser arrinconado, y la partida sin intervención pasó de unos 280 s a unos 500 a 540 s (5 semillas en el núcleo) | Se subió la espera a 12 minutos y se actualizó el README de `scripts/verify`. No requirió cambios de código | No |
 | 30 | 17 — Dificultad del modo GhostMan | Prompt 16 | **Balance:** al volver a medirlo (sección 7.6), el espectro y el acelerado que usan su poder pasaron de 6 y 10 victorias a 0 de 10, todas con Game Over en el nivel 2. Se comparó cuadro a cuadro una partida contra el código del incremento 16 con la misma semilla: es idéntica hasta la primera pared que destruye Pacman, así que la diferencia la produce la funcionalidad nueva y no un error en otra parte | Se registró la medición en la sección 7.6 para que el equipo decida si ajusta los valores de la decisión 22 (cargas o costo del muro). No se cambiaron | No |
+| 31 | Corrección de defectos de la V1 | C-2 (corrección) | **DEF-001** (ciclo 1 de la V1, CP-034): en el modo Pacman el contador de vidas estaba arriba a la derecha, con círculos amarillos en lugar de íconos de Pacman (HU-09). Además dejaba al modo Pacman inconsistente con el modo GhostMan (fila 11) | Se le pasó el reporte del defecto al agente con el prompt C-2 (Anexo A). Las vidas del modo Pacman pasan a una barra debajo del mapa, a la izquierda, con íconos de Pacman, igual que la barra del modo GhostMan. Se actualizó la comprobación de la suite de navegador del incremento 10 | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 
@@ -833,7 +834,7 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 | 4 | Elegir la opción de la memoria de frutas de la IA de Pacman y el valor de *p* | Decisión 37 | Equipo completo |
 | 5 | Elegir la opción del saltarín, idealmente antes del incremento 16 | Decisión 38 | Equipo completo |
 | 6 | Decidir si el cooldown del espectro de la IA (modo Pacman) sigue corriendo mientras está comido; hoy se congela, como en la V1 | Tabla 7.5, fila 18 | Equipo completo |
-| 7 | Resolver la inconsistencia del contador de vidas: abajo a la izquierda en modo GhostMan, arriba en modo Pacman (desvío de la HU-09 de la V1) | Tabla 7.5, fila 11 | Equipo completo |
+| 7 | ~~Resolver la inconsistencia del contador de vidas~~ Resuelto con la corrección de DEF-001 (tabla 7.5, fila 31): los dos modos muestran las vidas abajo a la izquierda | Tabla 7.5, fila 11 | — |
 | 8 | Validar la interpretación de la explosión de la fruta falsa como derrota en modo GhostMan | Tabla 7.5, fila 19 | Equipo completo |
 | 9 | Actualizar los criterios de la sección 6.1 en `entrega-01.md`, incluida la HU-43, y ajustar los prompts 15 y 16 a lo decidido | Sección 6 | `[completar]` |
 | 10 | ~~Ejecutar los incrementos 16 y 17~~ (hechos, tabla 7.5 filas 22 a 30). Falta el 18: redactar su prompt cuando se aprueben las decisiones 37 y 38 | Sección 7 | `[completar]` |
@@ -851,6 +852,21 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 ### Anexo A — Prompts de corrección
 
 *Prompts no planificados que se usen durante la generación de la V2, numerados C-2 en adelante (C-1 es de la V1).*
+
+#### C-2 — Corrección de DEF-001 (contador de vidas del modo Pacman)
+
+```
+Reporte de defecto DEF-001 (ciclo 1 de la V1, caso CP-034, HU-09, severidad Menor):
+"El contador de vidas se muestra arriba a la derecha como círculos amarillos en lugar
+de íconos de Pacman abajo a la izquierda."
+
+Corregilo según la HU-09: en el modo Pacman las vidas van en el extremo inferior
+izquierdo, representadas con íconos de Pacman, uno por vida (3 al empezar, se retira
+uno al perder una vida, ninguno con 0 vidas). Usá la misma barra inferior que el modo
+GhostMan para que los dos modos queden consistentes (tabla 7.5, fila 11). La barra
+superior conserva nivel, puntaje, esferas restantes y el temporizador del PowerUp.
+No cambies ninguna otra regla.
+```
 
 ### Anexo B — Evidencia de la ejecución
 

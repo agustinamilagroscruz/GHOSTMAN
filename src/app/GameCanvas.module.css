@@ -248,3 +248,10 @@
   filter: grayscale(1);
   opacity: 0.3;
 }
+
+.lifeIconPacman {
+  display: inline-flex;
+  margin-right: 3px;
+  vertical-align: middle;
+  filter: drop-shadow(0 0 3px #f8e34d);
+}

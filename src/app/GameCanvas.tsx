@@ -197,9 +197,7 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
     <Hud
       score={ui.score}
       pelletsRemaining={ui.pelletsRemaining}
-      lives={ui.lives}
       level={ui.level}
-      mode={config.mode}
       powerUpActive={ui.powerUpActive}
       powerUpTimer={ui.powerUpTimer}
     />
@@ -254,7 +252,11 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
           </div>
         )}
       </div>
-      {isGhostman && <GhostmanStatusBar pacmanLives={ui.lives} powerReady={ui.powerReady} />}
+      {isGhostman ? (
+        <GhostmanStatusBar pacmanLives={ui.lives} powerReady={ui.powerReady} />
+      ) : (
+        <PacmanStatusBar lives={ui.lives} />
+      )}
     </div>
   );
 }
@@ -279,8 +281,29 @@ function GhostmanStatusBar({ pacmanLives, powerReady }: { pacmanLives: number; p
       <span className={styles.statusLabel}>Vidas de Pacman</span>
       <span data-testid="pacman-lives" data-lives={pacmanLives}>
         {Array.from({ length: pacmanLives }, (_, i) => (
-          <span key={i} data-testid="life-icon">
+          <span key={i} data-testid="life-icon" data-icon="ghost">
             👻
+          </span>
+        ))}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Modo Pacman, extremo inferior izquierdo: vidas del jugador con el ícono de Pacman (HU-09).
+ * Corrige DEF-001: hasta la V2 estaban arriba a la derecha, como círculos amarillos.
+ */
+function PacmanStatusBar({ lives }: { lives: number }) {
+  return (
+    <div className={styles.statusBar} data-testid="pacman-status">
+      <span className={styles.statusLabel}>Vidas</span>
+      <span data-testid="player-lives" data-lives={lives}>
+        {Array.from({ length: lives }, (_, i) => (
+          <span key={i} data-testid="life-icon" data-icon="pacman" className={styles.lifeIconPacman} aria-label="vida">
+            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+              <path d="M10 10 L18.5 5.1 A9.5 9.5 0 1 0 18.5 14.9 Z" fill="#f8e34d" />
+            </svg>
           </span>
         ))}
       </span>
