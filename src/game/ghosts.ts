@@ -21,6 +21,8 @@ export const CLASSIC_GHOST_SPEED = 5; // celdas por segundo
 export const SPECTER_SPEED_FACTOR = 0.7;
 /** El naval es un 20 % más lento que el clásico. */
 export const NAVAL_SPEED_FACTOR = 0.8;
+/** Acelerado: velocidad al 50 % durante los 5 s posteriores al dash. */
+export const ACCELERATED_SLOW_FACTOR = 0.5;
 export const SPECTER_PHASE_COOLDOWN_SECONDS = 10;
 export const SPECTER_NO_EAT_SECONDS = 3;
 /** El espectro atraviesa el muro solo si del otro lado queda al menos esta distancia (en celdas) más cerca del objetivo. */
@@ -50,6 +52,8 @@ export interface Ghost extends Mover {
   facing: Direction | null;
   /** Fantasma del jugador: activó el cruce a mitad de celda y termina de llegar antes de entrar al muro. */
   phasePending: boolean;
+  /** Acelerado: segundos que le quedan a la penalidad de velocidad posterior al dash. */
+  slowTimer: number;
   /** Espectro: celdas que le faltan recorrer para completar el cruce (2 = muro + salida). */
   phaseCellsLeft: number;
   /** Espectro: segundos durante los que no puede comer a Pacman tras atravesar un muro. */
@@ -96,6 +100,7 @@ export function createGhost(
     powerCooldown: 0,
     facing: null,
     phasePending: false,
+    slowTimer: 0,
     phaseCellsLeft: 0,
     noEatTimer: 0,
   };
@@ -268,7 +273,7 @@ export function updateGhost(
  * en línea recta sin leer el teclado, como el espectro de la IA.
  */
 export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: number, desiredDirection: Direction | null): void {
-  if (ghost.powerCooldown > 0) ghost.powerCooldown = tickTimer(ghost.powerCooldown, deltaSeconds);
+  tickPlayerPowerTimers(ghost, deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
 
   if (ghost.phasePending || isPhasing(ghost)) {
@@ -279,6 +284,18 @@ export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: numb
   ghost.desiredDirection = desiredDirection;
   updateMover(ghost, map, deltaSeconds);
   if (ghost.direction) ghost.facing = ghost.direction;
+}
+
+/**
+ * Temporizadores del poder del jugador, que corren también mientras está comido: cooldown y
+ * penalidad de velocidad del acelerado (al terminar, recupera su velocidad base).
+ */
+export function tickPlayerPowerTimers(ghost: Ghost, deltaSeconds: number): void {
+  if (ghost.powerCooldown > 0) ghost.powerCooldown = tickTimer(ghost.powerCooldown, deltaSeconds);
+  if (ghost.slowTimer > 0) {
+    ghost.slowTimer = tickTimer(ghost.slowTimer, deltaSeconds);
+    if (ghost.slowTimer === 0) ghost.speed = speedForKind(ghost.kind);
+  }
 }
 
 /** Cruce del espectro del jugador: dirección fija, sin chequear muros hasta la celda de salida. */

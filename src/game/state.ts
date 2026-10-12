@@ -4,6 +4,7 @@ import {
   createGhost,
   reverseGhostDirection,
   setGhostKind,
+  tickPlayerPowerTimers,
   updateGhost,
   updatePlayerGhost,
   type Ghost,
@@ -436,20 +437,58 @@ function checkGhostCollisions(state: GameState): void {
     const distance = Math.hypot(pacman.row - position.row, pacman.col - position.col);
     if (distance >= CONTACT_DISTANCE) continue;
 
-    if (ghost.vulnerable) {
-      eatGhost(state, ghost);
-    } else if (canGhostHarm(ghost)) {
-      if (state.config.mode === "pacman") {
-        loseLife(state);
-      } else if (ghost.controlledByPlayer) {
-        defeatPacman(state);
-      } else {
-        // Toque de un fantasma de la IA en modo GhostMan: Pacman vuelve a su posición
-        // inicial sin perder una vida, y nada más cambia (decisión 19).
-        resetPacmanPosition(state);
-      }
-      return; // un único contacto por paso: nunca dos descuentos por la misma colisión
-    }
+    // Un único contacto dañino por paso: nunca dos descuentos por la misma colisión.
+    if (resolveContact(state, ghost)) return;
+  }
+}
+
+/**
+ * Contacto entre Pacman y un fantasma: con el fantasma vulnerable, Pacman lo come; si el
+ * fantasma puede dañarlo, aplica la regla del modo. Devuelve true si Pacman fue dañado.
+ */
+function resolveContact(state: GameState, ghost: Ghost): boolean {
+  if (ghost.vulnerable) {
+    eatGhost(state, ghost);
+    return false;
+  }
+  if (!canGhostHarm(ghost)) return false;
+  if (state.config.mode === "pacman") {
+    loseLife(state);
+  } else if (ghost.controlledByPlayer) {
+    defeatPacman(state);
+  } else {
+    // Toque de un fantasma de la IA en modo GhostMan: Pacman vuelve a su posición
+    // inicial sin perder una vida, y nada más cambia (decisión 19).
+    resetPacmanPosition(state);
+  }
+  return true;
+}
+
+/** Distancia de un punto al segmento recto (horizontal o vertical) entre dos centros de celda. */
+function distanceToSegment(
+  point: { row: number; col: number },
+  from: { row: number; col: number },
+  to: { row: number; col: number }
+): number {
+  const dRow = to.row - from.row;
+  const dCol = to.col - from.col;
+  const lengthSquared = dRow * dRow + dCol * dCol;
+  const t =
+    lengthSquared === 0
+      ? 0
+      : Math.max(0, Math.min(1, ((point.row - from.row) * dRow + (point.col - from.col) * dCol) / lengthSquared));
+  return Math.hypot(point.row - (from.row + t * dRow), point.col - (from.col + t * dCol));
+}
+
+/**
+ * Dash del acelerado: el contacto con Pacman se evalúa en todo el trayecto, no solo en la celda
+ * de llegada. Pasar por encima de Pacman también es contacto (decisión 32).
+ */
+function checkDashContact(state: GameState, ghost: Ghost, from: { row: number; col: number }): void {
+  if (state.levelComplete || state.gameOver || state.won) return;
+  const pacman = getMoverPosition(state.pacman);
+  if (distanceToSegment(pacman, from, { row: ghost.row, col: ghost.col }) < CONTACT_DISTANCE) {
+    resolveContact(state, ghost);
   }
 }
 
@@ -572,7 +611,7 @@ function updateGhosts(state: GameState, deltaSeconds: number, playerDirection: D
     if (ghost.eaten) {
       // El cooldown del poder del jugador sigue corriendo mientras espera reaparecer (decisión 35).
       // El espectro de la IA conserva el comportamiento de la V1: su cooldown se detiene.
-      if (ghost.controlledByPlayer) ghost.powerCooldown = tickTimer(ghost.powerCooldown, deltaSeconds);
+      if (ghost.controlledByPlayer) tickPlayerPowerTimers(ghost, deltaSeconds);
       continue;
     }
 
@@ -655,7 +694,13 @@ export function updateGameState(
   if (!isPacmanMode && playerPowerRequested) {
     const playerGhost = getPlayerGhost(state);
     if (playerGhost) {
-      tryActivateGhostPower(playerGhost, { map: state.map, random: state.random, fakeFruits: state.fakeFruits });
+      const from = getMoverPosition(playerGhost);
+      const used = tryActivateGhostPower(playerGhost, {
+        map: state.map,
+        random: state.random,
+        fakeFruits: state.fakeFruits,
+      });
+      if (used && playerGhost.kind === "accelerated") checkDashContact(state, playerGhost, from);
     }
   }
   updateFakeFruits(state, deltaSeconds);

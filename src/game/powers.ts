@@ -1,5 +1,5 @@
 import { canPlaceFakeFruit, createFakeFruit, NAVAL_PLACE_COOLDOWN_SECONDS, type FakeFruit } from "./fakeFruits";
-import { SPECTER_PHASE_COOLDOWN_SECONDS, type Ghost } from "./ghosts";
+import { ACCELERATED_SLOW_FACTOR, SPECTER_PHASE_COOLDOWN_SECONDS, speedForKind, type Ghost } from "./ghosts";
 import { canEnterCell, DIRECTION_VECTORS, getMoverPosition } from "./movement";
 import type { GameMap } from "./types";
 
@@ -11,6 +11,11 @@ import type { GameMap } from "./types";
 /** Saltarín: radio del teletransporte, en distancia Manhattan (decisión 31). */
 export const JUMPER_RADIUS_CELLS = 10;
 export const JUMPER_COOLDOWN_SECONDS = 10;
+
+/** Acelerado: largo máximo del dash, cooldown y duración de la penalidad de velocidad. */
+export const DASH_MAX_CELLS = 3;
+export const DASH_COOLDOWN_SECONDS = 10;
+export const DASH_SLOW_SECONDS = 5;
 
 export type RandomSource = () => number;
 
@@ -101,6 +106,40 @@ export function tryNavalPlaceFruit(ghost: Ghost, fakeFruits: FakeFruit[]): boole
 }
 
 /**
+ * Acelerado: desplazamiento instantáneo de hasta 3 celdas en la dirección de avance, desde la
+ * celda que ocupa. Se detiene en la última celda transitable antes de un muro y nunca sale del
+ * mapa. Si la primera celda ya está bloqueada, o si no tiene dirección de avance (recién
+ * aparecido), no hay desplazamiento y el poder no se consume (decisión 25). Después del dash
+ * se mueve al 50 % durante 5 s. El contacto con Pacman a lo largo del trayecto lo resuelve el
+ * estado del juego (decisión 32).
+ */
+export function tryAcceleratedDash(ghost: Ghost, map: GameMap): boolean {
+  const facing = ghost.facing;
+  if (!facing) return false;
+  const [dRow, dCol] = DIRECTION_VECTORS[facing];
+  const position = getMoverPosition(ghost);
+  let row = Math.round(position.row);
+  let col = Math.round(position.col);
+
+  let cells = 0;
+  while (cells < DASH_MAX_CELLS && canEnterCell(map, row + dRow, col + dCol)) {
+    row += dRow;
+    col += dCol;
+    cells += 1;
+  }
+  if (cells === 0) return false;
+
+  ghost.row = row;
+  ghost.col = col;
+  ghost.progress = 0;
+  ghost.direction = canEnterCell(map, row + dRow, col + dCol) ? facing : null;
+  ghost.powerCooldown = DASH_COOLDOWN_SECONDS;
+  ghost.slowTimer = DASH_SLOW_SECONDS;
+  ghost.speed = speedForKind(ghost.kind) * ACCELERATED_SLOW_FACTOR;
+  return true;
+}
+
+/**
  * Barra espaciadora del fantasma del jugador. Sin efecto si está comido, durante el cooldown,
  * en pleno cruce, o si su tipo no tiene poder (clásico) o todavía no está implementado.
  */
@@ -113,8 +152,10 @@ export function tryActivateGhostPower(ghost: Ghost, context: PowerContext): bool
       return tryJumperTeleport(ghost, context.map, context.random);
     case "naval":
       return tryNavalPlaceFruit(ghost, context.fakeFruits);
+    case "accelerated":
+      return tryAcceleratedDash(ghost, context.map);
     default:
-      return false; // clásico: sin poder. Acelerado: incremento 15.
+      return false; // clásico: sin poder.
   }
 }
 

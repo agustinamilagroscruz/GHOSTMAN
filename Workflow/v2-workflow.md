@@ -11,7 +11,7 @@ Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo 
 - [x] Marcar con el tag `v1.0` el commit de la V1 sobre el que se ejecutó el ciclo 1 (`913ee4d`)
 - [ ] Revisar en equipo las decisiones 17 a 32 (sección 5) y pasar cada una a Aprobada o Modificada
 - [ ] Resolver la alternativa de la decisión 26 (espesor de muro del espectro)
-- [ ] Revisar las decisiones 33, 34 y 35, que surgieron durante la generación
+- [ ] Revisar las decisiones 33 a 36, que surgieron durante la generación
 - [ ] Actualizar en `entrega-01.md` los criterios de las HU afectadas (sección 6.1) y agregar la HU-43
 - [ ] Ajustar la sección 4 y los prompts de la sección 7.4 a las decisiones aprobadas
 - [x] Completar la sección 7.2 con el agente y la interfaz que se van a usar
@@ -51,12 +51,12 @@ Un checklist por incremento. Cada uno se cierra con commit propio sobre `main`, 
 - [x] Ejecutar Prompt 13
 - [x] Verificar: ciclo completo de la fruta falsa (colocación, consumo con y sin PowerUp, explosión, límites)
 - [x] Registrar problemas en la tabla 7.5
-- [ ] Commit del incremento
+- [x] Commit del incremento (`9ecfaaf`)
 
 ### Incremento 15 — Acelerado (HU-31)
-- [ ] Ejecutar Prompt 14
-- [ ] Verificar: dash de 3, 2, 1 y 0 celdas, y penalidad de 5 s
-- [ ] Registrar problemas en la tabla 7.5
+- [x] Ejecutar Prompt 14
+- [x] Verificar: dash de 3, 2, 1 y 0 celdas, y penalidad de 5 s
+- [x] Registrar problemas en la tabla 7.5
 - [ ] Commit del incremento
 
 ### Incremento 16 — Fantasmas especiales en el modo Pacman (HU-43)
