@@ -173,3 +173,33 @@
   font-weight: normal;
   color: #f8e34d;
 }
+
+.endActions {
+  display: flex;
+  gap: 10px;
+}
+
+.menuButton {
+  margin-top: 6px;
+  padding: 12px 18px;
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+  color: #38f0e8;
+  background: #000000;
+  border: 3px solid #38f0e8;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.menuButton:hover,
+.menuButton:focus-visible {
+  background: #0b2a2a;
+}
+
+.endActions .restartButton,
+.endActions .menuButton {
+  padding: 10px 16px;
+  font-size: 16px;
+  white-space: nowrap;
+}

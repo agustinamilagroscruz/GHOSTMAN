@@ -5,7 +5,9 @@ import {
   reverseGhostDirection,
   setGhostKind,
   updateGhost,
+  updatePlayerGhost,
   type Ghost,
+  type GhostKind,
   type GhostMode,
 } from "./ghosts";
 import { ageFruits, createFruit, type Fruit } from "./fruits";
@@ -23,7 +25,7 @@ import {
 } from "./scoring";
 import type { GameMap } from "./types";
 
-const PLAYER_SPEED_CELLS_PER_SECOND = 5;
+const PACMAN_SPEED_CELLS_PER_SECOND = 5;
 
 const CHASE_DURATION_SECONDS = 20;
 const SCATTER_DURATION_SECONDS = 7;
@@ -40,9 +42,23 @@ export const LEVEL_TRANSITION_SECONDS = 3;
 
 export type RandomSource = () => number;
 
+/** Modo de juego (HU-22): el jugador controla a Pacman o a un fantasma. */
+export type GameMode = "pacman" | "ghostman";
+
+/** Lo que se elige antes de empezar y no cambia durante la partida (HU-22, HU-23). */
+export interface GameConfig {
+  mode: GameMode;
+  /** Solo en modo GhostMan: tipo del fantasma del jugador. */
+  playerGhostKind?: GhostKind;
+}
+
+export const PACMAN_MODE_CONFIG: GameConfig = { mode: "pacman" };
+
 export interface GameState {
+  /** Modo y fantasma elegidos al iniciar; solo cambian iniciando una partida nueva. */
+  readonly config: GameConfig;
   map: GameMap;
-  player: Mover;
+  pacman: Mover;
   ghosts: Ghost[];
   ghostMode: GhostMode;
   ghostModeTimer: number;
@@ -88,10 +104,27 @@ function countPellets(map: GameMap): number {
   return count;
 }
 
-function createLevelGhosts(definition: LevelDefinition): Ghost[] {
-  return definition.ghosts.map((setup) =>
-    createGhost(setup.id, setup.spawn.row, setup.spawn.col, definition.initialGhostKind, setup.color, setup.scatterTarget)
-  );
+/**
+ * Modo Pacman: los cuatro fantasmas son de la IA, con el tipo inicial del nivel.
+ * Modo GhostMan: el primer fantasma (esquina superior izquierda) es el del jugador, con el
+ * tipo elegido en el carrusel; los otros tres son clásicos de la IA en todos los niveles.
+ */
+function createLevelGhosts(definition: LevelDefinition, config: GameConfig): Ghost[] {
+  return definition.ghosts.map((setup, index) => {
+    if (config.mode === "pacman") {
+      return createGhost(setup.id, setup.spawn.row, setup.spawn.col, definition.initialGhostKind, setup.color, setup.scatterTarget);
+    }
+    const isPlayer = index === 0;
+    const kind = isPlayer ? (config.playerGhostKind ?? "classic") : "classic";
+    const ghost = createGhost(setup.id, setup.spawn.row, setup.spawn.col, kind, setup.color, setup.scatterTarget);
+    ghost.controlledByPlayer = isPlayer;
+    return ghost;
+  });
+}
+
+/** Modo GhostMan: el fantasma que controla el jugador. */
+export function getPlayerGhost(state: GameState): Ghost | undefined {
+  return state.ghosts.find((ghost) => ghost.controlledByPlayer);
 }
 
 function placeGhostAtSpawn(ghost: Ghost): void {
@@ -99,6 +132,7 @@ function placeGhostAtSpawn(ghost: Ghost): void {
   ghost.col = ghost.spawn.col;
   ghost.progress = 0;
   ghost.direction = null;
+  ghost.desiredDirection = null;
   ghost.phaseCellsLeft = 0;
   ghost.noEatTimer = 0;
 }
@@ -113,25 +147,25 @@ function resetGhostPositions(ghosts: Ghost[]): void {
   }
 }
 
-function resetPlayerPosition(state: GameState): void {
-  const spawn = levelDefinition(state).playerSpawn;
-  state.player.row = spawn.row;
-  state.player.col = spawn.col;
-  state.player.progress = 0;
-  state.player.direction = null;
-  state.player.desiredDirection = null;
+function resetPacmanPosition(state: GameState): void {
+  const spawn = levelDefinition(state).pacmanSpawn;
+  state.pacman.row = spawn.row;
+  state.pacman.col = spawn.col;
+  state.pacman.progress = 0;
+  state.pacman.direction = null;
+  state.pacman.desiredDirection = null;
 }
 
 /** Carga un nivel conservando puntaje, desglose y vidas. */
 function loadLevel(state: GameState, level: number): void {
   const definition = LEVELS[level];
   const map = definition.createMap();
-  map.pellets[definition.playerSpawn.row][definition.playerSpawn.col] = "none";
+  map.pellets[definition.pacmanSpawn.row][definition.pacmanSpawn.col] = "none";
 
   state.level = level;
   state.map = map;
-  state.player = createMover(definition.playerSpawn.row, definition.playerSpawn.col, PLAYER_SPEED_CELLS_PER_SECOND);
-  state.ghosts = createLevelGhosts(definition);
+  state.pacman = createMover(definition.pacmanSpawn.row, definition.pacmanSpawn.col, PACMAN_SPEED_CELLS_PER_SECOND);
+  state.ghosts = createLevelGhosts(definition, state.config);
   state.ghostMode = "chase";
   state.ghostModeTimer = 0;
   state.pelletsRemaining = countPellets(map);
@@ -146,8 +180,12 @@ function loadLevel(state: GameState, level: number): void {
   state.ghostsEatenInPowerUp = 0;
 }
 
-export function createInitialGameState(random: RandomSource = Math.random): GameState {
+export function createInitialGameState(
+  config: GameConfig = PACMAN_MODE_CONFIG,
+  random: RandomSource = Math.random
+): GameState {
   const state = {
+    config,
     score: 0,
     lives: INITIAL_LIVES,
     gameOver: false,
@@ -161,11 +199,12 @@ export function createInitialGameState(random: RandomSource = Math.random): Game
 }
 
 /**
- * Volver a jugar: partida nueva desde el nivel 1, 3 vidas, puntaje 0 y mapas restablecidos.
+ * Volver a jugar: partida nueva desde el nivel 1, 3 vidas, puntaje 0 y mapas restablecidos,
+ * en el mismo modo y con el mismo fantasma (decisión 29).
  * Reutiliza el mismo objeto de estado para que el bucle de juego en curso lo siga usando.
  */
 export function restartGame(state: GameState): void {
-  Object.assign(state, createInitialGameState(state.random));
+  Object.assign(state, createInitialGameState(state.config, state.random));
 }
 
 export function isGameFinished(state: GameState): boolean {
@@ -191,7 +230,7 @@ export function spawnFruit(state: GameState, row: number, col: number): void {
 }
 
 function isCellOccupiedByCharacter(state: GameState, row: number, col: number): boolean {
-  const entities = [state.player, ...state.ghosts.filter((ghost) => !ghost.eaten)];
+  const entities = [state.pacman, ...state.ghosts.filter((ghost) => !ghost.eaten)];
   return entities.some((entity) => {
     const position = getMoverPosition(entity);
     return Math.abs(position.row - row) < 1 && Math.abs(position.col - col) < 1;
@@ -326,9 +365,12 @@ function updateGhostRespawns(state: GameState, deltaSeconds: number): void {
       ghost.eaten = false;
       ghost.respawnTimer = 0;
       placeGhostAtSpawn(ghost);
-      // Nivel 1: siempre clásico. Nivel 2: 50 % espectro. Nivel 3: siempre espectro.
-      const chance = levelDefinition(state).specterRespawnChance;
-      setGhostKind(ghost, chance > 0 && state.random() < chance ? "specter" : "classic");
+      // Modo GhostMan: el fantasma del jugador conserva su tipo y los de la IA siguen clásicos.
+      if (state.config.mode === "pacman") {
+        // Nivel 1: siempre clásico. Nivel 2: 50 % espectro. Nivel 3: siempre espectro.
+        const chance = levelDefinition(state).specterRespawnChance;
+        setGhostKind(ghost, chance > 0 && state.random() < chance ? "specter" : "classic");
+      }
       // Si el PowerUp sigue activo reaparece vulnerable y la escala continúa.
       ghost.vulnerable = state.powerUpActive;
     }
@@ -338,7 +380,7 @@ function updateGhostRespawns(state: GameState, deltaSeconds: number): void {
 function checkGhostCollisions(state: GameState): void {
   if (state.levelComplete || state.gameOver || state.won) return;
 
-  const player = getMoverPosition(state.player);
+  const player = getMoverPosition(state.pacman);
 
   for (const ghost of state.ghosts) {
     if (ghost.eaten) continue;
@@ -375,7 +417,7 @@ function loseLife(state: GameState): void {
     state.lives = 0;
     finishGame(state, false);
   } else {
-    resetPlayerPosition(state);
+    resetPacmanPosition(state);
     resetGhostPositions(state.ghosts);
     state.ghostMode = "chase";
     state.ghostModeTimer = 0;
@@ -398,20 +440,25 @@ function updateGhostMode(state: GameState, deltaSeconds: number): void {
   }
 }
 
-function updateGhosts(state: GameState, deltaSeconds: number): void {
+function updateGhosts(state: GameState, deltaSeconds: number, playerDirection: Direction | null): void {
   for (const ghost of state.ghosts) {
     if (ghost.eaten) continue;
+
+    if (ghost.controlledByPlayer) {
+      updatePlayerGhost(ghost, state.map, deltaSeconds, playerDirection);
+      continue;
+    }
 
     let targetRow: number;
     let targetCol: number;
 
     if (ghost.vulnerable) {
-      const dRow = ghost.row - state.player.row;
-      const dCol = ghost.col - state.player.col;
+      const dRow = ghost.row - state.pacman.row;
+      const dCol = ghost.col - state.pacman.col;
       targetRow = ghost.row + dRow * 5;
       targetCol = ghost.col + dCol * 5;
     } else {
-      const target = state.ghostMode === "chase" ? state.player : ghost.scatterTarget;
+      const target = state.ghostMode === "chase" ? state.pacman : ghost.scatterTarget;
       targetRow = target.row;
       targetCol = target.col;
     }
@@ -427,6 +474,7 @@ export function updateGameState(
   deltaSeconds: number,
   playerDesiredDirection: Direction | null
 ): void {
+  const isPacmanMode = state.config.mode === "pacman";
   if (state.gameOver || state.won || state.paused) return;
 
   if (state.levelComplete) {
@@ -436,15 +484,16 @@ export function updateGameState(
 
   state.levelElapsed += deltaSeconds;
 
-  const previousRow = state.player.row;
-  const previousCol = state.player.col;
+  const previousRow = state.pacman.row;
+  const previousCol = state.pacman.col;
 
-  state.player.desiredDirection = playerDesiredDirection;
-  updateMover(state.player, state.map, deltaSeconds);
+  // Modo GhostMan: Pacman queda quieto hasta que tenga su IA (incremento 11).
+  state.pacman.desiredDirection = isPacmanMode ? playerDesiredDirection : null;
+  updateMover(state.pacman, state.map, deltaSeconds);
 
-  if (state.player.row !== previousRow || state.player.col !== previousCol) {
-    consumePelletAt(state, state.player.row, state.player.col);
-    consumeFruitAt(state, state.player.row, state.player.col);
+  if (state.pacman.row !== previousRow || state.pacman.col !== previousCol) {
+    consumePelletAt(state, state.pacman.row, state.pacman.col);
+    consumeFruitAt(state, state.pacman.row, state.pacman.col);
   }
   state.fruits = ageFruits(state.fruits, deltaSeconds);
   if (state.levelComplete) return;
@@ -453,6 +502,7 @@ export function updateGameState(
   updatePowerUp(state, deltaSeconds);
   updateGhostRespawns(state, deltaSeconds);
   updateGhostMode(state, deltaSeconds);
-  updateGhosts(state, deltaSeconds);
-  checkGhostCollisions(state);
+  updateGhosts(state, deltaSeconds, isPacmanMode ? null : playerDesiredDirection);
+  // Modo GhostMan: las derrotas de Pacman y el ser comido llegan con el incremento 12.
+  if (isPacmanMode) checkGhostCollisions(state);
 }

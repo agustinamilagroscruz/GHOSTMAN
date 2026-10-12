@@ -1,3 +1,4 @@
+import type { GhostKind } from "./ghosts";
 import type { Direction } from "./movement";
 import type { GameMap } from "./types";
 import type { LevelTheme } from "./theme";
@@ -110,8 +111,11 @@ export function isBlinkOn(powerUpTimer: number): boolean {
 
 export interface GhostAppearance {
   color: string;
-  /** Espectro: cuerpo translúcido con contorno blanco, distinguible del clásico. */
-  isSpecter: boolean;
+  /**
+   * Espectro: cuerpo translúcido con contorno blanco. Saltarín, naval y acelerado: una marca
+   * blanca bajo los ojos (chevron, onda y doble chevron). El clásico no lleva marca.
+   */
+  kind: GhostKind;
   /** Espectro que acaba de atravesar un muro y no puede comer (3 s): casi transparente y contorno punteado. */
   isHarmless: boolean;
   isVulnerable: boolean;
@@ -126,7 +130,8 @@ export function renderGhost(
   cellSize: number,
   appearance: GhostAppearance
 ): void {
-  const { color, isSpecter, isHarmless, isVulnerable, isWarning, blinkOn } = appearance;
+  const { color, kind, isHarmless, isVulnerable, isWarning, blinkOn } = appearance;
+  const isSpecter = kind === "specter";
   const centerX = col * cellSize + cellSize / 2;
   const centerY = row * cellSize + cellSize / 2;
   const radius = cellSize * 0.45;
@@ -173,6 +178,10 @@ export function renderGhost(
   }
   ctx.restore();
 
+  if (!isVulnerable) {
+    drawKindMark(ctx, kind, centerX, centerY + radius * 0.35, radius);
+  }
+
   const eyeOffsetX = radius * (isVulnerable ? 0.3 : 0.4);
   const eyeRadius = radius * (isVulnerable ? 0.18 : 0.22);
   for (const side of [-1, 1]) {
@@ -186,6 +195,42 @@ export function renderGhost(
     ctx.arc(centerX + side * eyeOffsetX, domeCenterY, eyeRadius * 0.5, 0, Math.PI * 2);
     ctx.fill();
   }
+}
+
+/** Marca de tipo bajo los ojos: el vulnerable no la lleva, todos se ven iguales. */
+function drawKindMark(ctx: CanvasRenderingContext2D, kind: GhostKind, x: number, y: number, radius: number): void {
+  const w = radius * 0.5;
+  const h = radius * 0.25;
+  ctx.save();
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = Math.max(1, radius * 0.14);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  switch (kind) {
+    case "jumper": // chevron hacia arriba: salto
+      ctx.moveTo(x - w, y + h);
+      ctx.lineTo(x, y - h);
+      ctx.lineTo(x + w, y + h);
+      break;
+    case "naval": // onda: agua
+      ctx.moveTo(x - w, y);
+      ctx.quadraticCurveTo(x - w / 2, y - 2 * h, x, y);
+      ctx.quadraticCurveTo(x + w / 2, y + 2 * h, x + w, y);
+      break;
+    case "accelerated": // doble chevron hacia adelante: velocidad
+      for (const offset of [-w * 0.45, w * 0.45]) {
+        ctx.moveTo(x + offset - w * 0.35, y - h);
+        ctx.lineTo(x + offset + w * 0.25, y);
+        ctx.lineTo(x + offset - w * 0.35, y + h);
+      }
+      break;
+    default:
+      ctx.restore();
+      return;
+  }
+  ctx.stroke();
+  ctx.restore();
 }
 
 /** Fruta (cereza): dos frutos rojos con tallo verde, distinta de esferas y personajes. */

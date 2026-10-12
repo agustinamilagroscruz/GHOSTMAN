@@ -1,3 +1,4 @@
+import type { GameMode } from "../game/state";
 import styles from "./Hud.module.css";
 
 interface HudProps {
@@ -5,13 +6,26 @@ interface HudProps {
   pelletsRemaining: number;
   lives?: number;
   level?: number;
+  /** El ícono del contador de vidas identifica el modo en curso (HU-22). */
+  mode?: GameMode;
   powerUpActive?: boolean;
   powerUpTimer?: number;
 }
 
-export function Hud({ score, pelletsRemaining, lives = 3, level = 1, powerUpActive = false, powerUpTimer = 0 }: HudProps) {
+export function Hud({
+  score,
+  pelletsRemaining,
+  lives = 3,
+  level = 1,
+  mode = "pacman",
+  powerUpActive = false,
+  powerUpTimer = 0,
+}: HudProps) {
+  const lifeIcon = mode === "ghostman" ? "👻" : "🟡";
   const lifeIcons = Array.from({ length: lives }, (_, i) => (
-    <span key={i} className={styles.lifeIcon}>🟡</span>
+    <span key={i} className={styles.lifeIcon} data-testid="life-icon">
+      {lifeIcon}
+    </span>
   ));
 
   return (

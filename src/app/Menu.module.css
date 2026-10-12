@@ -1,0 +1,118 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 408px;
+  min-height: 404px;
+  padding: 20px 16px;
+  border: 2px solid #38f0e8;
+  border-radius: 4px;
+  background: #000000;
+  font-family: monospace;
+  color: #ffffff;
+  text-align: center;
+}
+
+.title {
+  font-size: 40px;
+  color: #f8e34d;
+  letter-spacing: 4px;
+  text-shadow: 0 0 12px #38f0e8, 0 0 4px #000000;
+}
+
+.subtitle {
+  font-size: 22px;
+  color: #f8e34d;
+  text-shadow: 0 0 8px #38f0e8;
+}
+
+.options {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option {
+  min-width: 240px;
+  padding: 10px 16px;
+  font-family: monospace;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: left;
+  color: #38f0e8;
+  background: #000000;
+  border: 2px solid #1b5f5c;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.marker {
+  display: inline-block;
+  width: 1.5em;
+}
+
+.optionSelected {
+  color: #000000;
+  background: #f8e34d;
+  border-color: #38f0e8;
+}
+
+.hint {
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+.carousel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.side {
+  opacity: 0.45;
+  display: flex;
+}
+
+.center {
+  display: flex;
+  padding: 8px;
+  border: 2px solid #f8e34d;
+  border-radius: 8px;
+}
+
+.arrow {
+  padding: 6px 8px;
+  font-size: 18px;
+  color: #38f0e8;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ghostName {
+  font-size: 22px;
+  font-weight: bold;
+  color: #f8e34d;
+}
+
+.ghostPower {
+  min-height: 64px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #dddddd;
+}
+
+.confirm {
+  padding: 10px 32px;
+  font-family: monospace;
+  font-size: 18px;
+  font-weight: bold;
+  color: #000000;
+  background: #f8e34d;
+  border: 3px solid #38f0e8;
+  border-radius: 6px;
+  cursor: pointer;
+}

@@ -18,7 +18,7 @@ export interface GhostSetup {
 export interface LevelDefinition {
   number: number;
   createMap: () => GameMap;
-  playerSpawn: { row: number; col: number };
+  pacmanSpawn: { row: number; col: number };
   ghosts: readonly GhostSetup[];
   /** Tipo con el que arrancan los cuatro fantasmas. */
   initialGhostKind: GhostKind;
@@ -40,7 +40,7 @@ export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
   1: {
     number: 1,
     createMap: createLevel1Map,
-    playerSpawn: { row: 7, col: 8 },
+    pacmanSpawn: { row: 7, col: 8 },
     ghosts: CORNER_GHOSTS,
     initialGhostKind: "classic",
     specterRespawnChance: 0,
@@ -49,7 +49,7 @@ export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
   2: {
     number: 2,
     createMap: createLevel2Map,
-    playerSpawn: { row: 7, col: 8 },
+    pacmanSpawn: { row: 7, col: 8 },
     ghosts: CORNER_GHOSTS,
     initialGhostKind: "classic",
     specterRespawnChance: 0.5,
@@ -58,7 +58,7 @@ export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
   3: {
     number: 3,
     createMap: createLevel3Map,
-    playerSpawn: { row: 7, col: 8 },
+    pacmanSpawn: { row: 7, col: 8 },
     ghosts: CORNER_GHOSTS,
     initialGhostKind: "specter",
     specterRespawnChance: 1,

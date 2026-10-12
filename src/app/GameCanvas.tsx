@@ -13,6 +13,7 @@ import {
   restartGame,
   togglePause,
   updateGameState,
+  type GameConfig,
   type GameState,
 } from "../game/state";
 import { LEVEL_THEMES } from "../game/theme";
@@ -57,9 +58,15 @@ function sameSnapshot(a: UiSnapshot, b: UiSnapshot): boolean {
   return (Object.keys(a) as Array<keyof UiSnapshot>).every((key) => a[key] === b[key]);
 }
 
-export function GameCanvas() {
+interface GameCanvasProps {
+  /** Modo y fantasma elegidos en el menú; para cambiarlos hay que volver al menú (HU-22). */
+  config: GameConfig;
+  onMainMenu: () => void;
+}
+
+export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [state] = useState<GameState>(() => createInitialGameState());
+  const [state] = useState<GameState>(() => createInitialGameState(config));
   const [ui, setUi] = useState<UiSnapshot>(() => takeSnapshot(state));
   const restartRef = useRef<() => void>(() => {});
 
@@ -118,15 +125,15 @@ export function GameCanvas() {
         const ghostPosition = getMoverPosition(ghost);
         renderGhost(ctx, ghostPosition.row, ghostPosition.col, CELL_SIZE, {
           color: ghost.color,
-          isSpecter: ghost.kind === "specter",
+          kind: ghost.kind,
           isHarmless: ghost.noEatTimer > 0 || isPhasing(ghost),
           isVulnerable: ghost.vulnerable,
           isWarning,
           blinkOn,
         });
       }
-      const position = getMoverPosition(state.player);
-      renderPacman(ctx, position.row, position.col, CELL_SIZE, state.player.direction);
+      const position = getMoverPosition(state.pacman);
+      renderPacman(ctx, position.row, position.col, CELL_SIZE, state.pacman.direction);
       renderFireworks(ctx, fireworks, CELL_SIZE);
     };
 
@@ -151,6 +158,7 @@ export function GameCanvas() {
       pelletsRemaining={ui.pelletsRemaining}
       lives={ui.lives}
       level={ui.level}
+      mode={config.mode}
       powerUpActive={ui.powerUpActive}
       powerUpTimer={ui.powerUpTimer}
     />
@@ -180,21 +188,31 @@ export function GameCanvas() {
           <div className={styles.gameOver}>
             <h2>💀 Game Over</h2>
             <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} />
-            <button className={styles.restartButton} autoFocus onClick={() => restartRef.current()}>
-              Volver a jugar
-            </button>
+            <EndActions onRestart={() => restartRef.current()} onMainMenu={onMainMenu} />
           </div>
         )}
         {ui.won && (
           <div className={`${styles.gameOver} ${styles.victory}`}>
             <h2>🏆 ¡Victoria!</h2>
             <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} />
-            <button className={styles.restartButton} autoFocus onClick={() => restartRef.current()}>
-              Volver a jugar
-            </button>
+            <EndActions onRestart={() => restartRef.current()} onMainMenu={onMainMenu} />
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Acciones de las pantallas de cierre (HU-19, decisión 29). */
+function EndActions({ onRestart, onMainMenu }: { onRestart: () => void; onMainMenu: () => void }) {
+  return (
+    <div className={styles.endActions}>
+      <button className={styles.restartButton} autoFocus onClick={onRestart}>
+        Volver a jugar
+      </button>
+      <button className={styles.menuButton} onClick={onMainMenu}>
+        Menú principal
+      </button>
     </div>
   );
 }

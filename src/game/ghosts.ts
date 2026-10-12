@@ -1,23 +1,35 @@
-import { canEnterCell, DIRECTION_VECTORS, getOppositeDirection, type Direction, type Positioned } from "./movement";
+import {
+  canEnterCell,
+  DIRECTION_VECTORS,
+  getOppositeDirection,
+  updateMover,
+  type Direction,
+  type Mover,
+} from "./movement";
 import type { GameMap } from "./types";
 
 // IA de fantasmas: persecución/dispersión por distancia, sin reversas salvo cambio de estado.
 
 export type GhostId = "blinky" | "pinky" | "inky" | "clyde";
 export type GhostMode = "chase" | "scatter";
-/** Tipos disponibles en la V1 (sección 3): clásico y espectro. */
-export type GhostKind = "classic" | "specter";
+/** Los cinco tipos de la sección 2.2. En el modo Pacman la IA usa solo clásico y espectro (V1). */
+export type GhostKind = "classic" | "specter" | "jumper" | "naval" | "accelerated";
 
 export const CLASSIC_GHOST_SPEED = 5; // celdas por segundo
 /** El espectro es un 30 % más lento que el clásico. */
 export const SPECTER_SPEED_FACTOR = 0.7;
+/** El naval es un 20 % más lento que el clásico. */
+export const NAVAL_SPEED_FACTOR = 0.8;
 export const SPECTER_PHASE_COOLDOWN_SECONDS = 10;
 export const SPECTER_NO_EAT_SECONDS = 3;
 /** El espectro atraviesa el muro solo si del otro lado queda al menos esta distancia (en celdas) más cerca del objetivo. */
 const SPECTER_MIN_GAIN_CELLS = 1;
 
-export interface Ghost extends Positioned {
+/** Mover: el fantasma del jugador se desplaza con la misma lógica que Pacman (updateMover). */
+export interface Ghost extends Mover {
   id: GhostId;
+  /** Modo GhostMan: lo controla el jugador con el teclado en lugar de la IA. */
+  controlledByPlayer: boolean;
   kind: GhostKind;
   color: string;
   scatterTarget: { row: number; col: number };
@@ -39,7 +51,14 @@ export interface Ghost extends Positioned {
 const ALL_DIRECTIONS: readonly Direction[] = ["up", "down", "left", "right"];
 
 export function speedForKind(kind: GhostKind): number {
-  return kind === "specter" ? CLASSIC_GHOST_SPEED * SPECTER_SPEED_FACTOR : CLASSIC_GHOST_SPEED;
+  switch (kind) {
+    case "specter":
+      return CLASSIC_GHOST_SPEED * SPECTER_SPEED_FACTOR;
+    case "naval":
+      return CLASSIC_GHOST_SPEED * NAVAL_SPEED_FACTOR;
+    default:
+      return CLASSIC_GHOST_SPEED;
+  }
 }
 
 export function createGhost(
@@ -52,11 +71,13 @@ export function createGhost(
 ): Ghost {
   return {
     id,
+    controlledByPlayer: false,
     kind,
     row,
     col,
     progress: 0,
     direction: null,
+    desiredDirection: null,
     speed: speedForKind(kind),
     color,
     scatterTarget,
@@ -229,9 +250,21 @@ export function updateGhost(
   }
 }
 
+/**
+ * Fantasma del jugador (modo GhostMan): mismo movimiento que Pacman, con avance continuo,
+ * giro anticipado e inversión de marcha libre. Los temporizadores del espectro siguen corriendo.
+ */
+export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: number, desiredDirection: Direction | null): void {
+  if (ghost.phaseCooldown > 0) ghost.phaseCooldown = Math.max(0, ghost.phaseCooldown - deltaSeconds);
+  if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
+  ghost.desiredDirection = desiredDirection;
+  updateMover(ghost, map, deltaSeconds);
+}
+
 /** Única excepción a la regla de no reversa: se fuerza al cambiar entre persecución y dispersión. */
 export function reverseGhostDirection(ghost: Ghost): void {
-  if (!ghost.direction) return;
+  // La reversa forzada es de la IA: al fantasma del jugador lo sigue controlando el jugador.
+  if (ghost.controlledByPlayer || !ghost.direction) return;
   // Un espectro a mitad de un muro completa el cruce antes de poder invertir la marcha.
   if (isPhasing(ghost)) return;
 
