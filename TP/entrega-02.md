@@ -797,7 +797,7 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 - Las decisiones 33, 35 y 36 surgieron durante la generación. El código ya las refleja, pero el equipo todavía no las revisó.
 - Las decisiones 37 y 38 se definieron al cerrar la sesión, a partir de la medición del balance. No están implementadas.
 
-**Verificación usada en la sesión.** Cada incremento se verificó con un script del núcleo del juego, sin navegador, y con pruebas en Chromium sin interfaz, con capturas. Esos scripts quedaron fuera del repositorio. Si el equipo los quiere reutilizar como base de la regresión automatizada (sección 9.1 de la Entrega 01), hay que incorporarlos.
+**Verificación usada en la sesión.** Cada incremento se verificó con un script del núcleo del juego, sin navegador, y con pruebas en Chromium sin interfaz, con capturas. Los scripts están en `scripts/verify/` y se corren con `npm run verify` (núcleo), `npm run verify:ui` (navegador) y `npm run verify:balance` (balance). El README de esa carpeta explica cómo usarlos y sus limitaciones. Son de caja blanca: sirven como base de la regresión automatizada (sección 9.1 de la Entrega 01), pero no reemplazan la ejecución de los casos de prueba.
 
 ### 13.2 Pendientes
 
@@ -818,7 +818,7 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 | 13 | Detallar los casos de prueba de la V2 (CP-067 a CP-105 y los nuevos desde el CP-141), ajustar los casos de la V1 afectados y armar la matriz de trazabilidad | Secciones 8.2, 9 y 10 | `[completar]` |
 | 14 | Ejecutar el ciclo de la V2 y la regresión de la V1; reportar defectos | Secciones 11 y 12 | `[completar]` |
 | 15 | Subir el tag `v1.0` al repositorio remoto (`git push origin v1.0`); hoy está solo en un equipo local | Sección 2.1 | Savoia |
-| 16 | Decidir si los scripts de verificación de la sesión se incorporan al repositorio | Sección 13.1 | Equipo completo |
+| 16 | Extender `scripts/verify/` con las suites de los incrementos 16, 17 y 18, y decidir si se corren antes de cada push a `main` | Sección 13.1 | `[completar]` |
 
 ---
 
