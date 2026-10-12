@@ -4,6 +4,8 @@ Checklist de trabajo para llevar la V2 de GhostMan desde la especificación hast
 
 Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo commit que llega a `main` tiene que compilar y dejar el juego jugable.
 
+> **Estado al 12/10/2026:** incrementos 10 a 15 ejecutados y desplegados. El resto queda para el equipo: ver los pendientes de la sección 13.2 de `TP/entrega-02.md`.
+
 ---
 
 ## Etapa 0 — Cierre de la especificación de la V2
@@ -12,6 +14,10 @@ Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo 
 - [ ] Revisar en equipo las decisiones 17 a 32 (sección 5) y pasar cada una a Aprobada o Modificada
 - [ ] Resolver la alternativa de la decisión 26 (espesor de muro del espectro)
 - [ ] Revisar las decisiones 33 a 36, que surgieron durante la generación
+- [ ] Decidir la decisión 37 (memoria de frutas de la IA de Pacman: opción A o B, y el valor de *p*)
+- [ ] Decidir la decisión 38 (saltarín), idealmente antes del incremento 16
+- [ ] Decidir la decisión 34 (el jugador quieto puede ganar)
+- [ ] Resolver la inconsistencia del contador de vidas entre modos (tabla 7.5, fila 11)
 - [ ] Actualizar en `entrega-01.md` los criterios de las HU afectadas (sección 6.1) y agregar la HU-43
 - [ ] Ajustar la sección 4 y los prompts de la sección 7.4 a las decisiones aprobadas
 - [x] Completar la sección 7.2 con el agente y la interfaz que se van a usar
@@ -57,7 +63,7 @@ Un checklist por incremento. Cada uno se cierra con commit propio sobre `main`, 
 - [x] Ejecutar Prompt 14
 - [x] Verificar: dash de 3, 2, 1 y 0 celdas, y penalidad de 5 s
 - [x] Registrar problemas en la tabla 7.5
-- [ ] Commit del incremento
+- [x] Commit del incremento (`34978df`)
 
 ### Incremento 16 — Fantasmas especiales en el modo Pacman (HU-43)
 - [ ] Ejecutar Prompt 15
@@ -70,6 +76,15 @@ Un checklist por incremento. Cada uno se cierra con commit propio sobre `main`, 
 ### Incremento 17 — Dificultad del modo GhostMan (HU-33, HU-34)
 - [ ] Ejecutar Prompt 16
 - [ ] Verificar: destrucción de paredes en los niveles 2 y 3 y esferas grandes dinámicas en el nivel 3
+- [ ] Registrar problemas en la tabla 7.5
+- [ ] Commit del incremento
+
+### Incremento 18 — Memoria de frutas de la IA de Pacman y ajuste del saltarín (HU-24, HU-29, HU-30)
+- [ ] Aprobar las decisiones 37 y 38
+- [ ] Redactar el prompt (Prompt 17) en la sección 7.4
+- [ ] Ejecutar el prompt
+- [ ] Verificar: con el azar fijado, Pacman no consume una fruta falsa que reconoce (opción A: nunca en los niveles 1 y 2), y el saltarín ya no empeora al usar su poder
+- [ ] Volver a medir el balance (sección 7.6)
 - [ ] Registrar problemas en la tabla 7.5
 - [ ] Commit del incremento
 
