@@ -21,6 +21,8 @@ npm run verify -- 13 14   # solo las de los incrementos 13 y 14
 | `core/inc13.js` | 13 | Espectro (cruce, cooldown, casos sin destino válido, nivel 1), saltarín (200 saltos, uniformidad chi-cuadrado), indicador, barra espaciadora en modo Pacman |
 | `core/inc14.js` | 14 | Fruta falsa: línea de tiempo del prompt, forma de la explosión, consumo con y sin PowerUp, reinicio del nivel, pausa |
 | `core/inc15.js` | 15 | Dash de 3, 2, 1 y 0 celdas, contacto en todo el trayecto, penalidad de velocidad, cooldown |
+| `core/inc16.js` | 16 | Modo Pacman: composición de los niveles 1 a 3, 1000 reapariciones por nivel (50 % con poderes en el nivel 2, tipo uniforme por chi-cuadrado), uso de los poderes por la IA, ninguno vulnerable lo usa, fruta falsa con y sin PowerUp, nivel 1 sin cambios |
+| `core/inc17.js` | 17 | Modo GhostMan: cargas de destrucción (5, se reponen, se pierden con el PowerUp), atajo a través de un muro, restablecimiento al reiniciarse el nivel, nunca un borde ni más de 5 por esfera grande, esferas grandes fijas y dinámicas del nivel 3, Game Over con dinámicas pendientes, pausa |
 
 Las suites de un incremento tienen en cuenta los incrementos posteriores: cuando un incremento cambia a propósito una regla, se actualizan las comprobaciones anteriores que dependían de ella (tabla 7.5, filas 7, 9 y 18).
 
@@ -41,7 +43,7 @@ Manejan la aplicación con Chromium sin interfaz (`playwright-core`) a través d
 | `SHOTS_DIR` | Carpeta para las capturas | Una carpeta temporal del sistema |
 
 **Limitaciones conocidas:**
-- `inc10-pantallas-cierre.js` y `inc12-reglas-ghostman.js` esperan a que termine una partida sin intervención: tardan hasta 3 y 7 minutos.
+- `inc10-pantallas-cierre.js` y `inc12-reglas-ghostman.js` esperan a que termine una partida sin intervención: tardan hasta 3 y 12 minutos. Desde el incremento 17, con la destrucción de paredes, la partida sin intervención del modo GhostMan pasó de unos 280 s a unos 500 a 540 s.
 - `inc13-estrella.js` mide los 10 s del cooldown con el reloj real. El bucle del juego limita cada cuadro a 250 ms, así que si el navegador se traba (por ejemplo, con el equipo muy cargado), el tiempo de juego atrasa y la medición puede fallar sin que haya un defecto.
 - Las suites no pueden leer el estado interno del juego: verifican por lo que muestra la página.
 

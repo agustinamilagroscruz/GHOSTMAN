@@ -334,3 +334,25 @@ export function renderExplosion(
   }
   ctx.restore();
 }
+
+/**
+ * Pared destruida por Pacman (modo GhostMan, HU-33): destello blanco que se apaga con
+ * escombros en las esquinas de la celda durante 0,5 s. `fade` va de 1 (recién destruida) a 0.
+ */
+export function renderWallFlash(ctx: CanvasRenderingContext2D, row: number, col: number, cellSize: number, fade: number): void {
+  const f = Math.max(0, Math.min(1, fade));
+  const x = col * cellSize;
+  const y = row * cellSize;
+  ctx.save();
+  ctx.globalAlpha = f * 0.85;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+  ctx.globalAlpha = f;
+  ctx.fillStyle = "#c8c8c8";
+  const piece = cellSize * 0.18;
+  const spread = (1 - f) * cellSize * 0.35;
+  for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+    ctx.fillRect(x + cellSize / 2 + dx * (cellSize * 0.2 + spread) - piece / 2, y + cellSize / 2 + dy * (cellSize * 0.2 + spread) - piece / 2, piece, piece);
+  }
+  ctx.restore();
+}

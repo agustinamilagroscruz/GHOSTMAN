@@ -18,6 +18,18 @@ import {
   type Explosion,
   type FakeFruit,
 } from "./fakeFruits";
+import {
+  destroyWall,
+  DYNAMIC_POWER_PELLET_INTERVAL_SECONDS,
+  EXTRA_FIXED_POWER_PELLETS,
+  isInteriorWall,
+  MAX_DYNAMIC_POWER_PELLETS,
+  restoreWalls,
+  WALL_CHARGES_PER_POWER_PELLET,
+  WALL_FLASH_SECONDS,
+  type Cell,
+  type WallFlash,
+} from "./difficulty";
 import { ageFruits, createFruit, type Fruit } from "./fruits";
 import { LAST_LEVEL, LEVELS, MAX_SIMULTANEOUS_FRUITS, POWERED_GHOST_KINDS, type LevelDefinition } from "./levels";
 import {
@@ -120,6 +132,16 @@ export interface GameState {
   explosions: Explosion[];
   /** Segundos acumulados desde la última aparición de fruta (solo niveles con frutas). */
   fruitSpawnTimer: number;
+  /** Modo GhostMan, niveles 2 y 3: cargas de destrucción de paredes de Pacman (sección 4.8). */
+  wallCharges: number;
+  /** Paredes destruidas en el nivel en curso; se restablecen al reiniciarse el nivel. */
+  destroyedWalls: Cell[];
+  /** Destellos de las paredes destruidas (solo visual, 0,5 s). */
+  wallFlashes: WallFlash[];
+  /** Modo GhostMan, nivel 3: esferas grandes dinámicas aparecidas y todavía sin consumir. */
+  dynamicPowerPellets: Cell[];
+  /** Segundos acumulados desde la última aparición de una esfera grande dinámica. */
+  powerPelletSpawnTimer: number;
   scoreBreakdown: ScoreBreakdown;
   /** true si la partida terminó ganada; el bonus por vidas solo aplica en ese caso. */
   won: boolean;
@@ -221,6 +243,18 @@ function loadLevel(state: GameState, level: number): void {
   state.fakeFruits = [];
   state.explosions = [];
   state.fruitSpawnTimer = 0;
+  state.wallCharges = 0;
+  state.destroyedWalls = [];
+  state.wallFlashes = [];
+  state.dynamicPowerPellets = [];
+  state.powerPelletSpawnTimer = 0;
+  // Modo GhostMan, nivel 3: 6 esferas grandes fijas, las 4 esquinas más (7,1) y (7,15)
+  // (decisión 22). Reemplazan esferas comunes, así que la cuenta de esferas no cambia.
+  if (state.config.mode === "ghostman" && level === 3) {
+    for (const cell of EXTRA_FIXED_POWER_PELLETS) {
+      if (map.pellets[cell.row][cell.col] !== "none") map.pellets[cell.row][cell.col] = "power";
+    }
+  }
   state.powerUpActive = false;
   state.powerUpTimer = 0;
   state.ghostsEatenInPowerUp = 0;
@@ -359,6 +393,7 @@ function consumePelletAt(state: GameState, row: number, col: number): void {
 
   state.map.pellets[row][col] = "none";
   state.pelletsRemaining -= 1;
+  state.dynamicPowerPellets = state.dynamicPowerPellets.filter((cell) => cell.row !== row || cell.col !== col);
 
   if (pellet === "power") {
     addPoints(state, "pellets", POWER_PELLET_POINTS);
@@ -387,6 +422,8 @@ function activatePowerUp(state: GameState): void {
   state.powerUpActive = true;
   state.powerUpTimer = POWER_UP_DURATION_SECONDS;
   state.ghostsEatenInPowerUp = 0;
+  // Modo GhostMan, niveles 2 y 3: 5 cargas de destrucción, que se reponen (no se suman).
+  if (state.config.mode === "ghostman" && state.level >= 2) state.wallCharges = WALL_CHARGES_PER_POWER_PELLET;
 
   for (const ghost of state.ghosts) {
     if (ghost.eaten) continue;
@@ -399,6 +436,8 @@ function endPowerUp(state: GameState): void {
   state.powerUpActive = false;
   state.powerUpTimer = 0;
   state.ghostsEatenInPowerUp = 0;
+  // Las cargas de destrucción duran lo que dura el PowerUp (decisión 22).
+  state.wallCharges = 0;
   for (const ghost of state.ghosts) {
     ghost.vulnerable = false;
   }
@@ -569,6 +608,60 @@ function restartLevelPositions(state: GameState): void {
   state.ghostMode = "chase";
   state.ghostModeTimer = 0;
   state.fakeFruits = [];
+  // Modo GhostMan: las paredes destruidas se restablecen (HU-33). Una fruta real que había
+  // aparecido sobre una de ellas desaparece con la pared.
+  if (state.destroyedWalls.length > 0) {
+    restoreWalls(state.map, state.destroyedWalls);
+    const walls = new Set(state.destroyedWalls.map((wall) => `${wall.row},${wall.col}`));
+    state.fruits = state.fruits.filter((fruit) => !walls.has(`${fruit.row},${fruit.col}`));
+    state.destroyedWalls = [];
+    state.wallFlashes = [];
+  }
+}
+
+/**
+ * Modo GhostMan: Pacman avanza hacia un muro interior con cargas disponibles y lo destruye. La
+ * celda queda transitable para todos y sin esfera, y se gasta una carga (sección 4.8).
+ */
+function breakWallAhead(state: GameState, pacman: Mover, direction: Direction | null): void {
+  if (!direction || state.wallCharges <= 0) return;
+  const [dRow, dCol] = DIRECTION_VECTORS[direction];
+  const row = pacman.row + dRow;
+  const col = pacman.col + dCol;
+  if (!isInteriorWall(state.map, row, col)) return;
+  destroyWall(state.map, row, col);
+  state.wallCharges -= 1;
+  state.destroyedWalls.push({ row, col });
+  state.wallFlashes.push({ row, col, timeLeft: WALL_FLASH_SECONDS });
+}
+
+/**
+ * Modo GhostMan, nivel 3: una esfera grande cada 15 s en una celda transitable al azar, sin
+ * esfera y sin personaje, con un máximo de 2 dinámicas sin consumir. No vencen y cuentan para
+ * completar el nivel (HU-34). No aparecen sobre paredes destruidas, que se restablecen al
+ * reiniciarse el nivel.
+ */
+function updateDynamicPowerPellets(state: GameState, deltaSeconds: number): void {
+  if (state.config.mode !== "ghostman" || state.level !== 3) return;
+  state.powerPelletSpawnTimer += deltaSeconds;
+  if (state.powerPelletSpawnTimer < DYNAMIC_POWER_PELLET_INTERVAL_SECONDS) return;
+  state.powerPelletSpawnTimer -= DYNAMIC_POWER_PELLET_INTERVAL_SECONDS;
+  if (state.dynamicPowerPellets.length >= MAX_DYNAMIC_POWER_PELLETS) return;
+
+  const destroyed = new Set(state.destroyedWalls.map((wall) => `${wall.row},${wall.col}`));
+  const candidates: Cell[] = [];
+  for (let row = 0; row < state.map.rows; row++) {
+    for (let col = 0; col < state.map.cols; col++) {
+      if (state.map.cells[row][col] !== "path" || state.map.pellets[row][col] !== "none") continue;
+      if (destroyed.has(`${row},${col}`) || isCellOccupiedByCharacter(state, row, col)) continue;
+      candidates.push({ row, col });
+    }
+  }
+  if (candidates.length === 0) return;
+  const cell = candidates[Math.min(candidates.length - 1, Math.floor(state.random() * candidates.length))];
+  state.map.pellets[cell.row][cell.col] = "power";
+  state.pelletsRemaining += 1;
+  state.dynamicPowerPellets.push(cell);
 }
 
 /**
@@ -731,16 +824,20 @@ export function updateGameState(
     updateMover(state.pacman, state.map, deltaSeconds);
   } else {
     // Modo GhostMan: a Pacman lo mueve la IA, que decide en cada celda a la que llega (sección 4.7).
-    updateMover(state.pacman, state.map, deltaSeconds, (pacman) =>
-      decidePacmanDirection({
+    updateMover(state.pacman, state.map, deltaSeconds, (pacman) => {
+      const direction = decidePacmanDirection({
         map: state.map,
         pacman,
         ghosts: state.ghosts,
         powerUpActive: state.powerUpActive,
         // La IA no distingue la fruta falsa de la real (decisión 17).
         fruits: [...state.fruits, ...state.fakeFruits],
-      })
-    );
+        wallCharges: state.wallCharges,
+      });
+      // Con cargas, si la dirección elegida da contra un muro interior, Pacman lo destruye.
+      breakWallAhead(state, pacman, direction);
+      return direction;
+    });
   }
 
   if (state.pacman.row !== previousRow || state.pacman.col !== previousCol) {
@@ -752,6 +849,9 @@ export function updateGameState(
   if (state.levelComplete || state.gameOver) return;
 
   updateFruitSpawns(state, deltaSeconds);
+  updateDynamicPowerPellets(state, deltaSeconds);
+  for (const flash of state.wallFlashes) flash.timeLeft -= deltaSeconds;
+  state.wallFlashes = state.wallFlashes.filter((flash) => flash.timeLeft > 0);
   updatePowerUp(state, deltaSeconds);
   updateGhostRespawns(state, deltaSeconds);
   updateGhostMode(state, deltaSeconds);

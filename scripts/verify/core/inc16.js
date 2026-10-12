@@ -115,7 +115,7 @@ function solo(kind, { pacman = [13, 8], ghost = [13, 4], dir = "right", mode = "
 }
 {
   // Contacto en todo el trayecto del dash: Pacman en el medio pierde una vida
-  const [s, g] = solo("accelerated", { pacman: [13, 6], ghost: [13, 4] });
+  const [s] = solo("accelerated", { pacman: [13, 6], ghost: [13, 4] });
   const lives = s.lives;
   step(s, 1);
   check(s.lives === lives - 1, "acelerado: el dash que pasa por encima de Pacman le quita una vida (decisión 32)");

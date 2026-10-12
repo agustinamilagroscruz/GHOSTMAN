@@ -683,6 +683,10 @@ incluye a las dinámicas.
 | 24 | 16 — Fantasmas especiales en el modo Pacman | Prompt 15 | **Interpretación del agente:** la sección 4.9 dice "uno de cada tipo" en el nivel 3, pero no qué fantasma recibe cada tipo. Se asignó en el orden de la sección: el de la esquina superior izquierda es el espectro, el de la superior derecha el saltarín, el de la inferior izquierda el naval y el de la inferior derecha el acelerado | Queda fijo y verificable a la vista. Si el equipo prefiere otro reparto, se cambia en `levels.ts` | No |
 | 25 | 16 — Fantasmas especiales en el modo Pacman | Prompt 15 | **Pendiente que se mantiene (fila 18):** el cooldown del espectro de la IA se congela mientras está comido, como en la V1, y el incremento extiende ese comportamiento a los cuatro tipos de la IA. Al reaparecer con otro tipo, el cooldown se conserva y la penalidad de velocidad del acelerado se descarta. Tampoco se aplicó la decisión 38 (saltarín): el saltarín de la IA usa la regla vigente (decisión 31, destino uniforme) | Sin cambios hasta que el equipo decida el pendiente 6 de la sección 13.2 y la decisión 38 | No |
 | 26 | 16 — Fantasmas especiales en el modo Pacman | Prompt 15 | La comprobación "modo Pacman N3: cuatro espectros" del script del incremento 10 falló después del cambio. No es un defecto: el nivel 3 pasa a tener uno de cada tipo con poderes (decisión 23), y el resultado esperado de los CP-052 a CP-059 de la V1 cambia, como anticipa la sección 8.2 | Se actualizó la comprobación. La suite nueva `core/inc16.js` verifica 1000 reapariciones por nivel (en el nivel 2, 50 % con poderes y tipo uniforme por chi-cuadrado), la composición inicial del nivel 3, el uso de cada poder por la IA y que ningún vulnerable lo usa | No |
+| 27 | 17 — Dificultad del modo GhostMan | Prompt 16 | **Interpretación del agente:** la sección 4.7 dice que, con cargas, "el cálculo de recorrido" considera los muros interiores como transitables con costo 3. Se aplicó a los recorridos hacia esferas, frutas y fantasmas vulnerables (prioridades 2 a 4). La huida (prioridad 1) y la distancia a los fantasmas peligrosos siguen calculándose solo por caminos, porque los fantasmas no rompen paredes. Sin cargas, la IA decide exactamente igual que en el incremento 16 | Se deja asentado para la revisión de la decisión 17 | No |
+| 28 | 17 — Dificultad del modo GhostMan | Prompt 16 | **Hueco de especificación:** si una esfera grande dinámica apareciera sobre una pared destruida y después Pacman fuera derrotado, al restablecerse la pared la esfera quedaría dentro del muro y el nivel no se podría completar. Lo mismo con una fruta real del nivel 3 | Las esferas dinámicas no aparecen sobre paredes destruidas, y una fruta real que había aparecido sobre una desaparece con ella al restablecerse. Además, la regla "sin esfera" hace que en los primeros segundos del nivel casi no haya celdas candidatas: si no hay ninguna, la aparición se omite, igual que con las frutas | No |
+| 29 | 17 — Dificultad del modo GhostMan | Prompt 16 | La suite de navegador `inc12-reglas-ghostman.js`, que espera hasta 7 minutos a que termine una partida del modo GhostMan sin intervención, venció el tiempo de espera. No es un defecto: con la destrucción de paredes, Pacman tarda más en ser arrinconado, y la partida sin intervención pasó de unos 280 s a unos 500 a 540 s (5 semillas en el núcleo) | Se subió la espera a 12 minutos y se actualizó el README de `scripts/verify`. No requirió cambios de código | No |
+| 30 | 17 — Dificultad del modo GhostMan | Prompt 16 | **Balance:** al volver a medirlo (sección 7.6), el espectro y el acelerado que usan su poder pasaron de 6 y 10 victorias a 0 de 10, todas con Game Over en el nivel 2. Se comparó cuadro a cuadro una partida contra el código del incremento 16 con la misma semilla: es idéntica hasta la primera pared que destruye Pacman, así que la diferencia la produce la funcionalidad nueva y no un error en otra parte | Se registró la medición en la sección 7.6 para que el equipo decida si ajusta los valores de la decisión 22 (cargas o costo del muro). No se cambiaron | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 
@@ -699,6 +703,18 @@ incluye a las dinámicas.
 | Acelerado | 10 | 10 |
 
 Dos lecturas. El **naval** pasa de perder siempre a ganar siempre: como la IA de Pacman va por cualquier fruta a 5 celdas o menos y no distingue la falsa (decisión 17), la trampa casi no falla. El **saltarín** empeora usando el poder sin criterio: el destino es al azar y lo aleja de Pacman tantas veces como lo acerca. El bot no es un jugador real, así que esto no alcanza para concluir sobre el balance. Sí alcanza para señalarle al equipo que el umbral de 5 celdas de la decisión 17 define, casi por sí solo, la fuerza del naval.
+
+**Balance con la dificultad del modo GhostMan (medición del incremento 17).** El mismo bot, en 10 partidas por tipo. Victorias:
+
+| Tipo | Sin usar el poder | Usando el poder | Antes del incremento 17, usando el poder |
+|---|---|---|---|
+| Clásico | 7 | 7 (no tiene poder) | 10 |
+| Espectro | 1 | **0** (Game Over en el nivel 2 en las 10) | 6 |
+| Saltarín | 7 | 5 | 1 |
+| Naval | 6 | 9 | 10 |
+| Acelerado | 7 | **0** (Game Over en el nivel 2 en las 10) | 10 |
+
+La dificultad nueva hace al modo más difícil en general, como se buscaba, pero castiga sobre todo al espectro y al acelerado cuando usan su poder: los dos quedan más lentos o fuera de posición justo cuando Pacman, con cargas, toma un atajo a través de un muro. El naval sigue casi invicto (decisión 37, pendiente). Los valores de la decisión 22 (5 cargas, costo 3 por muro) son los que el equipo puede ajustar si quiere acercar los cinco tipos.
 
 *A completar al cerrar la sesión de generación. Hipótesis que se arrastra de la V1 para contrastar: el agente acierta en los valores numéricos explícitos y falla en las interacciones entre estados que nadie escribió. Las decisiones 24, 25, 27, 28 y 32 se escribieron justamente para anticipar esas interacciones. Va a ser interesante ver si alcanzan, o si los problemas se corren a otras interacciones.*
 
@@ -786,7 +802,7 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 
 ### 13.1 Estado al 12/10/2026 (traspaso al equipo)
 
-**Generación de la V2.** Están ejecutados y desplegados en `main` los incrementos 10 a 15: el modo GhostMan es jugable de punta a punta, con los cinco tipos de fantasma y sus poderes. Faltan los incrementos 16, 17 y 18.
+**Generación de la V2.** Están ejecutados los incrementos 10 a 17: el modo GhostMan es jugable de punta a punta, con los cinco tipos de fantasma, sus poderes y la dificultad de los niveles 2 y 3, y el modo Pacman enfrenta a los cuatro tipos con poderes. Falta el incremento 18, que depende de las decisiones 37 y 38.
 
 | Incremento | Commit | HU |
 |---|---|---|
@@ -796,6 +812,9 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 | 13 — Espectro, saltarín e indicador | `7b5708e` | HU-28, HU-29, HU-32 |
 | 14 — Naval | `9ecfaaf` | HU-30 |
 | 15 — Acelerado | `34978df` | HU-31 |
+| Corrección de DEF-002 (selección del menú con el mouse) | `65df127` | HU-22 |
+| 16 — Fantasmas especiales en el modo Pacman | `f1b6124` | HU-43 |
+| 17 — Dificultad del modo GhostMan | commit «Incremento 17: dificultad del modo GhostMan» | HU-33, HU-34 |
 
 **Decisiones tomadas durante la sesión.**
 - Las decisiones 17 a 32 se implementaron tal como estaban propuestas, con el aval de quien condujo la sesión (estado *Implementada*).
@@ -817,8 +836,8 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 | 7 | Resolver la inconsistencia del contador de vidas: abajo a la izquierda en modo GhostMan, arriba en modo Pacman (desvío de la HU-09 de la V1) | Tabla 7.5, fila 11 | Equipo completo |
 | 8 | Validar la interpretación de la explosión de la fruta falsa como derrota en modo GhostMan | Tabla 7.5, fila 19 | Equipo completo |
 | 9 | Actualizar los criterios de la sección 6.1 en `entrega-01.md`, incluida la HU-43, y ajustar los prompts 15 y 16 a lo decidido | Sección 6 | `[completar]` |
-| 10 | Ejecutar los incrementos 16, 17 y 18, registrando en la tabla 7.5. Redactar el prompt del 18 | Sección 7 | `[completar]` |
-| 11 | Volver a medir el balance después de los incrementos 17 y 18 | Sección 7.6 | `[completar]` |
+| 10 | ~~Ejecutar los incrementos 16 y 17~~ (hechos, tabla 7.5 filas 22 a 30). Falta el 18: redactar su prompt cuando se aprueben las decisiones 37 y 38 | Sección 7 | `[completar]` |
+| 11 | Volver a medir el balance después del incremento 18 (la medición del 17 ya está en la sección 7.6) y decidir si se ajustan los valores de la decisión 22 | Sección 7.6 | `[completar]` |
 | 12 | Completar la sección 7.6 (observaciones sobre la implementación con AI) | Sección 7.6 | `[completar]` |
 | 13 | Detallar los casos de prueba de la V2 (CP-067 a CP-105 y los nuevos desde el CP-141), ajustar los casos de la V1 afectados y armar la matriz de trazabilidad | Secciones 8.2, 9 y 10 | `[completar]` |
 | 14 | Ejecutar el ciclo de la V2 y la regresión de la V1; reportar defectos | Secciones 11 y 12 | `[completar]` |

@@ -4,7 +4,7 @@ Checklist de trabajo para llevar la V2 de GhostMan desde la especificación hast
 
 Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo commit que llega a `main` tiene que compilar y dejar el juego jugable.
 
-> **Estado al 12/10/2026:** incrementos 10 a 15 ejecutados y desplegados. El resto queda para el equipo: ver los pendientes de la sección 13.2 de `TP/entrega-02.md`.
+> **Estado al 12/10/2026:** incrementos 10 a 17 ejecutados (el 16 y el 17, junto con la corrección de DEF-002, todavía sin subir a `main`). El 18 depende de las decisiones 37 y 38. El resto queda para el equipo: ver los pendientes de la sección 13.2 de `TP/entrega-02.md`.
 
 ---
 
@@ -71,13 +71,13 @@ Un checklist por incremento. Cada uno se cierra con commit propio sobre `main`, 
 - [x] Verificar: composición de los niveles 2 y 3, y uso de los poderes por la IA
 - [ ] Jugar una partida completa en modo Pacman para descartar regresiones evidentes — simulada en el núcleo con la IA de Pacman en los tres niveles (sin errores, desglose consistente); falta una partida manual en el navegador
 - [x] Registrar problemas en la tabla 7.5
-- [ ] Commit del incremento
+- [x] Commit del incremento (`f1b6124`)
 
 ### Incremento 17 — Dificultad del modo GhostMan (HU-33, HU-34)
-- [ ] Ejecutar Prompt 16
-- [ ] Verificar: destrucción de paredes en los niveles 2 y 3 y esferas grandes dinámicas en el nivel 3
-- [ ] Registrar problemas en la tabla 7.5
-- [ ] Commit del incremento
+- [x] Ejecutar Prompt 16
+- [x] Verificar: destrucción de paredes en los niveles 2 y 3 y esferas grandes dinámicas en el nivel 3
+- [x] Registrar problemas en la tabla 7.5
+- [x] Commit del incremento
 
 ### Incremento 18 — Memoria de frutas de la IA de Pacman y ajuste del saltarín (HU-24, HU-29, HU-30)
 - [ ] Aprobar las decisiones 37 y 38

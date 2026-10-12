@@ -1,4 +1,4 @@
-// Incremento 12 — barra de vidas de Pacman y desglose final del modo GhostMan. Juega una partida completa sin intervención (hasta 7 min).
+// Incremento 12 — barra de vidas de Pacman y desglose final del modo GhostMan. Juega una partida completa sin intervención (hasta 12 min).
 // Suite de navegador: se corre con `npm run verify:ui` (ver scripts/verify/README.md).
 const { BASE_URL, SHOTS_DIR, launchBrowser } = require("./helpers");
 let fails = 0;
@@ -24,7 +24,7 @@ const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fail
   await page.waitForTimeout(1500);
   await page.screenshot({ path: SHOTS_DIR + "/09-ghostman-barra.png" });
   // Sin intervención del jugador la partida termina igual (Game Over o Victoria, ver decisión 34)
-  await page.waitForSelector("text=/Game Over|Victoria/", { timeout: 420000 });
+  await page.waitForSelector("text=/Game Over|Victoria/", { timeout: 720000 });
   console.log("     final:", (await page.textContent("h2")).trim());
   await page.screenshot({ path: SHOTS_DIR + "/10-ghostman-gameover.png" });
   const rows = await page.locator("[data-testid=score-breakdown] td:first-child").allTextContents();

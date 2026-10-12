@@ -1,5 +1,6 @@
 import { canGhostHarm, type Ghost } from "./ghosts";
 import { canEnterCell, DIRECTION_VECTORS, getMoverPosition, type Direction, type Mover } from "./movement";
+import { isInteriorWall, WALL_PATH_COST } from "./difficulty";
 import type { GameMap } from "./types";
 
 // IA de Pacman para el modo GhostMan (sección 4.7, decisión 17). Pacman decide con estas
@@ -26,6 +27,12 @@ export interface PacmanAiView {
   powerUpActive: boolean;
   /** Frutas en el mapa: reales y, desde el incremento 14, falsas. La IA no las distingue. */
   fruits: readonly Cell[];
+  /**
+   * Cargas de destrucción de paredes (incremento 17, sección 4.8). Con cargas, los recorridos
+   * hacia esferas, frutas y fantasmas vulnerables consideran los muros interiores como
+   * transitables con costo 3. Sin cargas (o ausente), la IA decide exactamente como antes.
+   */
+  wallCharges?: number;
 }
 
 /** Celda transitable más cercana a la posición interpolada de un fantasma. */
@@ -82,6 +89,46 @@ function searchFrom(map: GameMap, origin: Cell): PathSearch {
       dist[next.row][next.col] = dist[row][col] + 1;
       firstStep[next.row][next.col] = head === 0 ? direction : firstStep[row][col];
       queue.push(next);
+    }
+  }
+  return { dist, firstStep };
+}
+
+/**
+ * Variante de `searchFrom` con cargas de destrucción: Dijkstra en el que entrar a un muro
+ * interior cuesta 3 y a un camino 1. Los bordes del mapa siguen siendo infranqueables.
+ */
+function searchThroughWalls(map: GameMap, origin: Cell): PathSearch {
+  const dist = createGrid(map, Infinity);
+  const firstStep: (Direction | null)[][] = Array.from({ length: map.rows }, () => new Array(map.cols).fill(null));
+  const done = createGrid(map, 0);
+  dist[origin.row][origin.col] = 0;
+  for (;;) {
+    // Selección del nodo pendiente más cercano (el mapa tiene 255 celdas: alcanza con un barrido).
+    let current: Cell | null = null;
+    let currentDist = Infinity;
+    for (let row = 0; row < map.rows; row++) {
+      for (let col = 0; col < map.cols; col++) {
+        if (!done[row][col] && dist[row][col] < currentDist) {
+          currentDist = dist[row][col];
+          current = { row, col };
+        }
+      }
+    }
+    if (!current) break;
+    done[current.row][current.col] = 1;
+    const isOrigin = current.row === origin.row && current.col === origin.col;
+    for (const direction of TIE_BREAK_ORDER) {
+      const [dRow, dCol] = DIRECTION_VECTORS[direction];
+      const next = { row: current.row + dRow, col: current.col + dCol };
+      let cost: number;
+      if (canEnterCell(map, next.row, next.col)) cost = 1;
+      else if (isInteriorWall(map, next.row, next.col)) cost = WALL_PATH_COST;
+      else continue;
+      const candidate = currentDist + cost;
+      if (candidate >= dist[next.row][next.col]) continue;
+      dist[next.row][next.col] = candidate;
+      firstStep[next.row][next.col] = isOrigin ? direction : firstStep[current.row][current.col];
     }
   }
   return { dist, firstStep };
@@ -154,7 +201,7 @@ export function decidePacmanDirection(view: PacmanAiView): Direction | null {
     }
   }
 
-  const search = searchFrom(map, from);
+  const search = view.wallCharges && view.wallCharges > 0 ? searchThroughWalls(map, from) : searchFrom(map, from);
 
   // 2. Con el PowerUp, perseguir al fantasma vulnerable más cercano.
   if (view.powerUpActive) {

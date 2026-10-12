@@ -7,6 +7,7 @@ import { createKeyboardDirectionInput } from "../game/input";
 import { getMoverPosition } from "../game/movement";
 import { isPowerReady } from "../game/powers";
 import { EXPLOSION_DISPLAY_SECONDS, FAKE_FRUIT_WARNING_SECONDS } from "../game/fakeFruits";
+import { WALL_FLASH_SECONDS } from "../game/difficulty";
 import {
   isBlinkOn,
   renderExplosion,
@@ -15,6 +16,7 @@ import {
   renderGhost,
   renderMap,
   renderPacman,
+  renderWallFlash,
 } from "../game/render";
 import { startGameLoop } from "../game/loop";
 import {
@@ -153,6 +155,9 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
       }
       for (const explosion of state.explosions) {
         renderExplosion(ctx, explosion.cells, CELL_SIZE, explosion.timeLeft / EXPLOSION_DISPLAY_SECONDS);
+      }
+      for (const flash of state.wallFlashes) {
+        renderWallFlash(ctx, flash.row, flash.col, CELL_SIZE, flash.timeLeft / WALL_FLASH_SECONDS);
       }
       const isWarning = isPowerUpWarning(state);
       const blinkOn = isBlinkOn(state.powerUpTimer);
