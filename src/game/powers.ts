@@ -1,3 +1,4 @@
+import { canPlaceFakeFruit, createFakeFruit, NAVAL_PLACE_COOLDOWN_SECONDS, type FakeFruit } from "./fakeFruits";
 import { SPECTER_PHASE_COOLDOWN_SECONDS, type Ghost } from "./ghosts";
 import { canEnterCell, DIRECTION_VECTORS, getMoverPosition } from "./movement";
 import type { GameMap } from "./types";
@@ -12,6 +13,14 @@ export const JUMPER_RADIUS_CELLS = 10;
 export const JUMPER_COOLDOWN_SECONDS = 10;
 
 export type RandomSource = () => number;
+
+/** Lo que un poder puede leer o modificar del juego. */
+export interface PowerContext {
+  map: GameMap;
+  random: RandomSource;
+  /** Frutas falsas en el mapa (las del Naval, de cualquier fantasma). */
+  fakeFruits: FakeFruit[];
+}
 
 function isWallInsideMap(map: GameMap, row: number, col: number): boolean {
   return row >= 0 && row < map.rows && col >= 0 && col < map.cols && map.cells[row][col] === "wall";
@@ -78,18 +87,34 @@ export function tryJumperTeleport(ghost: Ghost, map: GameMap, random: RandomSour
 }
 
 /**
+ * Naval: coloca una fruta falsa en la celda que ocupa. Máximo 2 en el mapa y una por celda;
+ * si no se puede colocar, el poder no se consume (decisión 25).
+ */
+export function tryNavalPlaceFruit(ghost: Ghost, fakeFruits: FakeFruit[]): boolean {
+  const position = getMoverPosition(ghost);
+  const row = Math.round(position.row);
+  const col = Math.round(position.col);
+  if (!canPlaceFakeFruit(fakeFruits, row, col)) return false;
+  fakeFruits.push(createFakeFruit(row, col));
+  ghost.powerCooldown = NAVAL_PLACE_COOLDOWN_SECONDS;
+  return true;
+}
+
+/**
  * Barra espaciadora del fantasma del jugador. Sin efecto si está comido, durante el cooldown,
  * en pleno cruce, o si su tipo no tiene poder (clásico) o todavía no está implementado.
  */
-export function tryActivateGhostPower(ghost: Ghost, map: GameMap, random: RandomSource): boolean {
+export function tryActivateGhostPower(ghost: Ghost, context: PowerContext): boolean {
   if (ghost.eaten || ghost.powerCooldown > 0 || ghost.phaseCellsLeft > 0 || ghost.phasePending) return false;
   switch (ghost.kind) {
     case "specter":
-      return trySpecterPhase(ghost, map);
+      return trySpecterPhase(ghost, context.map);
     case "jumper":
-      return tryJumperTeleport(ghost, map, random);
+      return tryJumperTeleport(ghost, context.map, context.random);
+    case "naval":
+      return tryNavalPlaceFruit(ghost, context.fakeFruits);
     default:
-      return false; // clásico: sin poder. Naval y acelerado: incrementos 14 y 15.
+      return false; // clásico: sin poder. Acelerado: incremento 15.
   }
 }
 

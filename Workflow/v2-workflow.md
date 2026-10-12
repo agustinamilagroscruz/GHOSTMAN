@@ -45,12 +45,12 @@ Un checklist por incremento. Cada uno se cierra con commit propio sobre `main`, 
 - [x] Ejecutar Prompt 12
 - [x] Verificar: los dos poderes responden a la barra espaciadora y la estrella refleja el cooldown
 - [x] Registrar problemas en la tabla 7.5
-- [ ] Commit del incremento
+- [x] Commit del incremento (`7b5708e`)
 
 ### Incremento 14 — Naval (HU-30)
-- [ ] Ejecutar Prompt 13
-- [ ] Verificar: ciclo completo de la fruta falsa (colocación, consumo con y sin PowerUp, explosión, límites)
-- [ ] Registrar problemas en la tabla 7.5
+- [x] Ejecutar Prompt 13
+- [x] Verificar: ciclo completo de la fruta falsa (colocación, consumo con y sin PowerUp, explosión, límites)
+- [x] Registrar problemas en la tabla 7.5
 - [ ] Commit del incremento
 
 ### Incremento 15 — Acelerado (HU-31)
@@ -61,6 +61,7 @@ Un checklist por incremento. Cada uno se cierra con commit propio sobre `main`, 
 
 ### Incremento 16 — Fantasmas especiales en el modo Pacman (HU-43)
 - [ ] Ejecutar Prompt 15
+- [ ] Decidir si el cooldown del espectro de la IA sigue corriendo mientras está comido (tabla 7.5, fila 18)
 - [ ] Verificar: composición de los niveles 2 y 3, y uso de los poderes por la IA
 - [ ] Jugar una partida completa en modo Pacman para descartar regresiones evidentes
 - [ ] Registrar problemas en la tabla 7.5

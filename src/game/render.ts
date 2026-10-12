@@ -258,3 +258,79 @@ export function renderFruit(ctx: CanvasRenderingContext2D, row: number, col: num
     ctx.fill();
   }
 }
+
+const FAKE_FRUIT_COLOR = "#8a2be2";
+const FAKE_FRUIT_ALARM_COLOR = "#ff2a2a";
+
+/**
+ * Fruta falsa del Naval: misma silueta de cereza que la real pero violeta, con tallo gris y
+ * una cruz blanca, para que se distinga a simple vista (HU-30). En los últimos segundos antes
+ * de explotar parpadea en rojo y muestra la cuenta regresiva.
+ */
+export function renderFakeFruit(
+  ctx: CanvasRenderingContext2D,
+  row: number,
+  col: number,
+  cellSize: number,
+  timeLeft: number,
+  warningSeconds: number
+): void {
+  const x = col * cellSize;
+  const y = row * cellSize;
+  const r = cellSize * 0.18;
+  const warning = timeLeft <= warningSeconds;
+  const alarmOn = warning && Math.floor(timeLeft / 0.25) % 2 === 0;
+
+  ctx.strokeStyle = "#9a9a9a";
+  ctx.lineWidth = Math.max(1, cellSize * 0.07);
+  ctx.beginPath();
+  ctx.moveTo(x + cellSize * 0.32, y + cellSize * 0.62);
+  ctx.quadraticCurveTo(x + cellSize * 0.5, y + cellSize * 0.2, x + cellSize * 0.7, y + cellSize * 0.18);
+  ctx.moveTo(x + cellSize * 0.66, y + cellSize * 0.64);
+  ctx.lineTo(x + cellSize * 0.7, y + cellSize * 0.18);
+  ctx.stroke();
+
+  for (const [cx, cy] of [
+    [0.32, 0.68],
+    [0.66, 0.7],
+  ] as const) {
+    const px = x + cellSize * cx;
+    const py = y + cellSize * cy;
+    ctx.fillStyle = alarmOn ? FAKE_FRUIT_ALARM_COLOR : FAKE_FRUIT_COLOR;
+    ctx.beginPath();
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = Math.max(1, cellSize * 0.05);
+    ctx.beginPath();
+    ctx.moveTo(px - r * 0.5, py - r * 0.5);
+    ctx.lineTo(px + r * 0.5, py + r * 0.5);
+    ctx.moveTo(px + r * 0.5, py - r * 0.5);
+    ctx.lineTo(px - r * 0.5, py + r * 0.5);
+    ctx.stroke();
+  }
+
+  if (warning) {
+    ctx.fillStyle = "#f8e34d";
+    ctx.font = `bold ${Math.round(cellSize * 0.5)}px monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText(String(Math.ceil(timeLeft)), x + cellSize * 0.5, y - cellSize * 0.15);
+  }
+}
+
+/** Explosión de una fruta falsa: las celdas alcanzadas se tiñen de naranja y se desvanecen. */
+export function renderExplosion(
+  ctx: CanvasRenderingContext2D,
+  cells: ReadonlyArray<{ row: number; col: number }>,
+  cellSize: number,
+  fade: number
+): void {
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, fade)) * 0.75;
+  ctx.fillStyle = "#ff8c1a";
+  for (const cell of cells) {
+    ctx.fillRect(cell.col * cellSize + 1, cell.row * cellSize + 1, cellSize - 2, cellSize - 2);
+  }
+  ctx.restore();
+}

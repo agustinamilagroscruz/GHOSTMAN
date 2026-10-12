@@ -6,6 +6,7 @@ import {
   type Direction,
   type Mover,
 } from "./movement";
+import { tickTimer } from "./timers";
 import type { GameMap } from "./types";
 
 // IA de fantasmas: persecución/dispersión por distancia, sin reversas salvo cambio de estado.
@@ -230,7 +231,7 @@ export function updateGhost(
   targetCol: number,
   allowPhase = false
 ): void {
-  if (ghost.powerCooldown > 0) ghost.powerCooldown = Math.max(0, ghost.powerCooldown - deltaSeconds);
+  if (ghost.powerCooldown > 0) ghost.powerCooldown = tickTimer(ghost.powerCooldown, deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
 
   if (ghost.progress === 0) {
@@ -267,7 +268,7 @@ export function updateGhost(
  * en línea recta sin leer el teclado, como el espectro de la IA.
  */
 export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: number, desiredDirection: Direction | null): void {
-  if (ghost.powerCooldown > 0) ghost.powerCooldown = Math.max(0, ghost.powerCooldown - deltaSeconds);
+  if (ghost.powerCooldown > 0) ghost.powerCooldown = tickTimer(ghost.powerCooldown, deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
 
   if (ghost.phasePending || isPhasing(ghost)) {

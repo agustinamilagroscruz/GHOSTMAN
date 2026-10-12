@@ -6,7 +6,16 @@ import { isPhasing } from "../game/ghosts";
 import { createKeyboardDirectionInput } from "../game/input";
 import { getMoverPosition } from "../game/movement";
 import { isPowerReady } from "../game/powers";
-import { isBlinkOn, renderFruit, renderGhost, renderMap, renderPacman } from "../game/render";
+import { EXPLOSION_DISPLAY_SECONDS, FAKE_FRUIT_WARNING_SECONDS } from "../game/fakeFruits";
+import {
+  isBlinkOn,
+  renderExplosion,
+  renderFakeFruit,
+  renderFruit,
+  renderGhost,
+  renderMap,
+  renderPacman,
+} from "../game/render";
 import { startGameLoop } from "../game/loop";
 import {
   createInitialGameState,
@@ -138,6 +147,12 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
       renderMap(ctx, state.map, LEVEL_THEMES[state.level], CELL_SIZE);
       for (const fruit of state.fruits) {
         renderFruit(ctx, fruit.row, fruit.col, CELL_SIZE);
+      }
+      for (const fruit of state.fakeFruits) {
+        renderFakeFruit(ctx, fruit.row, fruit.col, CELL_SIZE, fruit.timeLeft, FAKE_FRUIT_WARNING_SECONDS);
+      }
+      for (const explosion of state.explosions) {
+        renderExplosion(ctx, explosion.cells, CELL_SIZE, explosion.timeLeft / EXPLOSION_DISPLAY_SECONDS);
       }
       const isWarning = isPowerUpWarning(state);
       const blinkOn = isBlinkOn(state.powerUpTimer);

@@ -10,11 +10,18 @@ import {
   type GhostKind,
   type GhostMode,
 } from "./ghosts";
+import {
+  EXPLOSION_DISPLAY_SECONDS,
+  explosionCells,
+  type Explosion,
+  type FakeFruit,
+} from "./fakeFruits";
 import { ageFruits, createFruit, type Fruit } from "./fruits";
 import { LAST_LEVEL, LEVELS, MAX_SIMULTANEOUS_FRUITS, type LevelDefinition } from "./levels";
 import { createMover, getMoverPosition, updateMover, type Direction, type Mover } from "./movement";
 import { decidePacmanDirection } from "./pacmanAi";
 import { tryActivateGhostPower } from "./powers";
+import { tickTimer } from "./timers";
 import {
   COMMON_PELLET_POINTS,
   FRUIT_POINTS,
@@ -92,6 +99,10 @@ export interface GameState {
   /** Cuenta regresiva del resultado de nivel antes de cargar el siguiente. */
   levelTransitionTimer: number;
   fruits: Fruit[];
+  /** Frutas falsas del Naval en el mapa (máximo 2). */
+  fakeFruits: FakeFruit[];
+  /** Explosiones de frutas falsas que se están dibujando (solo visual). */
+  explosions: Explosion[];
   /** Segundos acumulados desde la última aparición de fruta (solo niveles con frutas). */
   fruitSpawnTimer: number;
   scoreBreakdown: ScoreBreakdown;
@@ -192,6 +203,8 @@ function loadLevel(state: GameState, level: number): void {
   if (state.config.mode === "ghostman") state.lives = INITIAL_LIVES;
   state.levelTransitionTimer = 0;
   state.fruits = [];
+  state.fakeFruits = [];
+  state.explosions = [];
   state.fruitSpawnTimer = 0;
   state.powerUpActive = false;
   state.powerUpTimer = 0;
@@ -456,10 +469,7 @@ function defeatPacman(state: GameState): void {
     completeLevel(state);
     return;
   }
-  resetPacmanPosition(state);
-  resetGhostPositions(state.ghosts);
-  state.ghostMode = "chase";
-  state.ghostModeTimer = 0;
+  restartLevelPositions(state);
 }
 
 function eatGhost(state: GameState, ghost: Ghost): void {
@@ -481,11 +491,64 @@ function loseLife(state: GameState): void {
     state.lives = 0;
     finishGame(state, false);
   } else {
-    resetPacmanPosition(state);
-    resetGhostPositions(state.ghosts);
-    state.ghostMode = "chase";
-    state.ghostModeTimer = 0;
+    restartLevelPositions(state);
   }
+}
+
+/**
+ * Reinicio del nivel tras perder una vida (modo Pacman) o una derrota de Pacman (modo GhostMan):
+ * todos vuelven a su posición inicial y las frutas falsas desaparecen sin explotar (decisión 27).
+ * Se conservan las esferas consumidas, el puntaje y los cooldowns.
+ */
+function restartLevelPositions(state: GameState): void {
+  resetPacmanPosition(state);
+  resetGhostPositions(state.ghosts);
+  state.ghostMode = "chase";
+  state.ghostModeTimer = 0;
+  state.fakeFruits = [];
+}
+
+/**
+ * Pacman pierde una vida por una fruta falsa (consumida o explosión). En modo Pacman es una vida
+ * del jugador; en modo GhostMan es una derrota producida por el jugador, que colocó la fruta.
+ */
+function pacmanLosesLife(state: GameState): void {
+  if (state.config.mode === "pacman") {
+    loseLife(state);
+  } else {
+    defeatPacman(state);
+  }
+}
+
+/** Pacman llega a una celda con fruta falsa: sin PowerUp pierde una vida; con PowerUp desaparece sin efecto. */
+function consumeFakeFruitAt(state: GameState, row: number, col: number): void {
+  const index = state.fakeFruits.findIndex((fruit) => fruit.row === row && fruit.col === col);
+  if (index === -1) return;
+  state.fakeFruits.splice(index, 1);
+  if (!state.powerUpActive) pacmanLosesLife(state);
+}
+
+/** Cuenta regresiva de las frutas falsas: a los 10 s explotan; la explosión solo afecta a Pacman sin PowerUp. */
+function updateFakeFruits(state: GameState, deltaSeconds: number): void {
+  for (const explosion of state.explosions) explosion.timeLeft -= deltaSeconds;
+  state.explosions = state.explosions.filter((explosion) => explosion.timeLeft > 0);
+
+  for (const fruit of state.fakeFruits) fruit.timeLeft = tickTimer(fruit.timeLeft, deltaSeconds);
+  const exploding = state.fakeFruits.filter((fruit) => fruit.timeLeft <= 0);
+  if (exploding.length === 0) return;
+  state.fakeFruits = state.fakeFruits.filter((fruit) => fruit.timeLeft > 0);
+
+  const pacman = getMoverPosition(state.pacman);
+  const pacmanRow = Math.round(pacman.row);
+  const pacmanCol = Math.round(pacman.col);
+  let pacmanHit = false;
+  for (const fruit of exploding) {
+    const cells = explosionCells(state.map, fruit.row, fruit.col);
+    state.explosions.push({ cells, timeLeft: EXPLOSION_DISPLAY_SECONDS });
+    if (cells.some((cell) => cell.row === pacmanRow && cell.col === pacmanCol)) pacmanHit = true;
+  }
+  // Dos explosiones simultáneas sobre Pacman descuentan una sola vida.
+  if (pacmanHit && !state.powerUpActive) pacmanLosesLife(state);
 }
 
 /** Alterna persecución/dispersión cada 20/7 s; el cambio fuerza la reversa de todos los fantasmas. */
@@ -506,7 +569,12 @@ function updateGhostMode(state: GameState, deltaSeconds: number): void {
 
 function updateGhosts(state: GameState, deltaSeconds: number, playerDirection: Direction | null): void {
   for (const ghost of state.ghosts) {
-    if (ghost.eaten) continue;
+    if (ghost.eaten) {
+      // El cooldown del poder del jugador sigue corriendo mientras espera reaparecer (decisión 35).
+      // El espectro de la IA conserva el comportamiento de la V1: su cooldown se detiene.
+      if (ghost.controlledByPlayer) ghost.powerCooldown = tickTimer(ghost.powerCooldown, deltaSeconds);
+      continue;
+    }
 
     if (ghost.controlledByPlayer) {
       updatePlayerGhost(ghost, state.map, deltaSeconds, playerDirection);
@@ -564,7 +632,8 @@ export function updateGameState(
         pacman,
         ghosts: state.ghosts,
         powerUpActive: state.powerUpActive,
-        fruits: state.fruits,
+        // La IA no distingue la fruta falsa de la real (decisión 17).
+        fruits: [...state.fruits, ...state.fakeFruits],
       })
     );
   }
@@ -572,6 +641,7 @@ export function updateGameState(
   if (state.pacman.row !== previousRow || state.pacman.col !== previousCol) {
     consumePelletAt(state, state.pacman.row, state.pacman.col);
     consumeFruitAt(state, state.pacman.row, state.pacman.col);
+    consumeFakeFruitAt(state, state.pacman.row, state.pacman.col);
   }
   state.fruits = ageFruits(state.fruits, deltaSeconds);
   if (state.levelComplete || state.gameOver) return;
@@ -580,10 +650,16 @@ export function updateGameState(
   updatePowerUp(state, deltaSeconds);
   updateGhostRespawns(state, deltaSeconds);
   updateGhostMode(state, deltaSeconds);
+  // El poder se resuelve antes de la cuenta regresiva de las frutas falsas: un intento en el
+  // mismo instante en que explota una fruta todavía la cuenta para el máximo de 2.
   if (!isPacmanMode && playerPowerRequested) {
     const playerGhost = getPlayerGhost(state);
-    if (playerGhost) tryActivateGhostPower(playerGhost, state.map, state.random);
+    if (playerGhost) {
+      tryActivateGhostPower(playerGhost, { map: state.map, random: state.random, fakeFruits: state.fakeFruits });
+    }
   }
+  updateFakeFruits(state, deltaSeconds);
+  if (state.levelComplete || state.gameOver) return;
   updateGhosts(state, deltaSeconds, isPacmanMode ? null : playerDesiredDirection);
   checkGhostCollisions(state);
 }
