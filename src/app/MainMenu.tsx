@@ -56,7 +56,12 @@ export function MainMenu({ onPacmanMode, onGhostmanMode }: MainMenuProps) {
               className={`${styles.option} ${index === selected ? styles.optionSelected : ""}`}
               data-testid={option.testId}
               aria-current={index === selected}
-              onMouseEnter={() => setSelected(index)}
+              // Solo un movimiento real del mouse cambia la selección: si la página carga con el
+              // puntero ya apoyado sobre una opción, el navegador dispara mouseenter sin que el
+              // jugador mueva nada, y Enter terminaba eligiendo esa opción (DEF-002).
+              onMouseMove={() => {
+                if (index !== selected) setSelected(index);
+              }}
               onClick={option.action}
             >
               <span className={styles.marker}>{index === selected ? "▶" : ""}</span>
