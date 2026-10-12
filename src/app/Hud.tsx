@@ -21,12 +21,15 @@ export function Hud({
   powerUpActive = false,
   powerUpTimer = 0,
 }: HudProps) {
-  const lifeIcon = mode === "ghostman" ? "👻" : "🟡";
-  const lifeIcons = Array.from({ length: lives }, (_, i) => (
-    <span key={i} className={styles.lifeIcon} data-testid="life-icon">
-      {lifeIcon}
-    </span>
-  ));
+  // Modo GhostMan: las vidas (de Pacman) van en la barra inferior, con el ícono del fantasma.
+  const lifeIcons =
+    mode === "pacman"
+      ? Array.from({ length: lives }, (_, i) => (
+          <span key={i} className={styles.lifeIcon} data-testid="life-icon">
+            🟡
+          </span>
+        ))
+      : null;
 
   return (
     <div className={styles.hud}>

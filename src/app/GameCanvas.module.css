@@ -203,3 +203,37 @@
   font-size: 16px;
   white-space: nowrap;
 }
+
+.respawn {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border: 2px solid #f8e34d;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.8);
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+  color: #f8e34d;
+  white-space: nowrap;
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 2px solid #38f0e8;
+  border-radius: 4px;
+  background: #000000;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: bold;
+  color: #f8e34d;
+}
+
+.statusLabel {
+  color: #38f0e8;
+}

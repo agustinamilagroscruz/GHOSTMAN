@@ -11,6 +11,7 @@ Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo 
 - [x] Marcar con el tag `v1.0` el commit de la V1 sobre el que se ejecutó el ciclo 1 (`913ee4d`)
 - [ ] Revisar en equipo las decisiones 17 a 32 (sección 5) y pasar cada una a Aprobada o Modificada
 - [ ] Resolver la alternativa de la decisión 26 (espesor de muro del espectro)
+- [ ] Revisar las decisiones 33 y 34, que surgieron durante la generación
 - [ ] Actualizar en `entrega-01.md` los criterios de las HU afectadas (sección 6.1) y agregar la HU-43
 - [ ] Ajustar la sección 4 y los prompts de la sección 7.4 a las decisiones aprobadas
 - [x] Completar la sección 7.2 con el agente y la interfaz que se van a usar
@@ -32,12 +33,12 @@ Un checklist por incremento. Cada uno se cierra con commit propio sobre `main`, 
 - [x] Ejecutar Prompt 10
 - [x] Verificar: Pacman completa el nivel 1 sin interferencia y huye de un fantasma que se le acerca
 - [x] Registrar problemas en la tabla 7.5
-- [ ] Commit del incremento
+- [x] Commit del incremento (`a6a7749`)
 
 ### Incremento 12 — Reglas del modo GhostMan (HU-25, HU-26, HU-27)
-- [ ] Ejecutar Prompt 11
-- [ ] Verificar: 3 derrotas completan el nivel, Pacman con la última esfera da Game Over y el desglose coincide con la sección 4.4
-- [ ] Registrar problemas en la tabla 7.5
+- [x] Ejecutar Prompt 11
+- [x] Verificar: 3 derrotas completan el nivel, Pacman con la última esfera da Game Over y el desglose coincide con la sección 4.4
+- [x] Registrar problemas en la tabla 7.5
 - [ ] Commit del incremento
 
 ### Incremento 13 — Espectro, Saltarín e indicador (HU-28, HU-29, HU-32)

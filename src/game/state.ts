@@ -17,6 +17,9 @@ import { decidePacmanDirection } from "./pacmanAi";
 import {
   COMMON_PELLET_POINTS,
   FRUIT_POINTS,
+  MODE_SCORE_CATEGORIES,
+  PACMAN_DEFEAT_POINTS,
+  PELLET_LEFT_POINTS,
   POWER_PELLET_POINTS,
   computeLivesBonus,
   computeTimeBonus,
@@ -35,6 +38,8 @@ const INITIAL_LIVES = 3;
 const POWER_UP_DURATION_SECONDS = 8;
 export const POWER_UP_WARNING_SECONDS = 2;
 const GHOST_RESPAWN_SECONDS = 5;
+/** El naval tarda más en reaparecer al ser comido (sección 4.5). */
+const NAVAL_RESPAWN_SECONDS = 8;
 const GHOST_POINTS_SCALE = [200, 400, 800, 1600] as const;
 /** Distancia (en celdas) entre centros a partir de la cual Pacman y un fantasma se tocan. */
 const CONTACT_DISTANCE = 0.5;
@@ -66,6 +71,10 @@ export interface GameState {
   score: number;
   pelletsRemaining: number;
   levelComplete: boolean;
+  /**
+   * Vidas: en modo Pacman, las del jugador (3 por partida). En modo GhostMan, las de Pacman
+   * en el nivel en curso (3 por nivel): funcionan como contador de derrotas (decisión 18).
+   */
   lives: number;
   gameOver: boolean;
   powerUpActive: boolean;
@@ -77,6 +86,8 @@ export interface GameState {
   levelElapsed: number;
   /** Bonus por tiempo otorgado al completar el nivel en curso (0 mientras se juega). */
   lastLevelTimeBonus: number;
+  /** Modo GhostMan: puntos por esferas sin consumir al completar el nivel en curso. */
+  lastLevelPelletsLeftBonus: number;
   /** Cuenta regresiva del resultado de nivel antes de cargar el siguiente. */
   levelTransitionTimer: number;
   fruits: Fruit[];
@@ -173,6 +184,9 @@ function loadLevel(state: GameState, level: number): void {
   state.levelComplete = false;
   state.levelElapsed = 0;
   state.lastLevelTimeBonus = 0;
+  state.lastLevelPelletsLeftBonus = 0;
+  // Modo GhostMan: Pacman arranca cada nivel con 3 vidas (decisión 18).
+  if (state.config.mode === "ghostman") state.lives = INITIAL_LIVES;
   state.levelTransitionTimer = 0;
   state.fruits = [];
   state.fruitSpawnTimer = 0;
@@ -221,9 +235,10 @@ export function togglePause(state: GameState): void {
 /** Único punto de entrada para sumar puntaje: mantiene el desglose y el total sincronizados. */
 function addPoints(state: GameState, category: ScoreCategory, points: number): void {
   if (points <= 0) return; // el puntaje nunca disminuye
-  // Modo GhostMan: lo que hace Pacman (IA) no suma puntos al jugador. El puntaje propio
-  // de este modo (sección 4.4) llega con el incremento 12.
-  if (state.config.mode !== "pacman") return;
+  // Modo GhostMan: lo que hace Pacman (IA) no suma puntos al jugador; solo suman las
+  // derrotas de Pacman y las esferas sin consumir (sección 4.4).
+  const categories: readonly ScoreCategory[] = MODE_SCORE_CATEGORIES[state.config.mode];
+  if (!categories.includes(category)) return;
   state.score += points;
   state.scoreBreakdown[category] += points;
 }
@@ -277,8 +292,13 @@ function consumeFruitAt(state: GameState, row: number, col: number): void {
 function completeLevel(state: GameState): void {
   state.levelComplete = true;
   state.levelTransitionTimer = LEVEL_TRANSITION_SECONDS;
-  state.lastLevelTimeBonus = computeTimeBonus(state.level, state.levelElapsed);
-  addPoints(state, "timeBonus", state.lastLevelTimeBonus);
+  if (state.config.mode === "pacman") {
+    state.lastLevelTimeBonus = computeTimeBonus(state.level, state.levelElapsed);
+    addPoints(state, "timeBonus", state.lastLevelTimeBonus);
+  } else {
+    state.lastLevelPelletsLeftBonus = state.pelletsRemaining * PELLET_LEFT_POINTS;
+    addPoints(state, "pelletsLeft", state.lastLevelPelletsLeftBonus);
+  }
 }
 
 /** Tras mostrar el resultado del nivel: pasa al siguiente o, si era el 3, victoria. */
@@ -298,6 +318,7 @@ export function finishGame(state: GameState, won: boolean): void {
   if (state.gameOver || state.won) return;
   state.won = won;
   state.gameOver = !won;
+  // addPoints descarta este bonus en modo GhostMan, donde las vidas son las de Pacman.
   addPoints(state, "livesBonus", computeLivesBonus(state.lives, won));
 }
 
@@ -316,7 +337,13 @@ function consumePelletAt(state: GameState, row: number, col: number): void {
   }
 
   if (state.pelletsRemaining === 0) {
-    completeLevel(state);
+    // Modo GhostMan: si Pacman consume la última esfera, el jugador pierde (HU-26),
+    // sin importar cuántas derrotas de Pacman lleve en el nivel.
+    if (state.config.mode === "ghostman") {
+      finishGame(state, false);
+    } else {
+      completeLevel(state);
+    }
   }
 }
 
@@ -384,23 +411,52 @@ function updateGhostRespawns(state: GameState, deltaSeconds: number): void {
 function checkGhostCollisions(state: GameState): void {
   if (state.levelComplete || state.gameOver || state.won) return;
 
-  const player = getMoverPosition(state.pacman);
+  const pacman = getMoverPosition(state.pacman);
 
   for (const ghost of state.ghosts) {
     if (ghost.eaten) continue;
 
     const position = getMoverPosition(ghost);
-    const distance = Math.hypot(player.row - position.row, player.col - position.col);
+    const distance = Math.hypot(pacman.row - position.row, pacman.col - position.col);
     if (distance >= CONTACT_DISTANCE) continue;
 
     if (ghost.vulnerable) {
       eatGhost(state, ghost);
-    } else if (state.config.mode === "pacman" && canGhostHarm(ghost)) {
-      // Modo GhostMan: las derrotas de Pacman llegan con el incremento 12.
-      loseLife(state);
-      return; // un único contacto descuenta como máximo una vida
+    } else if (canGhostHarm(ghost)) {
+      if (state.config.mode === "pacman") {
+        loseLife(state);
+      } else if (ghost.controlledByPlayer) {
+        defeatPacman(state);
+      } else {
+        // Toque de un fantasma de la IA en modo GhostMan: Pacman vuelve a su posición
+        // inicial sin perder una vida, y nada más cambia (decisión 19).
+        resetPacmanPosition(state);
+      }
+      return; // un único contacto por paso: nunca dos descuentos por la misma colisión
     }
   }
+}
+
+/**
+ * Modo GhostMan: el fantasma del jugador derrota a Pacman (HU-25). Pacman pierde una vida,
+ * el jugador suma 500 y el nivel se reinicia según la tabla 4.3: se conservan las esferas
+ * consumidas y el puntaje, todos vuelven a su posición inicial, se cancela el PowerUp y el
+ * cooldown del poder del jugador NO se reinicia (decisión 28). Con 0 vidas se completa el nivel.
+ */
+function defeatPacman(state: GameState): void {
+  state.lives -= 1;
+  addPoints(state, "pacmanDefeats", PACMAN_DEFEAT_POINTS);
+  endPowerUp(state);
+
+  if (state.lives <= 0) {
+    state.lives = 0;
+    completeLevel(state);
+    return;
+  }
+  resetPacmanPosition(state);
+  resetGhostPositions(state.ghosts);
+  state.ghostMode = "chase";
+  state.ghostModeTimer = 0;
 }
 
 function eatGhost(state: GameState, ghost: Ghost): void {
@@ -410,7 +466,7 @@ function eatGhost(state: GameState, ghost: Ghost): void {
 
   ghost.eaten = true;
   ghost.vulnerable = false;
-  ghost.respawnTimer = GHOST_RESPAWN_SECONDS;
+  ghost.respawnTimer = ghost.kind === "naval" ? NAVAL_RESPAWN_SECONDS : GHOST_RESPAWN_SECONDS;
   placeGhostAtSpawn(ghost);
 }
 
@@ -513,7 +569,7 @@ export function updateGameState(
     consumeFruitAt(state, state.pacman.row, state.pacman.col);
   }
   state.fruits = ageFruits(state.fruits, deltaSeconds);
-  if (state.levelComplete) return;
+  if (state.levelComplete || state.gameOver) return;
 
   updateFruitSpawns(state, deltaSeconds);
   updatePowerUp(state, deltaSeconds);

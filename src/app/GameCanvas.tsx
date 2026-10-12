@@ -9,6 +9,7 @@ import { isBlinkOn, renderFruit, renderGhost, renderMap, renderPacman } from "..
 import { startGameLoop } from "../game/loop";
 import {
   createInitialGameState,
+  getPlayerGhost,
   isPowerUpWarning,
   restartGame,
   togglePause,
@@ -31,6 +32,9 @@ interface UiSnapshot {
   level: number;
   levelComplete: boolean;
   levelTimeBonus: number;
+  levelPelletsLeftBonus: number;
+  /** Modo GhostMan: segundos enteros que faltan para que reaparezca el fantasma del jugador (0 = en juego). */
+  playerRespawnSeconds: number;
   gameOver: boolean;
   won: boolean;
   powerUpActive: boolean;
@@ -46,12 +50,19 @@ function takeSnapshot(state: GameState): UiSnapshot {
     level: state.level,
     levelComplete: state.levelComplete,
     levelTimeBonus: state.lastLevelTimeBonus,
+    levelPelletsLeftBonus: state.lastLevelPelletsLeftBonus,
+    playerRespawnSeconds: playerRespawnSeconds(state),
     gameOver: state.gameOver,
     won: state.won,
     powerUpActive: state.powerUpActive,
     powerUpTimer: Math.ceil(state.powerUpTimer * 10) / 10,
     paused: state.paused,
   };
+}
+
+function playerRespawnSeconds(state: GameState): number {
+  const ghost = getPlayerGhost(state);
+  return ghost?.eaten ? Math.ceil(ghost.respawnTimer) : 0;
 }
 
 function sameSnapshot(a: UiSnapshot, b: UiSnapshot): boolean {
@@ -92,7 +103,8 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
 
       const snapshot = takeSnapshot(state);
       if (!sameSnapshot(snapshot, lastSnapshot)) {
-        // Nueva vida o nuevo nivel: Pacman arranca quieto hasta que se indique una dirección.
+        // Nueva vida o nuevo nivel (en modo GhostMan, derrota de Pacman): el personaje del
+        // jugador arranca quieto hasta que se indique una dirección.
         if (snapshot.lives !== lastSnapshot.lives || snapshot.level !== lastSnapshot.level) {
           input.reset();
         }
@@ -164,6 +176,8 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
     />
   );
 
+  const isGhostman = config.mode === "ghostman";
+
   return (
     <div className={styles.wrapper}>
       {hud}
@@ -173,9 +187,21 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
           <div className={styles.levelComplete}>
             <div className={styles.levelResult}>
               <span>🎉 ¡Nivel {ui.level} completado! 🎉</span>
-              <small>Bonus por tiempo: {ui.levelTimeBonus}</small>
+              {isGhostman ? (
+                <>
+                  <small>Pacman derrotado 3 veces</small>
+                  <small>Esferas sin consumir: {ui.levelPelletsLeftBonus}</small>
+                </>
+              ) : (
+                <small>Bonus por tiempo: {ui.levelTimeBonus}</small>
+              )}
               <small>Puntaje: {ui.score}</small>
             </div>
+          </div>
+        )}
+        {ui.playerRespawnSeconds > 0 && !ui.paused && (
+          <div className={styles.respawn} data-testid="player-respawn">
+            Reaparecés en {ui.playerRespawnSeconds}
           </div>
         )}
         {ui.paused && (
@@ -187,18 +213,38 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
         {ui.gameOver && (
           <div className={styles.gameOver}>
             <h2>💀 Game Over</h2>
-            <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} />
+            <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} mode={config.mode} />
             <EndActions onRestart={() => restartRef.current()} onMainMenu={onMainMenu} />
           </div>
         )}
         {ui.won && (
           <div className={`${styles.gameOver} ${styles.victory}`}>
             <h2>🏆 ¡Victoria!</h2>
-            <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} />
+            <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} mode={config.mode} />
             <EndActions onRestart={() => restartRef.current()} onMainMenu={onMainMenu} />
           </div>
         )}
       </div>
+      {isGhostman && <GhostmanStatusBar pacmanLives={ui.lives} />}
+    </div>
+  );
+}
+
+/**
+ * Modo GhostMan, extremo inferior izquierdo: vidas de Pacman en el nivel con el ícono del
+ * fantasma, que sirven a la vez de contador de derrotas e identifican el modo (decisión 18).
+ */
+function GhostmanStatusBar({ pacmanLives }: { pacmanLives: number }) {
+  return (
+    <div className={styles.statusBar} data-testid="ghostman-status">
+      <span className={styles.statusLabel}>Vidas de Pacman</span>
+      <span data-testid="pacman-lives" data-lives={pacmanLives}>
+        {Array.from({ length: pacmanLives }, (_, i) => (
+          <span key={i} data-testid="life-icon">
+            👻
+          </span>
+        ))}
+      </span>
     </div>
   );
 }
