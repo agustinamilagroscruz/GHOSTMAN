@@ -22,7 +22,7 @@
 |---|---|
 | Repositorio de código | https://github.com/agustinamilagroscruz/GHOSTMAN |
 | Aplicación desplegada | `[URL de despliegue]` |
-| Planilla de casos de prueba y defectos | `[URL de Google Sheets]` |
+| Planilla de casos de prueba y defectos | https://docs.google.com/spreadsheets/d/1o-49wBC8wGPxSDQQ3OVpepNcBd2_uf9D/edit |
 | Documento de la Entrega 01 (V1) | [`TP/entrega-01.md`](entrega-01.md) |
 
 ---
@@ -753,24 +753,40 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 
 ## 9. Especificación de casos de prueba de la V2
 
-*Pendiente.* Se detallan los CP-067 a CP-105 de la sección 10.4 de la Entrega 01 con el formato completo de su sección 10.1 (precondiciones, pasos, resultado esperado, técnica y prioridad), con los resultados esperados ajustados a las decisiones 17 a 32. Se agregan casos nuevos a partir del **CP-141**, para no alterar la numeración de la V3 (CP-106 a CP-140):
+Los casos están detallados en la planilla de la Entrega 2 (una hoja por caso, con precondiciones, datos de prueba, pasos, resultado esperado por paso, técnica y prioridad), con el mismo formato de la sección 10.1 de la Entrega 01: [`GhostMan - Reporte de Casos de Prueba y Ejecución - Entrega 2.xlsx`](GhostMan%20-%20Reporte%20de%20Casos%20de%20Prueba%20y%20Ejecuci%C3%B3n%20-%20Entrega%202.xlsx).
 
-| Origen | Casos nuevos previstos |
-|---|---|
-| HU-43 | Composición de los niveles 2 y 3; uso de los poderes por la IA del saltarín, el naval y el acelerado |
-| Decisión 17 | Pacman huye de un fantasma cercano; persigue fantasmas vulnerables; va hacia una fruta falsa cercana |
-| Decisión 19 | El toque de un fantasma de la IA devuelve a Pacman a su posición inicial sin descontarle vidas |
-| Decisión 20 | Desglose del puntaje del modo GhostMan |
-| Decisiones 25 y 28 | El poder sin efecto no consume el cooldown; el cooldown sobrevive al reinicio del nivel |
-| Decisión 27 | Fruta falsa comida con PowerUp; frutas falsas al reiniciarse el nivel |
-| Decisión 29 | Volver a jugar repite el modo y el fantasma; Menú principal |
-| Decisión 32 | *Dash* que pasa por encima de Pacman |
+| Grupo | Casos | Cantidad |
+|---|---|---|
+| Casos previstos en la sección 10.4 de la Entrega 01, ajustados a las decisiones 17 a 32 | CP-067 a CP-105 | 39 |
+| Casos nuevos (HU-22, HU-25, HU-28, HU-30, HU-31, decisiones 17 a 32) | CP-141 a CP-151, CP-160 a CP-163 | 15 |
+| Casos nuevos de la HU-43 | CP-152 a CP-159 | 8 |
+| **Total V2** | | **62** (34 Alta, 26 Media, 2 Baja) |
+
+Regresión de la V1: los 35 casos de prioridad Alta, cada uno con la mutación indicada en su hoja (fila «Mutación (Entrega 2)»), y con los cambios de la sección 8.2. Se agregaron dos pruebas más: la re-ejecución de CP-032 (Bloqueado en la Entrega 1) y la confirmación de los defectos DEF-001 (con CP-034) y DEF-002 (exploratoria).
 
 ---
 
 ## 10. Matriz de trazabilidad
 
-*Pendiente.* Se construye al completar la sección 9, con el mismo formato que la sección 11 de la Entrega 01, incluyendo la HU-43.
+Historias de la V2 y casos que las cubren. Las historias de la V1 mantienen la matriz de la sección 11 de la Entrega 01.
+
+| HU | Casos de prueba |
+|---|---|
+| HU-19 | CP-163 |
+| HU-22 | CP-067, CP-068, CP-069, CP-141 |
+| HU-23 | CP-070, CP-071, CP-072, CP-073 |
+| HU-24 | CP-074, CP-075, CP-076, CP-142, CP-160, CP-161, CP-162 |
+| HU-25 | CP-077, CP-078, CP-079, CP-143, CP-144 |
+| HU-26 | CP-080, CP-145 |
+| HU-27 | CP-081, CP-082, CP-083, CP-146 |
+| HU-28 | CP-084, CP-085, CP-086, CP-147 |
+| HU-29 | CP-087, CP-088, CP-089 |
+| HU-30 | CP-090, CP-091, CP-092, CP-093, CP-094, CP-148 |
+| HU-31 | CP-095, CP-096, CP-097, CP-149 |
+| HU-32 | CP-098, CP-099, CP-100, CP-150 |
+| HU-33 | CP-101, CP-102, CP-103, CP-151 |
+| HU-34 | CP-104, CP-105 |
+| HU-43 | CP-152, CP-153, CP-154, CP-155, CP-156, CP-157, CP-158, CP-159 |
 
 ---
 
@@ -782,20 +798,57 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 |---|---|
 | Ciclo de ejecución | Nº 2 (primer ciclo de la V2) |
 | Versión bajo prueba | V2 |
-| Commit | `[hash del commit]` |
-| Entorno | `[URL de despliegue]` |
-| Navegador y versión | `[completar]` |
-| Fecha de inicio | `[completar]` |
-| Fecha de cierre | `[completar]` |
-| Ejecutores | `[completar]` |
+| Commit | `7ec70df` |
+| Entorno | Build de producción local del commit `7ec70df` (`next build` + `next start`), con una línea agregada solo para la prueba que expone el estado del juego al script. `[URL de despliegue]` pendiente |
+| Navegador y versión | Chromium 141 (Playwright), sin interfaz, 560 × 600 |
+| Fecha de inicio | 12/10/2026 |
+| Fecha de cierre | 12/10/2026 |
+| Ejecutores | Luzzi |
 
-*El resto de la sección se completa con el mismo instrumento de la sección 12 de la Entrega 01.*
+La ejecución se hizo con scripts de navegador que manejan el juego con el teclado y el mouse y leen el estado del juego para verificar cada resultado esperado. Cuando una precondición es difícil de alcanzar jugando (posiciones, cantidad de vidas, mapa reducido a una esfera), el script la prepara y la observación del caso lo dice. Los scripts y las capturas están en [`evidencia-entrega-02/`](evidencia-entrega-02/README.md).
+
+### 11.2 Resultados
+
+| Tipo de prueba | Ejecutados | Aprobados | Fallidos | Bloqueados |
+|---|---|---|---|---|
+| Casos nuevos de la V2 | 62 | 62 | 0 | 0 |
+| Regresión de la V1 (Alta, mutados) | 35 | 35 | 0 | 0 |
+| Re-ejecución de casos bloqueados (CP-032) | 1 | 1 | 0 | 0 |
+| Confirmación de defectos (DEF-001, DEF-002) | 2 | 2 | 0 | 0 |
+| **Total** | **100** | **100 (100 %)** | **0 (0 %)** | **0 (0 %)** |
+
+El gráfico de porcentajes y la comparación con la Entrega 1 (64 aprobados, 1 fallido y 1 bloqueado sobre 66) están en la hoja «Reporte de ejecución - Entrega2» de la planilla.
+
+### 11.3 Casos que cambiaron de estado
+
+| Caso | Entrega 1 | Entrega 2 | Motivo |
+|---|---|---|---|
+| CP-032 · El PowerUp se cancela al perder una vida | Bloqueado | Aprobado | El script preparó la condición (fantasma recién reaparecido durante el PowerUp), que en la Entrega 1 no se pudo provocar jugando |
+| CP-034 · Presentación del contador de vidas | Fallido | Aprobado | DEF-001 corregido en `7ec70df` |
+
+Los 35 casos de regresión mantienen el estado Aprobado.
+
+### 11.4 Problemas de la ejecución que no son defectos
+
+En la primera corrida 14 casos de la V2 y 4 de la regresión (CP-017, CP-020, CP-033, CP-061) dieron Fallido o Bloqueado por problemas del script, no del juego, y se corrigieron antes de registrar el resultado: el contacto entre personajes se simulaba con la posición redondeada (sin el avance dentro de la celda), algunas precondiciones dependían de que Pacman pasara por una celda, en el nivel 3 la pantalla de Victoria aparece después del cartel «Nivel 3 completado», y en CP-093 y CP-156 la primera fruta falsa explota justo cuando vuelve el cooldown (5 s de cooldown y 10 s de vida). Ninguno se registró como defecto.
 
 ---
 
 ## 12. Reporte de defectos
 
-*Pendiente.* Se usan los criterios de clasificación, los estados y la plantilla de la sección 13 de la Entrega 01. Los defectos de la V2 continúan la numeración DEF de la V1.
+Se usan los criterios de clasificación, los estados y la plantilla de la sección 13 de la Entrega 01. Los defectos de la V2 continúan la numeración de la V1. El detalle de cada uno está en su hoja de la planilla.
+
+| ID | Título | Detectado en | HU | Severidad | Prioridad | Estado |
+|---|---|---|---|---|---|---|
+| DEF-001 | El contador de vidas se muestra arriba a la derecha como círculos amarillos en lugar de íconos de Pacman abajo a la izquierda | V1 (CP-034) | HU-09 | Menor | Media | Verificado |
+| DEF-002 | El menú principal elige la opción que tiene el puntero encima al cargar la página, aunque el mouse no se haya movido | V2 (exploratoria) | HU-22 | Menor | Media | Corregido |
+| DEF-003 | En modo GhostMan, el toque de un fantasma de la IA no le descuenta una vida a Pacman sin PowerUp | V2 (exploratoria, Tsai) | HU-25 | Mayor | Media | Rechazado |
+
+**Defectos de la V2 por funcionalidad (sin contar los rechazados):** 1 en el menú y la elección del modo (HU-22); 0 en el resto (carrusel, control del fantasma e IA de Pacman, reglas del modo GhostMan, los cuatro poderes, indicador de poder, dificultad del modo GhostMan y HU-43).
+
+DEF-003 se rechazó en el triaje porque el juego funciona según la especificación: la HU-25 dice que solo cuentan las derrotas producidas por el fantasma del jugador, y la decisión 19 define que el toque de un fantasma de la IA devuelve a Pacman a su posición inicial sin descontarle vidas (en modo GhostMan las vidas de Pacman son el contador de derrotas, decisión 18). Lo cubren CP-078 y CP-144, aprobados en el ciclo 2. Si el equipo quiere que la IA también descuente vidas, se trata como cambio de la decisión 19 y de la HU-25, no como defecto.
+
+DEF-002 queda en *Corregido*: la prueba de confirmación dio Aprobado, pero lo reportó la misma integrante que lo confirmó, así que otro integrante tiene que confirmarlo y verificarlo antes de pasarlo a *Verificado* (sección 13.2 de la Entrega 01).
 
 ---
 
@@ -815,7 +868,8 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 | 15 — Acelerado | `34978df` | HU-31 |
 | Corrección de DEF-002 (selección del menú con el mouse) | `65df127` | HU-22 |
 | 16 — Fantasmas especiales en el modo Pacman | `f1b6124` | HU-43 |
-| 17 — Dificultad del modo GhostMan | commit «Incremento 17: dificultad del modo GhostMan» | HU-33, HU-34 |
+| 17 — Dificultad del modo GhostMan | `a0116c8` | HU-33, HU-34 |
+| Corrección de DEF-001 (vidas del modo Pacman abajo a la izquierda) | `7ec70df` | HU-09 |
 
 **Decisiones tomadas durante la sesión.**
 - Las decisiones 17 a 32 se implementaron tal como estaban propuestas, con el aval de quien condujo la sesión (estado *Implementada*).
@@ -836,12 +890,12 @@ Se reejecutan los **35 casos de prioridad Alta de la V1**, mutados según la con
 | 6 | Decidir si el cooldown del espectro de la IA (modo Pacman) sigue corriendo mientras está comido; hoy se congela, como en la V1 | Tabla 7.5, fila 18 | Equipo completo |
 | 7 | ~~Resolver la inconsistencia del contador de vidas~~ Resuelto con la corrección de DEF-001 (tabla 7.5, fila 31): los dos modos muestran las vidas abajo a la izquierda | Tabla 7.5, fila 11 | — |
 | 8 | Validar la interpretación de la explosión de la fruta falsa como derrota en modo GhostMan | Tabla 7.5, fila 19 | Equipo completo |
-| 9 | Actualizar los criterios de la sección 6.1 en `entrega-01.md`, incluida la HU-43, y ajustar los prompts 15 y 16 a lo decidido | Sección 6 | `[completar]` |
+| 9 | ~~Actualizar los criterios de la sección 6.1, incluida la HU-43~~ Hecho en el documento de historias de usuario (HU-17, 19, 22, 25, 30 y HU-43). Falta la HU-29 (decisión 38) y ajustar los prompts 15 y 16 | Sección 6 | Luzzi |
 | 10 | ~~Ejecutar los incrementos 16 y 17~~ (hechos, tabla 7.5 filas 22 a 30). Falta el 18: redactar su prompt cuando se aprueben las decisiones 37 y 38 | Sección 7 | `[completar]` |
 | 11 | Volver a medir el balance después del incremento 18 (la medición del 17 ya está en la sección 7.6) y decidir si se ajustan los valores de la decisión 22 | Sección 7.6 | `[completar]` |
 | 12 | Completar la sección 7.6 (observaciones sobre la implementación con AI) | Sección 7.6 | `[completar]` |
-| 13 | Detallar los casos de prueba de la V2 (CP-067 a CP-105 y los nuevos desde el CP-141), ajustar los casos de la V1 afectados y armar la matriz de trazabilidad | Secciones 8.2, 9 y 10 | `[completar]` |
-| 14 | Ejecutar el ciclo de la V2 y la regresión de la V1; reportar defectos | Secciones 11 y 12 | `[completar]` |
+| 13 | ~~Detallar los casos de prueba de la V2 y armar la matriz de trazabilidad~~ Hecho (secciones 9 y 10) | Secciones 8.2, 9 y 10 | Luzzi |
+| 14 | ~~Ejecutar el ciclo de la V2 y la regresión de la V1~~ Hecho (sección 11). Falta repetir una muestra sobre el despliegue de Vercel, y que otro integrante confirme y verifique DEF-002 | Secciones 11 y 12 | Luzzi / equipo |
 | 15 | Subir el tag `v1.0` al repositorio remoto (`git push origin v1.0`); hoy está solo en un equipo local | Sección 2.1 | Savoia |
 | 16 | Extender `scripts/verify/` con las suites de los incrementos 16, 17 y 18, y decidir si se corren antes de cada push a `main` | Sección 13.1 | `[completar]` |
 
@@ -870,4 +924,4 @@ No cambies ninguna otra regla.
 
 ### Anexo B — Evidencia de la ejecución
 
-*Pendiente.*
+En [`evidencia-entrega-02/`](evidencia-entrega-02/README.md): capturas de los casos con verificación visual (CP-070, CP-092, CP-094, CP-143, CP-145, CP-151, CP-154, regresión CP-047, CP-053, CP-057, CP-060 y CP-061, y la confirmación de DEF-001), el resultado de cada caso en JSON y los scripts que los ejecutaron.

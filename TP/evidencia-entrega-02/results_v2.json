@@ -1,0 +1,250 @@
+{
+ "CP-067": [
+  "Aprobado",
+  "Menú con «Modo PacMan» (seleccionada) y «Modo GhostMan». Enter inicia el modo Pacman en el nivel 1; ← mueve a Pacman; 3 íconos de Pacman en la barra inferior."
+ ],
+ "CP-068": [
+  "Aprobado",
+  "↓ selecciona «Modo GhostMan»; Enter abre el carrusel con «Clásico» en el centro."
+ ],
+ "CP-069": [
+  "Aprobado",
+  "Modo Pacman: barra «Vidas» con 3 íconos de Pacman. Modo GhostMan: «Vidas de Pacman» con 3 íconos de fantasma."
+ ],
+ "CP-141": [
+  "Aprobado",
+  "Durante 5 s con ↑ ↓ W S Enter no aparece el menú ni el carrusel; tras pausar y reanudar la partida sigue en modo GhostMan con el Clásico."
+ ],
+ "CP-070": [
+  "Aprobado",
+  "Tipos en orden: Clásico, Espectro, Saltarín, Naval, Acelerado. Cada uno con su nombre debajo y la descripción del poder como subtítulo."
+ ],
+ "CP-071": [
+  "Aprobado",
+  "← → Acelerado; D → Clásico; A → Acelerado."
+ ],
+ "CP-072": [
+  "Aprobado",
+  "Enter con el Naval en el centro inicia el modo GhostMan con el Naval (velocidad 4 celdas/s) en la esquina superior izquierda."
+ ],
+ "CP-073": [
+  "Aprobado",
+  "Con ← → A D Enter durante 4 s el carrusel no se abre; tras pausar y reanudar el fantasma sigue siendo el Espectro."
+ ],
+ "CP-074": [
+  "Aprobado",
+  "Con ↓ → el fantasma bajó y giró a la derecha (celda 4,6); con W A subió y giró a la izquierda (celda 4,3). Precondición preparada por script (posiciones y fantasmas de la IA retirados) para aislar la condición."
+ ],
+ "CP-075": [
+  "Aprobado",
+  "Durante 7 s contra el borde superior y los muros de la fila 2, el fantasma nunca entró a un muro ni salió del mapa. Precondición preparada por script (posiciones y fantasmas de la IA retirados) para aislar la condición."
+ ],
+ "CP-076": [
+  "Aprobado",
+  "En 10 s sin teclas Pacman consumió 39 esferas; los 3 fantasmas de la IA se movieron y el del jugador quedó quieto."
+ ],
+ "CP-142": [
+  "Aprobado",
+  "Velocidad medida: Clásico 5.00 celdas/s, Naval 4.00 celdas/s (−20 %). Precondición preparada por script (posiciones y fantasmas de la IA retirados) para aislar la condición."
+ ],
+ "CP-077": [
+  "Aprobado",
+  "Vidas de Pacman 3 → 2, puntaje +500; Pacman volvió a su posición inicial (7,8) y el fantasma a (1,1); las esferas consumidas siguen consumidas (86 → 86 restantes)."
+ ],
+ "CP-078": [
+  "Aprobado",
+  "Contador visible: 3; tras el toque de un fantasma de la IA: 3; tras el toque del jugador: 2."
+ ],
+ "CP-079": [
+  "Aprobado",
+  "Tercera derrota: el nivel se completó y se mostró el resultado; a los 3 s empezó el nivel 2 con 3 vidas de Pacman. (Vidas previas fijadas en 1 por script.)"
+ ],
+ "CP-143": [
+  "Aprobado",
+  "Tercera derrota en el nivel 3: pantalla de Victoria con el desglose (Derrotas de Pacman, Esferas sin consumir, Total)."
+ ],
+ "CP-144": [
+  "Aprobado",
+  "Pacman estaba en (7, 1); tras el toque del fantasma de la IA volvió a su posición inicial (7,8) sin perder vidas (3 → 3); puntaje y fantasma del jugador sin cambios."
+ ],
+ "CP-080": [
+  "Aprobado",
+  "Con 1 derrota de Pacman en el nivel (2 vidas), Pacman consumió la última esfera: Game Over con el puntaje y «Volver a jugar». (Mapa reducido a una esfera por script.)"
+ ],
+ "CP-145": [
+  "Aprobado",
+  "Nivel 1 con 3 derrotas: puntaje 2530 al completar (1500 por derrotas + esferas sin consumir). Desglose final: {'Derrotas de Pacman': '1500', 'Esferas sin consumir': '1030', 'Total': '2530'}; la suma coincide con el total."
+ ],
+ "CP-081": [
+  "Aprobado",
+  "Pacman consumió una esfera grande (ubicada junto a él por script) y el fantasma del jugador pasó al diseño vulnerable; al tocar a Pacman no lo derrotó (vidas 3 → 3; el fantasma fue comido: True)."
+ ],
+ "CP-082": [
+  "Aprobado",
+  "Clásico: reapareció a los 5.03 s; Naval: a los 8.02 s. Durante la espera se ve «Reaparecés en 5» y el fantasma queda en (1,1) sin responder al teclado."
+ ],
+ "CP-083": [
+  "Aprobado",
+  "Comido el fantasma: vidas de Pacman 3 → 3; Pacman siguió desde (4, 3) (no volvió al inicio); esferas 96 → 96. El nivel no se reinició."
+ ],
+ "CP-146": [
+  "Aprobado",
+  "Comido el Acelerado, la barra espaciadora durante la espera no hizo nada (cooldown 0, sigue en (1,1)); al reaparecer la estrella sigue disponible."
+ ],
+ "CP-084": [
+  "Aprobado",
+  "Nivel 2, espectro en (1,7) mirando a la derecha con el muro de una celda (1,8): atravesó y quedó en (1, 10), del otro lado. Precondición preparada por script (posiciones y fantasmas de la IA retirados) para aislar la condición."
+ ],
+ "CP-085": [
+  "Aprobado",
+  "Tras cruzar, el contacto con Pacman dentro de los 3 s no le quitó vidas (3 → 3); el espectro se ve translúcido y punteado. Espacio en cooldown no tuvo efecto; la estrella volvió a los 10 s. Precondición preparada por script (posiciones y fantasmas de la IA retirados) para aislar la condición."
+ ],
+ "CP-086": [
+  "Aprobado",
+  "Nivel 1: contra el muro grueso de abajo no atravesó; contra el borde superior no salió del mapa. La estrella siguió disponible en los dos intentos. Precondición preparada por script (posiciones y fantasmas de la IA retirados) para aislar la condición."
+ ],
+ "CP-147": [
+  "Aprobado",
+  "Derrota de Pacman con el cooldown en 8.4 s: el nivel se reinició y el cooldown siguió en 8.1 s (estrella apagada). Precondición preparada por script (posiciones y fantasmas de la IA retirados) para aislar la condición."
+ ],
+ "CP-087": [
+  "Aprobado",
+  "10 saltos; distancias Manhattan [4, 6, 5, 9, 5, 6, 7, 5, 9, 8]; todos a celdas transitables dentro del mapa. (Cooldown anulado por script entre saltos para no esperar 100 s.)"
+ ],
+ "CP-088": [
+  "Aprobado",
+  "A los 9 s espacio no hizo nada; el poder volvió a los 9.92 s y saltó."
+ ],
+ "CP-089": [
+  "Aprobado",
+  "Repitiendo el salto desde (1,1) con Pacman quieto en (1,3), en el intento 10 el saltarín cayó sobre Pacman: vidas 3 → 2. (Cooldown anulado por script.)"
+ ],
+ "CP-090": [
+  "Aprobado",
+  "El naval colocó la fruta falsa en (10,8), a 3 celdas de Pacman; Pacman fue por ella, la consumió y perdió una vida (3 → 2); el nivel se reinició (Pacman en (7, 8), fantasma en (1,1)). (Posiciones preparadas por script.)"
+ ],
+ "CP-091": [
+  "Aprobado",
+  "Con el PowerUp activo Pacman consumió la fruta falsa: desapareció sin efecto (vidas 3 → 3; puntaje 0 → 0, sin descuento). (Posiciones preparadas por script.)"
+ ],
+ "CP-092": [
+  "Aprobado",
+  "Explotó a los 9.92 s; cubrió 9 celdas, todas transitables y a ≤ 3 pasos (máx. Manhattan 3); se vio la cuenta regresiva desde los 7 s."
+ ],
+ "CP-093": [
+  "Aprobado",
+  "A los 3 s no colocó (quedó 1); a los 5 s colocó la segunda (2); con 2 en el mapa, la tercera no se colocó (2) y el poder no se consumió (cooldown 0). (Para el tercer intento el cooldown se anuló por script: con 5 s de cooldown y 10 s de vida, la primera fruta explota justo cuando vuelve el poder.)"
+ ],
+ "CP-094": [
+  "Aprobado",
+  "Fruta real (cereza roja) en (1,6) y fruta falsa en (1,4): se distinguen a la vista (ver captura CP-094.png)."
+ ],
+ "CP-148": [
+  "Aprobado",
+  "Con 2 frutas falsas en el mapa, el jugador derrotó a Pacman: al reiniciarse el nivel desaparecieron sin explotar."
+ ],
+ "CP-095": [
+  "Aprobado",
+  "Desde (1,4) con pasillo libre avanzó 3 celdas (col 7); desde (1,13) con el borde a 2 celdas se detuvo en la última transitable (col 15)."
+ ],
+ "CP-096": [
+  "Aprobado",
+  "Después del dash: 2.46 celdas/s; pasados los 5 s: 5.00 celdas/s."
+ ],
+ "CP-097": [
+  "Aprobado",
+  "Sin moverlo desde la aparición, espacio no lo desplazó y la estrella siguió disponible."
+ ],
+ "CP-149": [
+  "Aprobado",
+  "Pacman en (1,6), dash desde (1,4) hasta (1,7): Pacman perdió una vida (3 → 2)."
+ ],
+ "CP-098": [
+  "Aprobado",
+  "Estrella encendida abajo a la izquierda junto a las vidas; se apagó al saltar y volvió a encenderse a los 9.93 s."
+ ],
+ "CP-099": [
+  "Aprobado",
+  "Con el Clásico la barra inferior muestra solo las vidas de Pacman; sin estrella, y espacio no hace nada."
+ ],
+ "CP-100": [
+  "Aprobado",
+  "5 pulsaciones de espacio en cooldown: no se colocó otra fruta y el cooldown siguió bajando (4.42 → 3.88 s)."
+ ],
+ "CP-150": [
+  "Aprobado",
+  "Contra el borde no hubo dash y el cooldown quedó en 0; en el pasillo libre el dash se ejecutó de inmediato."
+ ],
+ "CP-101": [
+  "Aprobado",
+  "Nivel 2 sin interferencia: Pacman destruyó 2 paredes, como máximo 2 por esfera grande, ninguna del borde; las celdas rotas quedaron transitables."
+ ],
+ "CP-102": [
+  "Aprobado",
+  "Nivel 1 durante 30 s, con Pacman comiendo esferas grandes: no se destruyó ninguna pared."
+ ],
+ "CP-103": [
+  "Aprobado",
+  "Paredes rotas [[10, 5]]; tras la derrota de Pacman volvieron a existir."
+ ],
+ "CP-151": [
+  "Aprobado",
+  "Al romperse la pared (10,5) se vio el destello con escombros (captura); la celda quedó transitable y el fantasma del jugador pudo ocuparla."
+ ],
+ "CP-104": [
+  "Aprobado",
+  "Esferas grandes al iniciar: nivel 1 = 4, nivel 2 = 4, nivel 3 = 6 (esquinas, (7,1) y (7,15))."
+ ],
+ "CP-105": [
+  "Aprobado",
+  "A los 15 s apareció una esfera grande dinámica en [[3, 1]] (celda transitable). Con solo esa esfera pendiente el nivel no terminó: cuenta para completarlo. (Resto del mapa vaciado por script.)"
+ ],
+ "CP-152": [
+  "Aprobado",
+  "24 reapariciones en el nivel 2: {'classic': 11, 'specter': 3, 'jumper': 4, 'accelerated': 3, 'naval': 3} (13 con poderes). Aparecen los cuatro tipos. (Reapariciones forzadas por script; la proporción exacta del 50 % la verifica la suite automatizada con 1000 casos.)"
+ ],
+ "CP-153": [
+  "Aprobado",
+  "Al iniciar el nivel 3: ['specter', 'jumper', 'naval', 'accelerated']. El fantasma comido reapareció como naval."
+ ],
+ "CP-154": [
+  "Aprobado",
+  "Los cuatro tipos se ven distintos: espectro translúcido con contorno blanco, saltarín con chevron, naval con onda y acelerado con doble chevron (captura CP-154.png); el clásico del nivel 1 no lleva marca."
+ ],
+ "CP-155": [
+  "Aprobado",
+  "Con Pacman a 6 celdas el saltarín saltó de (13,4) a (7,6) (distancia 8); 5 s después seguía en cooldown (4.8 s)."
+ ],
+ "CP-156": [
+  "Aprobado",
+  "En 16 s el naval colocó frutas falsas en t = [-0.4, 4.5, 9.6, 14.6] s (separaciones [4.9, 5.1, 5.0] s: una cada 5 s, al volver el cooldown); como máximo hubo 2 en el mapa a la vez. (Contacto con Pacman anulado por script para que no se reinicie el nivel.)"
+ ],
+ "CP-157": [
+  "Aprobado",
+  "Con Pacman a 5 celdas el acelerado hizo el dash: velocidad 2.5 celdas/s durante 4.9 s y cooldown 9.9 s."
+ ],
+ "CP-158": [
+  "Aprobado",
+  "Con los cuatro tipos vulnerables durante 6 s (PowerUp prolongado por script), ninguno usó su poder: sin saltos, frutas, dashes ni cruces."
+ ],
+ "CP-159": [
+  "Aprobado",
+  "Nivel 1: 8 reapariciones, todas clásicas; en 10 s no apareció ninguna fruta falsa."
+ ],
+ "CP-160": [
+  "Aprobado",
+  "El fantasma avanzó por la fila 7 hacia Pacman; Pacman cambió de dirección y mantuvo la distancia (mínima 2.6 celdas, no lo alcanzó)."
+ ],
+ "CP-161": [
+  "Aprobado",
+  "Con PowerUp activo y el fantasma quieto a 5 celdas, Pacman fue hacia él y lo comió en 1.0 s."
+ ],
+ "CP-162": [
+  "Aprobado",
+  "Fruta falsa a 3 celdas: Pacman fue por ella, la consumió y perdió una vida (3 → 2). (Fruta ubicada por script.)"
+ ],
+ "CP-163": [
+  "Aprobado",
+  "«Volver a jugar» repitió modo GhostMan con el Saltarín, nivel 1, 3 vidas de Pacman, puntaje 0; «Menú principal» volvió al menú."
+ ]
+}

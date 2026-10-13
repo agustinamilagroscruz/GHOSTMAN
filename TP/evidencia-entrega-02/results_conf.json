@@ -1,0 +1,14 @@
+{
+ "DEF-001": [
+  "Aprobado",
+  "Las vidas se muestran abajo a la izquierda, debajo del mapa, como 3 íconos de Pacman (sin número); al perder una vida quedan 2. CP-034: Fallido en Entrega 1 → Aprobado."
+ ],
+ "DEF-002": [
+  "Aprobado",
+  "Tras elegir «Modo GhostMan» con un clic y recargar con el puntero quieto sobre esa opción, la seleccionada es «Modo PacMan» y Enter inició el modo Pacman (sin carrusel)."
+ ],
+ "CP-032": [
+  "Aprobado",
+  "Con el PowerUp activo, un fantasma recién reaparecido (no vulnerable) alcanzó a Pacman: vidas 3 → 2; al reanudarse el nivel el PowerUp quedó cancelado y los fantasmas con su diseño normal. (Reaparición y contacto preparados por script; en la Entrega 1 quedó Bloqueado por no poder provocar la condición.)"
+ ]
+}

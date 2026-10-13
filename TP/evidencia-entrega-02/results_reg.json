@@ -1,0 +1,142 @@
+{
+ "CP-001": [
+  "Aprobado",
+  "Desde el cruce (4,6), ↓ → ↑ ← desplazaron a Pacman hacia abajo, derecha, arriba e izquierda respectivamente. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-002": [
+  "Aprobado",
+  "S D W A produjeron el mismo desplazamiento que ↓ → ↑ ← (abajo, derecha, arriba, izquierda). (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-003": [
+  "Aprobado",
+  "Tras un toque de ↓ en (10,6), Pacman siguió bajando sin mantener la tecla hasta el muro inferior (fila 13) y se detuvo ahí. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-005": [
+  "Aprobado",
+  "Avanzando a la derecha por la fila 10 con muro debajo (11,2), ↓ no lo detuvo: siguió hacia la derecha (posición 2.68). (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-007": [
+  "Aprobado",
+  "Con ← mantenida 5 s contra el muro izquierdo, Pacman se detuvo en (7,1) sin superponerse; luego ↑ lo movió con normalidad (fila 5). (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-008": [
+  "Aprobado",
+  "En los bordes abajo (13,8), derecha (7,15), arriba (1,8) e izquierda (7,1), con la tecla hacia afuera, Pacman no salió del mapa y quedó visible. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-011": [
+  "Aprobado",
+  "Esfera de (4,3): desapareció; puntaje 0 → 10 (+10); esferas restantes 105 → 104. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-012": [
+  "Aprobado",
+  "Pacman consumió 14 esferas en la fila 10; tras perder una vida (3 → 2) la fila sigue despejada (15 de 15 celdas sin esfera). (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-014": [
+  "Aprobado",
+  "Al consumir la última esfera (13,5) el nivel se completó, la partida se detuvo y se mostró «¡Nivel 1 completado!» con el puntaje. (Mapa reducido a una esfera por script.)"
+ ],
+ "CP-015": [
+  "Aprobado",
+  "Con solo la esfera grande de (13,15) sin consumir, el nivel no se completó y quedan 1 esferas; la partida sigue. (Mapa preparado por script.)"
+ ],
+ "CP-016": [
+  "Aprobado",
+  "Completado el nivel 1 con 3 vidas y 1200 puntos: empezó el nivel 2 con 1200 puntos y 3 vidas. (Mapa reducido por script.)"
+ ],
+ "CP-017": [
+  "Aprobado",
+  "Partida N1 → N2 → N3; en el nivel 3 los fantasmas fueron ['specter', 'jumper', 'naval', 'accelerated']; al consumir la última esfera se mostró «¡Nivel 3 completado!» y luego «¡Victoria!» con el puntaje final. (Mapas reducidos por script.)"
+ ],
+ "CP-018": [
+  "Aprobado",
+  "Al pasar por (13,1) el PowerUp se activó solo; puntaje +50; los fantasmas cambiaron al diseño vulnerable y se alejaron (suma de distancias 48 → 76). (Fantasmas ubicados en el centro por script.)"
+ ],
+ "CP-019": [
+  "Aprobado",
+  "Esfera grande de (1,15): a los 7,5 s los fantasmas seguían vulnerables; a los 8,5 s recuperaron su diseño y volvieron a perseguir. Duración: 8 s."
+ ],
+ "CP-020": [
+  "Aprobado",
+  "El fantasma rosa venía hacia Pacman por la fila 4; al consumir la esfera grande dejó de acercarse y se alejó (distancia 2 → 7 celdas). (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-023": [
+  "Aprobado",
+  "Con la esfera grande de (13,15), los cuatro fantasmas comidos sumaron [200, 400, 800, 1600]. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-024": [
+  "Aprobado",
+  "Primer PowerUp (13,15): fantasma +200; terminado el PowerUp, segundo PowerUp con la esfera de (1,1): fantasma +200. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-025": [
+  "Aprobado",
+  "Con 2 vidas y PowerUp activo, el fantasma tocado desapareció; vidas 2 → 2; el nivel no se reinició (Pacman siguió en la fila 4). (Vidas fijadas en 2 por script.)"
+ ],
+ "CP-030": [
+  "Aprobado",
+  "Con 2 vidas, el contacto con el fantasma celeste dejó las vidas en 1; puntaje 10 → 10; Pacman volvió a (7,8) y los fantasmas a sus posiciones iniciales [[1, 1], [1, 15], [13, 1], [13, 15]]. (Vidas fijadas en 2 por script.)"
+ ],
+ "CP-031": [
+  "Aprobado",
+  "Contacto de frente en la columna 1 (Pacman subiendo, fantasma bajando): se descontó una sola vida (3 → 2). (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-033": [
+  "Aprobado",
+  "Con 20 esferas consumidas se perdió una vida: siguió el nivel 1, puntaje 200 → 200, las esferas consumidas siguen ausentes y los personajes volvieron a sus posiciones iniciales. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-036": [
+  "Aprobado",
+  "Última vida perdida en el nivel 2: se mostró «Game Over» con el puntaje final (0); 5 s después la partida seguía terminada, sin reiniciarse ni reanudarse. (Vidas fijadas en 1 por script.)"
+ ],
+ "CP-047": [
+  "Aprobado",
+  "Niveles 1, 2 y 3 en orden; HUD: ['Nivel 1', 'Nivel 2', 'Nivel 3']. Los tres mapas tienen forma distinta. Color medio de muros: N1 [168, 25, 37] con 148 muestras rojas (franjas), N2 [11, 29, 77] (azul, sin rojo), N3 [14, 78, 18] (verde). Barra inferior de vidas con 3 íconos de Pacman en los tres niveles (DEF-001). (Mapas reducidos por script para avanzar; capturas REG-CP-047-N1..N3.)"
+ ],
+ "CP-050": [
+  "Aprobado",
+  "Nivel 1: 6 fantasmas comidos; reaparecieron como ['classic', 'classic', 'classic', 'classic', 'classic', 'classic']. (PowerUp prolongado y reaparición acelerada por script.)"
+ ],
+ "CP-051": [
+  "Aprobado",
+  "Nivel 1 completado con 2 vidas; al iniciar el nivel 2 los cuatro fantasmas son ['classic', 'classic', 'classic', 'classic']. (Mapa reducido por script.)"
+ ],
+ "CP-052": [
+  "Aprobado",
+  "Nivel 2: 24 reapariciones → {'naval': 7, 'classic': 11, 'specter': 3, 'jumper': 1, 'accelerated': 2} (13 con poderes, 54 %). Aparecen clásicos y los cuatro tipos con poderes, distinguibles a la vista. (PowerUp prolongado y reaparición acelerada por script.)"
+ ],
+ "CP-053": [
+  "Aprobado",
+  "Al iniciar el nivel 3 los fantasmas son ['specter', 'jumper', 'naval', 'accelerated']: uno de cada tipo con poderes."
+ ],
+ "CP-009": [
+  "Aprobado",
+  "Nivel 2 durante 60 s: ningún fantasma clásico entró a un muro ni salió del mapa (tipos observados: ['classic']). (Vidas repuestas por script para que la partida no termine.)"
+ ],
+ "CP-049": [
+  "Aprobado",
+  "Nivel 1 observado 40 s (30 s más que en la V1): tipos ['classic'], velocidades [5] celdas/s; ninguno atravesó muros, saltó, colocó frutas ni hizo dash. (Vidas repuestas por script.)"
+ ],
+ "CP-059": [
+  "Aprobado",
+  "Con la esfera grande el espectro pasó a vulnerable; al comerlo sumó +200 (primer fantasma de la escala) y las vidas quedaron en 3. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-060": [
+  "Aprobado",
+  "Última vida perdida en el nivel 1: pantalla «Game Over» con el puntaje desglosado (Esferas, Fantasmas comidos, Frutas, Bonus por tiempo, Bonus por vidas, Total) y las acciones «Volver a jugar» y «Menú principal»; «Menú principal» llevó al menú. (Vidas fijadas en 1 por script.)"
+ ],
+ "CP-061": [
+  "Aprobado",
+  "Completado el nivel 3: pantalla «¡Victoria!» con el puntaje desglosado (Esferas, Fantasmas comidos, Frutas, Bonus por tiempo, Bonus por vidas, Total) y las acciones «Volver a jugar» y «Menú principal»; «Menú principal» llevó al menú. (Mapa reducido por script.)"
+ ],
+ "CP-062": [
+  "Aprobado",
+  "Game Over en el nivel 2 con 1200 puntos; «Volver a jugar» inició el modo Pacman en el nivel 1 con 3 vidas, puntaje 0 y 106 esferas (mapa completo); al pasar al nivel 2 su mapa también estaba completo (131 esferas). (Mapas reducidos por script para avanzar.)"
+ ],
+ "CP-055": [
+  "Aprobado",
+  "Espectro observado 60 s en el nivel 3: atravesó paredes 6 veces, cada vez una sola pared (el cruce es de muro + celda de salida; nunca una secuencia de paredes contiguas). (Vidas repuestas y otros fantasmas retirados por script.)"
+ ],
+ "CP-057": [
+  "Aprobado",
+  "Tras atravesar una pared, el contacto dentro de los 3 s no descontó vidas (3 → 3) y el espectro se veía translúcido y punteado (captura); pasados los 3 s el contacto descontó una vida (3 → 2). (Contacto provocado por script.)"
+ ]
+}

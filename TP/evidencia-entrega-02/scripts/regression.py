@@ -1,0 +1,55 @@
+# Regresión de la V1 (sección 8.2 de entrega-02): los 35 casos de prioridad Alta, mutados.
+MUT = {
+"CP-001": "Secuencia invertida: ↓ → ↑ ← (la V1 usó ← ↑ → ↓).",
+"CP-002": "Secuencia invertida: S D W A.",
+"CP-003": "Se usa la dirección ↓ desde una celda distinta a la de la V1 (fila 10).",
+"CP-005": "Se ejecuta en la fila 10 con ↓ bloqueado, en lugar de ↑.",
+"CP-007": "Contra un muro a la izquierda (en la V1, a la derecha).",
+"CP-008": "Bordes recorridos en otro orden: abajo, derecha, arriba, izquierda.",
+"CP-009": "Observación en el nivel 2 en lugar del 1 (solo clásicos al inicio), 60 s.",
+"CP-011": "Esfera común de otra fila (fila 4).",
+"CP-012": "15 esferas en lugar de 10, en la fila 10.",
+"CP-014": "La última esfera es una de la fila 13.",
+"CP-015": "La esfera grande pendiente es la de (13,15) en lugar de la de (1,1).",
+"CP-016": "Se completa el nivel con 3 vidas en lugar de 2.",
+"CP-017": "Partida completa N1 → N2 → N3 con los fantasmas nuevos de la V2.",
+"CP-018": "Esfera grande de (13,1).",
+"CP-019": "Esfera grande de (1,15); observaciones a 7,5 s y 8,5 s.",
+"CP-020": "Fantasma perseguidor distinto (el rosa).",
+"CP-023": "Se usa la esfera grande de (13,15).",
+"CP-024": "Segundo PowerUp con una esfera grande distinta.",
+"CP-025": "Con 2 vidas en lugar de 3.",
+"CP-030": "Con 2 vidas en lugar de 3, contacto con el fantasma celeste.",
+"CP-031": "Contacto de frente en sentido vertical (columna 1).",
+"CP-033": "Con 20 esferas consumidas.",
+"CP-036": "Última vida perdida en el nivel 2.",
+"CP-047": "Partida completa; se registra además la barra inferior de vidas (DEF-001).",
+"CP-049": "Se agregan 30 s más de observación.",
+"CP-050": "6 fantasmas comidos en lugar de 4.",
+"CP-051": "Sin cambios de datos: se verifica tras completar el nivel 1 con 2 vidas.",
+"CP-052": "Resultado esperado ajustado a la decisión 23: las reapariciones con poderes pueden ser de los cuatro tipos.",
+"CP-053": "Resultado esperado ajustado a la decisión 23: uno de cada tipo con poderes.",
+"CP-055": "Precondición ajustada (decisión 23): se identifica al espectro entre los cuatro tipos del nivel 3.",
+"CP-057": "Precondición ajustada (decisión 23): se identifica al espectro entre los cuatro tipos.",
+"CP-059": "Precondición ajustada (decisión 23): se identifica al espectro entre los cuatro tipos.",
+"CP-060": "Además se verifica la acción «Menú principal» (decisión 29).",
+"CP-061": "Además se verifica la acción «Menú principal» (decisión 29).",
+"CP-062": "Game Over en el nivel 2; se verifica además que «Volver a jugar» mantiene el modo Pacman (decisión 29).",
+}
+# Resultado esperado que cambia en la V2 (sección 8.2).
+EXP_V2 = {
+"CP-052": "De las reapariciones, alrededor de la mitad son con poderes, y entre ellas aparecen los cuatro tipos (espectro, saltarín, naval y acelerado).",
+"CP-053": "Los cuatro fantasmas tienen poderes desde el inicio: uno de cada tipo (espectro, saltarín, naval y acelerado).",
+"CP-060": "Se muestra la pantalla de Game Over con el puntaje final desglosado y las acciones «Volver a jugar» y «Menú principal»; «Menú principal» lleva al menú.",
+"CP-061": "Se muestra la pantalla de Victoria con el puntaje final desglosado y las acciones «Volver a jugar» y «Menú principal».",
+}
+PRE_V2 = "Partida iniciada desde el menú con «Modo PacMan» (HU-22). "
+# Confirmación de defectos de la V1 y de la V2.
+CONFIRM = [
+ dict(id="DEF-001", cp="CP-034", hu="HU-09", title="Confirmación de DEF-001: contador de vidas abajo a la izquierda con íconos de Pacman",
+      steps=[("Iniciar el modo PacMan y observar dónde están las vidas.", "Abajo a la izquierda, debajo del mapa."),
+             ("Observar los íconos y perder una vida.", "Son íconos de Pacman (no números ni círculos); al perder una vida se retira uno.")]),
+ dict(id="DEF-002", cp="Exploratoria", hu="HU-22", title="Confirmación de DEF-002: el menú no cambia de opción con el puntero quieto",
+      steps=[("Elegir «Modo GhostMan» con un clic, volver al menú y recargar la página sin mover el mouse.", "Al recargar, la opción seleccionada es «Modo PacMan»."),
+             ("Presionar Enter.", "Empieza una partida en modo Pacman (no se abre el carrusel).")]),
+]
