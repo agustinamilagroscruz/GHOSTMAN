@@ -762,7 +762,7 @@ Los casos están detallados en la planilla de la Entrega 2 (una hoja por caso, c
 | Casos nuevos de la HU-43 | CP-152 a CP-159 | 8 |
 | **Total V2** | | **62** (34 Alta, 26 Media, 2 Baja) |
 
-Regresión de la V1: los 35 casos de prioridad Alta, cada uno con la mutación indicada en su hoja (fila «Mutación (Entrega 2)»), y con los cambios de la sección 8.2. Se agregaron dos pruebas más: la re-ejecución de CP-032 (Bloqueado en la Entrega 1) y la confirmación de los defectos DEF-001 (con CP-034) y DEF-002 (exploratoria).
+Regresión de la V1: los 35 casos de prioridad Alta, cada uno con la mutación indicada en su hoja (fila «Mutación (Entrega 2)»), y con los cambios de la sección 8.2. El 28/10/2026 se ejecutaron también los 29 casos de prioridad Media y Baja, así que la regresión cubre los 66 casos de la V1. Se agregaron dos pruebas más: la re-ejecución de CP-032 (Bloqueado en la Entrega 1) y la confirmación de los defectos DEF-001 (con CP-034) y DEF-002 (exploratoria).
 
 ---
 
@@ -812,21 +812,21 @@ La ejecución se hizo con scripts de navegador que manejan el juego con el tecla
 | Tipo de prueba | Ejecutados | Aprobados | Fallidos | Bloqueados |
 |---|---|---|---|---|
 | Casos nuevos de la V2 | 62 | 62 | 0 | 0 |
-| Regresión de la V1 (Alta, mutados) | 35 | 35 | 0 | 0 |
-| Re-ejecución de casos bloqueados (CP-032) | 1 | 1 | 0 | 0 |
+| Regresión de la V1, prioridad Alta (mutados), 12/10/2026 | 35 | 35 | 0 | 0 |
+| Regresión de la V1, prioridad Media y Baja, 28/10/2026 | 29 | 29 | 0 | 0 |
+| Re-ejecución de casos bloqueados (CP-032) | 1 | 0 | 0 | 1 |
 | Confirmación de defectos (DEF-001, DEF-002) | 2 | 2 | 0 | 0 |
-| **Total** | **100** | **100 (100 %)** | **0 (0 %)** | **0 (0 %)** |
+| **Total** | **129** | **128 (99,2 %)** | **0 (0 %)** | **1 (0,8 %)** |
 
-El gráfico de porcentajes y la comparación con la Entrega 1 (64 aprobados, 1 fallido y 1 bloqueado sobre 66) están en la hoja «Reporte de ejecución - Entrega2» de la planilla.
+Con los 29 casos de prioridad Media y Baja, ejecutados el 28/10/2026, la regresión cubre los 66 casos de la V1. El gráfico de porcentajes y la comparación con la Entrega 1 (64 aprobados, 1 fallido y 1 bloqueado sobre 66) están en la hoja «Reporte de ejecución - Entrega2» de la planilla.
 
 ### 11.3 Casos que cambiaron de estado
 
 | Caso | Entrega 1 | Entrega 2 | Motivo |
 |---|---|---|---|
-| CP-032 · El PowerUp se cancela al perder una vida | Bloqueado | Aprobado | El script preparó la condición (fantasma recién reaparecido durante el PowerUp), que en la Entrega 1 no se pudo provocar jugando |
 | CP-034 · Presentación del contador de vidas | Fallido | Aprobado | DEF-001 corregido en `7ec70df` |
 
-Los 35 casos de regresión mantienen el estado Aprobado.
+Los 64 casos de regresión mantienen el estado Aprobado. **CP-032 sigue Bloqueado.** El 12/10 se había informado Aprobado, pero se corrigió: la precondición (perder una vida con el PowerUp activo) no se puede dar en el juego, porque un fantasma que reaparece durante el PowerUp reaparece vulnerable (lo verifica CP-027) y ninguna otra situación le quita una vida a Pacman con el PowerUp activo. El resultado anterior se había obtenido forzando por script un estado que el juego no produce. Queda como pendiente revisar el criterio de la HU-08 y marcar el caso como *No aplica* o reformularlo.
 
 ### 11.4 Problemas de la ejecución que no son defectos
 
@@ -895,7 +895,7 @@ DEF-002 queda en *Corregido*: la prueba de confirmación dio Aprobado, pero lo r
 | 11 | Volver a medir el balance después del incremento 18 (la medición del 17 ya está en la sección 7.6) y decidir si se ajustan los valores de la decisión 22 | Sección 7.6 | `[completar]` |
 | 12 | Completar la sección 7.6 (observaciones sobre la implementación con AI) | Sección 7.6 | `[completar]` |
 | 13 | ~~Detallar los casos de prueba de la V2 y armar la matriz de trazabilidad~~ Hecho (secciones 9 y 10) | Secciones 8.2, 9 y 10 | Luzzi |
-| 14 | ~~Ejecutar el ciclo de la V2 y la regresión de la V1~~ Hecho (sección 11). Falta repetir una muestra sobre el despliegue de Vercel, y que otro integrante confirme y verifique DEF-002 | Secciones 11 y 12 | Luzzi / equipo |
+| 14 | ~~Ejecutar el ciclo de la V2 y la regresión de la V1~~ Hecho (sección 11). Falta decidir qué hacer con CP-032 (HU-08), cuya precondición no se puede dar en el juego. Falta repetir una muestra sobre el despliegue de Vercel, y que otro integrante confirme y verifique DEF-002 | Secciones 11 y 12 | Luzzi / equipo |
 | 15 | Subir el tag `v1.0` al repositorio remoto (`git push origin v1.0`); hoy está solo en un equipo local | Sección 2.1 | Savoia |
 | 16 | Extender `scripts/verify/` con las suites de los incrementos 16, 17 y 18, y decidir si se corren antes de cada push a `main` | Sección 13.1 | `[completar]` |
 

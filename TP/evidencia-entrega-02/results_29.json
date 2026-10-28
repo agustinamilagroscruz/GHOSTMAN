@@ -1,0 +1,118 @@
+{
+ "CP-004": [
+  "Aprobado",
+  "Avanzando a la derecha por la fila 4 desde (4,3), ↑ presionado 3 celdas antes de la intersección: Pacman siguió en horizontal sin detenerse y giró hacia arriba al llegar a la columna 6. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-006": [
+  "Aprobado",
+  "A mitad del corredor de la fila 7 (posición 3.33, sin intersección), ← invirtió la marcha de inmediato: dirección «left», posición 3.33 → 1.92. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-010": [
+  "Aprobado",
+  "Nivel 1: 107 celdas transitables, todas alcanzables desde la posición de Pacman; 106 marcadas con esfera y la única sin marca es la celda inicial de Pacman (7,8), que ocupa él mismo. Ningún muro tiene esfera. (Recorrido verificado sobre el mapa del juego.)"
+ ],
+ "CP-013": [
+  "Aprobado",
+  "30 s con Pacman quieto: los fantasmas pasaron por 48 celdas distintas; el contador siguió en 106 → 106 y las esferas del mapa no cambiaron. (Pacman detenido y vidas repuestas por script.)"
+ ],
+ "CP-021": [
+  "Aprobado",
+  "Primera esfera grande (13,1) y, a los 5 s, la segunda (1,1): el PowerUp siguió activo a los 7,8 s del segundo consumo y terminó antes de los 8,2 s (8 s completos, no 3). (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-022": [
+  "Aprobado",
+  "Fantasma comido con la primera esfera grande: +200; tras la segunda esfera grande (PowerUp activo), el siguiente fantasma sumó +200: la escala se reinició. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-026": [
+  "Aprobado",
+  "El fantasma rojo comido desapareció y reapareció a los 5.00 s en su punto de reaparición (1, 1); luego siguió moviéndose. (PowerUp prolongado por script para observar la reaparición.)"
+ ],
+ "CP-027": [
+  "Aprobado",
+  "Primer bocado +200; el fantasma reapareció a los 5.03 s con el PowerUp activo y en estado vulnerable; comido otra vez sumó +400: la escala siguió. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-028": [
+  "Aprobado",
+  "A los 5 s los fantasmas se veían azules fijos (colores muestreados: ['azul']); a los 7 s alternaban azul y blanco (parpadeo, colores: ['azul', 'blanco']), distinto del azul fijo y del color normal. (Capturas CP-028-5s y CP-028-7s; colores leídos del canvas.)"
+ ],
+ "CP-029": [
+  "Aprobado",
+  "Al empezar el parpadeo se consumió la segunda esfera grande: el parpadeo cesó (colores después: ['azul']), el temporizador volvió a 7.97 s y el PowerUp seguía activo a los 7,8 s. (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-035": [
+  "Aprobado",
+  "Íconos de vidas tras cada pérdida: 3 → 2 → 1 → 0; el contador se actualizó en el momento de cada pérdida (la tercera terminó en Game Over). (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-037": [
+  "Aprobado",
+  "Última vida perdida en el nivel 3: pantalla «Game Over» con el puntaje final y «Volver a jugar», igual que en el nivel 1; la partida no se reanudó. (Vidas fijadas en 1 por script.)"
+ ],
+ "CP-038": [
+  "Aprobado",
+  "HUD: puntaje inicial 0; después de cada acción [10, 60, 260] (incrementos [10, 50, 200]: esfera común, esfera grande y fantasma). (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-039": [
+  "Aprobado",
+  "Puntaje 60; tras perder una vida: 60; al completar el nivel 1: 1240; al iniciar el nivel 2: 1240. Nunca disminuyó. (Mapa reducido por script para completar el nivel.)"
+ ],
+ "CP-040": [
+  "Aprobado",
+  "Fruta aparecida en (9,8) en el nivel 3: Pacman la consumió, desapareció del mapa, el puntaje subió +100 y el contador de esferas quedó en 124 → 124. (Esfera de la celda retirada por script para medir solo la fruta.)"
+ ],
+ "CP-041": [
+  "Aprobado",
+  "Fruta aparecida en (9,4): a los 14 s seguía en el mapa; a los 16 s ya no estaba."
+ ],
+ "CP-042": [
+  "Aprobado",
+  "Nivel 1 completado en 3.68 s: bonus por tiempo 1160 = 10 × 116 s enteros restantes (fracción descartada); el desglose lo suma. (Mapa reducido a una esfera por script.)"
+ ],
+ "CP-043": [
+  "Aprobado",
+  "Nivel 1 completado a los 121.75 s (más de 120 s reales de juego): bonus por tiempo 0, no negativo. (Mapa reducido a una esfera por script al final.)"
+ ],
+ "CP-044": [
+  "Aprobado",
+  "Victoria con 2 vidas: desglose {'Esferas': '30', 'Fantasmas comidos': '0', 'Frutas': '0', 'Bonus por tiempo': '4470', 'Bonus por vidas': '1000', 'Total': '5500'}; bonus por vidas 1000 (500 × 2) y la suma de los componentes coincide con el total. (Vidas fijadas en 2 y mapas reducidos por script.)"
+ ],
+ "CP-045": [
+  "Aprobado",
+  "Game Over: desglose {'Esferas': '0', 'Fantasmas comidos': '0', 'Frutas': '0', 'Bonus por tiempo': '0', 'Bonus por vidas': '0', 'Total': '0'}; bonus por vidas restantes 0. (Vidas fijadas en 1 por script.)"
+ ],
+ "CP-046": [
+  "Aprobado",
+  "Inicio: contador 106 = 106 esferas del mapa (incluidas las 4 grandes); tras 5 esferas: 100 (−5); al consumir la última: 0; nivel 2: 131 = 131 esferas de su mapa. (Para la parte final, mapa del nivel 1 reducido a una esfera por script.)"
+ ],
+ "CP-048": [
+  "Aprobado",
+  "Dos partidas nuevas: el mapa del nivel 1 es idéntico en forma, esferas y ubicación de las esferas grandes."
+ ],
+ "CP-054": [
+  "Aprobado",
+  "Nivel 2, recorrido de 1 s de cada uno desde la misma celda (11,1): clásico 5.00 celdas/s, espectro 3.50 celdas/s; el espectro tarda 43 % más en recorrer la misma distancia (30 % más lento). (Espectro obtenido forzando reapariciones y fantasmas ubicados por script.)"
+ ],
+ "CP-056": [
+  "Aprobado",
+  "Nivel 3, 60 s: el espectro empezó a cruzar paredes en t = [2.58, 14.8, 25.7, 35.72, 46.63, 57.55] s; intervalos [12.22, 10.9, 10.02, 10.91, 10.92] s, todos ≥ 10 s. (Vidas repuestas y otros fantasmas retirados por script.)"
+ ],
+ "CP-058": [
+  "Aprobado",
+  "Nivel 3, 90 s: el espectro cruzó 8 paredes; nunca salió del mapa ni quedó detenido dentro de un muro (0 muestras fuera de lugar). (Vidas repuestas y otros fantasmas retirados por script.)"
+ ],
+ "CP-063": [
+  "Aprobado",
+  "ESC detuvo la partida y mostró el cartel de pausa; durante 5 s Pacman y los fantasmas quedaron inmóviles; las flechas no movieron a Pacman; el segundo ESC reanudó la partida y se quitó el cartel."
+ ],
+ "CP-064": [
+  "Aprobado",
+  "Pausa a los 2 s del PowerUp durante 15 s: el PowerUp siguió activo con el temporizador detenido en 5.95 s; al reanudar duró 5.97 s más (6 s). (Fantasmas retirados y posiciones preparadas por script para aislar la condición.)"
+ ],
+ "CP-065": [
+  "Aprobado",
+  "Nivel 1 con una pausa de 60 s: tiempo de juego efectivo 4.87 s (reloj real ≈ 64 s; durante la pausa el tiempo no avanzó); bonus por tiempo 1150 = 10 × 115, sin descontar la pausa. (Mapa reducido a una esfera por script para completar el nivel.)"
+ ],
+ "CP-066": [
+  "Aprobado",
+  "10 pulsaciones de la barra espaciadora: puntaje, vidas, pausa, PowerUp y estado de la partida sin cambios ([0, 3, False, False, False] → [0, 3, False, False, False]); la página no hizo scroll (scrollY 0 → 0)."
+ ]
+}
