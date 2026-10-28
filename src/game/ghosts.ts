@@ -16,7 +16,8 @@ export type GhostMode = "chase" | "scatter";
 /** Los cinco tipos de la sección 2.2. En el modo Pacman la IA usa solo clásico y espectro (V1). */
 export type GhostKind = "classic" | "specter" | "jumper" | "naval" | "accelerated";
 
-export const CLASSIC_GHOST_SPEED = 5; // celdas por segundo
+/** Velocidad del fantasma clásico: 3,75 celdas por segundo (5 en la V1 y la V2 original, bajada un 25 %). */
+export const CLASSIC_GHOST_SPEED = 3.75; // celdas por segundo
 /** El espectro es un 30 % más lento que el clásico. */
 export const SPECTER_SPEED_FACTOR = 0.7;
 /** El naval es un 20 % más lento que el clásico. */

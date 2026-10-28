@@ -126,7 +126,7 @@ const secs = t => Math.round(t / DT);
 // Naval: velocidad
 {
   const [, g] = setup();
-  check(g.speed === 4, "naval: 4 celdas/s");
+  check(g.speed === 3, "naval: 3 celdas/s");
 }
 
 // Modo Pacman: sin frutas falsas, partida idéntica a antes

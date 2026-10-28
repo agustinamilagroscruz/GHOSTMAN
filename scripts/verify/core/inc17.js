@@ -45,7 +45,7 @@ function clearSomePellets(s) {
   const s = atLevel(1); eatPowerPellet(s);
   check(s.powerUpActive && s.wallCharges === 0, "GhostMan N1: la esfera grande no da cargas de destrucción");
   const p = atLevel(2, PACMAN); p.pacman.speed = 0;
-  p.map.pellets[7][9] = "power"; p.pacman.speed = 5;
+  p.map.pellets[7][9] = "power"; p.pacman.speed = 3.75;
   for (let i = 0; i < 30; i++) st.updateGameState(p, DT, "right");
   check(p.powerUpActive && p.wallCharges === 0, "modo Pacman N2: la esfera grande no da cargas");
 }
@@ -150,7 +150,7 @@ function findThinWall(s) {
 function enterCell(s, cell) {
   for (const [dr, dc] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
     if (s.map.cells[cell.row + dr]?.[cell.col + dc] === "path" && s.map.pellets[cell.row + dr][cell.col + dc] === "none") {
-      s.pacman.row = cell.row + dr; s.pacman.col = cell.col + dc; s.pacman.progress = 0; s.pacman.direction = null; s.pacman.speed = 5; break;
+      s.pacman.row = cell.row + dr; s.pacman.col = cell.col + dc; s.pacman.progress = 0; s.pacman.direction = null; s.pacman.speed = 3.75; break;
     }
   }
   for (let i = 0; i < 30 && !s.gameOver && s.map.pellets[cell.row][cell.col] !== "none"; i++) st.updateGameState(s, DT, null);

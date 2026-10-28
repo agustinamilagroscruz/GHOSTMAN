@@ -81,7 +81,7 @@ for (const level of [1, 2, 3]) {
   for (const g of s.ghosts) { g.eaten = true; g.respawnTimer = 1e9; }
   s.pacman.row = 7; s.pacman.col = 8; s.pacman.progress = 0;
   st.spawnFruit(s, 10, 6); // a 5 de recorrido: (7,8)->(7,6)->(10,6)
-  for (let i = 0; i < 70; i++) st.updateGameState(s, DT, null);
+  for (let i = 0; i < 94; i++) st.updateGameState(s, DT, null);
   check(s.fruits.length === 0, "va por una fruta a 5 celdas y la consume");
   const s2 = gm();
   for (const g of s2.ghosts) { g.eaten = true; g.respawnTimer = 1e9; }

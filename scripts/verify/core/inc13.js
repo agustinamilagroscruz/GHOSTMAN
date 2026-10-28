@@ -56,7 +56,7 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
   check(g.progress > 0 && g.col === 6, "a mitad de celda llegando a (1,7), contigua al muro");
   step(s, 1, "right", true);
   let t = 0; while ((g.phasePending || isPhasing(g)) && t < 2) { step(s, 1, "left"); t += DT; }
-  check(g.row === 1 && g.col === 9 && g.powerCooldown > 9, "en movimiento: termina de llegar, cruza el muro y sale en (1,9), sin obedecer el teclado en el trayecto");
+  check(g.row === 1 && g.col === 9 && g.powerCooldown > 8.5, `en movimiento: termina de llegar, cruza el muro y sale en (1,9), sin obedecer el teclado en el trayecto (${g.row},${g.col},${g.powerCooldown.toFixed(2)})`);
 }
 {
   // Sin destino válido: borde del mapa y muro grueso

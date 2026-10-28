@@ -162,15 +162,15 @@ La pantalla de fin de partida muestra el desglose en estas dos categorías: **De
 
 ### 4.5 Tipos de fantasma: velocidades y reaparición
 
-La velocidad del fantasma clásico es de 5 celdas por segundo, la misma que la de Pacman (V1).
+La velocidad del fantasma clásico es de 3,75 celdas por segundo, la misma que la de Pacman. En la V1 y en la primera versión de la V2 era de 5 celdas por segundo; se bajó un 25 % por la decisión 39.
 
 | Tipo | Velocidad base | Reaparición al ser comido |
 |---|---|---|
-| Clásico | 5 celdas/s | 5 s |
-| Espectro | 3,5 celdas/s (−30 %) | 5 s |
-| Saltarín | 5 celdas/s | 5 s |
-| Naval | 4 celdas/s (−20 %) | **8 s** |
-| Acelerado | 5 celdas/s; 2,5 celdas/s durante los 5 s posteriores a un *dash* | 5 s |
+| Clásico | 3,75 celdas/s | 5 s |
+| Espectro | 2,625 celdas/s (−30 %) | 5 s |
+| Saltarín | 3,75 celdas/s | 5 s |
+| Naval | 3 celdas/s (−20 %) | **8 s** |
+| Acelerado | 3,75 celdas/s; 1,875 celdas/s durante los 5 s posteriores a un *dash* | 5 s |
 
 ### 4.6 Poderes de los fantasmas
 
@@ -233,7 +233,7 @@ La velocidad del fantasma clásico es de 5 celdas por segundo, la misma que la d
 | Primera celda bloqueada | No hay desplazamiento y el poder no se consume *(D-25)* |
 | Contacto con Pacman | Se evalúa en **todo el trayecto**, no solo en la celda de llegada: pasar por encima de Pacman también lo derrota, aunque Pacman esté entre dos celdas *(D-32)*. Si el acelerado está vulnerable, el que es comido es él |
 | Penalidad al reiniciarse el nivel o con el fantasma comido | Se conserva y sigue corriendo, igual que el cooldown *(D-36)* |
-| Penalidad | Velocidad al 50 % (2,5 celdas/s) durante 5 s desde el *dash* |
+| Penalidad | Velocidad al 50 % (1,875 celdas/s) durante 5 s desde el *dash* |
 | Cooldown | 10 s |
 
 ### 4.7 Comportamiento de la IA de Pacman (modo GhostMan) *(D-17)*
@@ -247,7 +247,7 @@ Pacman decide su dirección cada vez que llega al centro de una celda, con estas
 | 3 | Hay una fruta (real o falsa: la IA no las distingue) a **5 celdas de recorrido o menos** | Va hacia la fruta |
 | 4 | Ninguna de las anteriores | Va hacia la esfera (común o grande) más cercana por recorrido |
 
-- Velocidad: 5 celdas/s, igual que en la V1.
+- Velocidad: 3,75 celdas/s, igual que la del fantasma clásico (decisión 39; en la V1 era de 5 celdas/s).
 - "Fantasma que puede dañarlo" incluye al fantasma del jugador y a los de la IA, excepto los vulnerables, los comidos y el espectro en su estado sin poder derrotar.
 - Desempate entre direcciones equivalentes: arriba, izquierda, abajo, derecha.
 - **Pendiente (decisión 37):** la prioridad 3 (ir por frutas sin distinguir la falsa) se reemplazaría por una memoria de frutas con olvido. Mientras el equipo no la apruebe, rige la regla de esta tabla, que es la implementada.
@@ -339,6 +339,7 @@ La numeración continúa la de la Entrega 01 (decisiones 1 a 16). Se aplicó el 
 | 36 | *(Detectada durante la generación, tabla 7.5, fila 20.)* La HU-31 y la sección 4.6 definen la penalidad de velocidad del acelerado (50 % durante 5 s), pero no dicen qué pasa con ella si Pacman es derrotado y el nivel se reinicia, si el fantasma es comido, ni desde qué celda arranca un dash activado a mitad de camino | La penalidad sigue las mismas reglas que el cooldown (decisiones 28 y 35 b): se conserva al reiniciarse el nivel, sigue corriendo mientras el fantasma está comido y se repone al empezar un nivel nuevo. Un dash activado a mitad de camino arranca desde la celda que el fantasma ocupa visualmente (la más cercana), igual que el salto del saltarín | Tratar igual a los dos temporizadores del poder evita que una derrota de Pacman o ser comido sirvan para "limpiar" la penalidad, y da un único criterio para los casos de prueba | Propuesta · implementada |
 | 37 | *(Detectada al medir el balance, sección 7.6.)* Con la decisión 17, la IA de Pacman va por cualquier fruta a 5 celdas o menos y no distingue la falsa de la real. Por eso el naval que usa su poder gana 10 de 10 partidas: la trampa casi nunca falla y deja de ser una decisión del jugador | **Opción A (propuesta por D. Savoia en la sesión):** Pacman lleva una **memoria interna de las frutas reales**. Conoce cuántas hay en el mapa (n) y recuerda la ubicación de x de ellas. Cada segundo, cada ubicación recordada se olvida con una probabilidad baja (*p*, valor a definir; propuesta: 5 % por segundo, una vida media de unos 14 s). Una fruta cuya ubicación no recuerda y que no explica ninguna fruta olvidada, es decir con x = n, **sabe que es falsa y no la toca**. Si olvidó alguna (x < n), una fruta desconocida puede ser una de las reales olvidadas: la trata como real y **puede caer en la trampa**. **Consecuencia a considerar:** en modo GhostMan las frutas reales aparecen solo en el nivel 3 (decisión 33). En los niveles 1 y 2, n = 0, así que Pacman **nunca** cae en una fruta falsa y al naval le queda solo la explosión. **Opción B (variante de la A):** la memoria es de las **frutas falsas**. Pacman registra una fruta falsa si la ve colocar a 8 celdas de recorrido o menos, y la olvida con la misma probabilidad *p* por segundo. Una fruta que no recuerda la trata como real. Funciona en los tres niveles y le da juego al naval: colocar las frutas fuera de la vista de Pacman. **En las dos opciones:** la fruta que Pacman sabe falsa la evita como si fuera un muro al calcular recorridos, pero no se aleja del radio de la explosión. Si la única ruta a las esferas pasa por esa celda, espera a que la fruta explote | La trampa tiene que depender de algo que el jugador pueda aprovechar, no de un umbral fijo. **Testabilidad:** el olvido es aleatorio y tiene que usar la fuente de azar inyectable del juego (`random`), para poder fijarla en los scripts de verificación. En la prueba manual, el caso determinista de la opción A es "en los niveles 1 y 2, Pacman nunca consume una fruta falsa". El de la opción B es "una fruta colocada a la vista de Pacman no la consume mientras la recuerde" | Propuesta · sin implementar |
 | 38 | *(Detectada al medir el balance, sección 7.6.)* Usar el poder del saltarín empeora sus resultados (de 10 a 1 victoria en 10 partidas del bot), porque el destino es uniforme dentro del radio y lo aleja de Pacman tantas veces como lo acerca. Así el poder no vale la pena | Opciones a decidir por el equipo. **A: salto hacia adelante.** El destino sigue siendo al azar, pero solo entre las celdas del radio que quedan en el semiplano de la dirección de avance. El jugador elige hacia dónde saltar, no a qué celda: hay habilidad sin que el destino sea elegible. **B: salto hacia Pacman.** El destino es al azar entre las celdas del radio que están más cerca de Pacman (por recorrido) que la celda actual: el salto nunca lo aleja. **C: cooldown más corto** (por ejemplo, 5 s) sin cambiar el azar, para compensar con más usos. **Recomendación:** la A. Es la que mejor conserva la idea de la pre-entrega ("el destino no es elegible") y premia al jugador que sabe usarla. La B no requiere habilidad, y la C no cambia que la mitad de los saltos sean en contra | Cualquiera de las tres cambia la HU-29 y la decisión 31, y el resultado esperado de los CP-087 y CP-089. El incremento 16 usa la misma implementación para la IA del modo Pacman, así que conviene decidir antes de ejecutarlo | Propuesta · sin implementar |
+| 39 | *(Pedido después de la prueba manual del juego, 28/10/2026.)* Con 5 celdas por segundo el juego resulta demasiado rápido y frustrante desde el nivel 1, en los dos modos | Se baja un 25 % la velocidad de todos los personajes: Pacman y el fantasma clásico pasan de 5 a 3,75 celdas/s. Los demás tipos conservan su proporción (espectro 2,625, naval 3, acelerado 1,875 durante la penalidad). No cambian los temporizadores (PowerUp, reapariciones, cooldowns, frutas) ni el alcance del *dash* y del salto, que se miden en celdas | Bajar la velocidad en una proporción fija mantiene todas las relaciones de las HU (−30 %, −20 %, −50 %) y no toca ningún criterio expresado en porcentajes. Al ser más lentos todos los personajes, los niveles duran más y el bonus por tiempo de la V1 (tiempos objetivo de 120, 150 y 180 s) es más difícil de obtener; si el equipo lo considera necesario, se ajustan los tiempos objetivo aparte | Implementada |
 
 ---
 
@@ -688,6 +689,7 @@ incluye a las dinámicas.
 | 29 | 17 — Dificultad del modo GhostMan | Prompt 16 | La suite de navegador `inc12-reglas-ghostman.js`, que espera hasta 7 minutos a que termine una partida del modo GhostMan sin intervención, venció el tiempo de espera. No es un defecto: con la destrucción de paredes, Pacman tarda más en ser arrinconado, y la partida sin intervención pasó de unos 280 s a unos 500 a 540 s (5 semillas en el núcleo) | Se subió la espera a 12 minutos y se actualizó el README de `scripts/verify`. No requirió cambios de código | No |
 | 30 | 17 — Dificultad del modo GhostMan | Prompt 16 | **Balance:** al volver a medirlo (sección 7.6), el espectro y el acelerado que usan su poder pasaron de 6 y 10 victorias a 0 de 10, todas con Game Over en el nivel 2. Se comparó cuadro a cuadro una partida contra el código del incremento 16 con la misma semilla: es idéntica hasta la primera pared que destruye Pacman, así que la diferencia la produce la funcionalidad nueva y no un error en otra parte | Se registró la medición en la sección 7.6 para que el equipo decida si ajusta los valores de la decisión 22 (cargas o costo del muro). No se cambiaron | No |
 | 31 | Corrección de defectos de la V1 | C-2 (corrección) | **DEF-001** (ciclo 1 de la V1, CP-034): en el modo Pacman el contador de vidas estaba arriba a la derecha, con círculos amarillos en lugar de íconos de Pacman (HU-09). Además dejaba al modo Pacman inconsistente con el modo GhostMan (fila 11) | Se le pasó el reporte del defecto al agente con el prompt C-2 (Anexo A). Las vidas del modo Pacman pasan a una barra debajo del mapa, a la izquierda, con íconos de Pacman, igual que la barra del modo GhostMan. Se actualizó la comprobación de la suite de navegador del incremento 10 | No |
+| 32 | Ajuste de velocidad | — | Después de la prueba manual, el juego resultaba demasiado rápido desde el nivel 1 | Se bajó un 25 % la velocidad base (constantes `PACMAN_SPEED_CELLS_PER_SECOND` y `CLASSIC_GHOST_SPEED`, de 5 a 3,75 celdas/s); los demás tipos se calculan en proporción. Se actualizaron los valores esperados de las suites de `scripts/verify/` y la sección 4.5 (decisión 39) | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 
@@ -827,6 +829,8 @@ Con los 29 casos de prioridad Media y Baja, ejecutados el 28/10/2026, la regresi
 | CP-034 · Presentación del contador de vidas | Fallido | Aprobado | DEF-001 corregido en `7ec70df` |
 
 Los 64 casos de regresión mantienen el estado Aprobado. **CP-032 sigue Bloqueado.** El 12/10 se había informado Aprobado, pero se corrigió: la precondición (perder una vida con el PowerUp activo) no se puede dar en el juego, porque un fantasma que reaparece durante el PowerUp reaparece vulnerable (lo verifica CP-027) y ninguna otra situación le quita una vida a Pacman con el PowerUp activo. El resultado anterior se había obtenido forzando por script un estado que el juego no produce. Queda como pendiente revisar el criterio de la HU-08 y marcar el caso como *No aplica* o reformularlo.
+
+**Re-ejecución por la decisión 39 (28/10/2026).** Después de bajar la velocidad un 25 %, se re-ejecutaron los casos que verifican velocidades: CP-049, CP-054, CP-072, CP-096, CP-142 y CP-157. Los seis dieron Aprobado con los valores nuevos (3,75 celdas/s para Pacman y el clásico, 3 para el naval, 2,625 para el espectro y 1,875 durante la penalidad del acelerado). Se registraron como ciclo 3 en la hoja de cada caso, y los resultados esperados de CP-096 y CP-142 se actualizaron a los valores nuevos. También pasan las 8 suites del núcleo y las 7 de navegador de `scripts/verify/`.
 
 ### 11.4 Problemas de la ejecución que no son defectos
 

@@ -24,7 +24,7 @@ for (const { kind } of GHOST_CATALOG) {
   check(pg && pg.kind === kind && pg.row === 1 && pg.col === 1, `${kind}: fantasma del jugador en (1,1) con su tipo`);
   check(s.ghosts.filter(g => g.controlledByPlayer).length === 1, `${kind}: un único fantasma del jugador`);
   check(s.ghosts.filter(g => !g.controlledByPlayer).every(g => g.kind === "classic"), `${kind}: los otros 3 son clásicos`);
-  const expected = { classic: 5, specter: 3.5, jumper: 5, naval: 4, accelerated: 5 }[kind];
+  const expected = { classic: 3.75, specter: 2.625, jumper: 3.75, naval: 3, accelerated: 3.75 }[kind];
   check(Math.abs(pg.speed - expected) < 1e-9, `${kind}: velocidad ${expected} celdas/s`);
 }
 
@@ -33,9 +33,9 @@ s = st.createInitialGameState({ mode: "ghostman", playerGhostKind: "classic" }, 
 let pg = st.getPlayerGhost(s);
 const pacStart = { row: s.pacman.row, col: s.pacman.col };
 const otherStart = s.ghosts.filter(g => !g.controlledByPlayer).map(g => [g.row, g.col].join());
-run(s, 1, "right");
-check(pg.row === 1 && pg.col === 6, `fantasma avanza 5 celdas en 1 s hacia la derecha (col=${pg.col})`);
-run(s, 0.2, null);
+run(s, 5.05 / 3.75, "right");
+check(pg.row === 1 && pg.col === 6, `fantasma avanza 5 celdas en 1,33 s (3,75 celdas/s) hacia la derecha (col=${pg.col})`);
+run(s, 0.27, null);
 check(pg.col > 6, "avance continuo sin mantener la tecla");
 run(s, 0.2, "up");
 check(pg.row === 1, "no atraviesa el muro del borde superior");

@@ -59,7 +59,8 @@ import {
 } from "./scoring";
 import type { GameMap } from "./types";
 
-const PACMAN_SPEED_CELLS_PER_SECOND = 5;
+/** Velocidad de Pacman: 3,75 celdas por segundo (5 en la V1 y la V2 original, bajada un 25 %). */
+const PACMAN_SPEED_CELLS_PER_SECOND = 3.75;
 
 /** Modo Pacman (sección 4.9): el saltarín de la IA salta si Pacman está a esta distancia Manhattan o menos. */
 export const AI_JUMPER_TRIGGER_CELLS = 10;
