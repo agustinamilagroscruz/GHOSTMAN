@@ -135,7 +135,7 @@ export function tryAcceleratedDash(ghost: Ghost, map: GameMap): boolean {
   ghost.direction = canEnterCell(map, row + dRow, col + dCol) ? facing : null;
   ghost.powerCooldown = DASH_COOLDOWN_SECONDS;
   ghost.slowTimer = DASH_SLOW_SECONDS;
-  ghost.speed = speedForKind(ghost.kind) * ACCELERATED_SLOW_FACTOR;
+  ghost.speed = speedForKind(ghost.kind) * ghost.speedFactor * ACCELERATED_SLOW_FACTOR;
   return true;
 }
 

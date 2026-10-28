@@ -62,6 +62,9 @@ import type { GameMap } from "./types";
 /** Velocidad de Pacman: 3,75 celdas por segundo (5 en la V1 y la V2 original, bajada un 25 %). */
 const PACMAN_SPEED_CELLS_PER_SECOND = 3.75;
 
+/** Modo Pacman: los fantasmas van un 15 % más lentos que la velocidad de su tipo (decisión 40). */
+export const PACMAN_MODE_GHOST_SPEED_FACTOR = 0.85;
+
 /** Modo Pacman (sección 4.9): el saltarín de la IA salta si Pacman está a esta distancia Manhattan o menos. */
 export const AI_JUMPER_TRIGGER_CELLS = 10;
 /** Modo Pacman (sección 4.9): el acelerado de la IA hace el dash si Pacman está a esta distancia Manhattan o menos. */
@@ -174,7 +177,7 @@ function countPellets(map: GameMap): number {
 function createLevelGhosts(definition: LevelDefinition, config: GameConfig): Ghost[] {
   return definition.ghosts.map((setup, index) => {
     if (config.mode === "pacman") {
-      return createGhost(setup.id, setup.spawn.row, setup.spawn.col, definition.initialGhostKinds[index], setup.color, setup.scatterTarget);
+      return createGhost(setup.id, setup.spawn.row, setup.spawn.col, definition.initialGhostKinds[index], setup.color, setup.scatterTarget, PACMAN_MODE_GHOST_SPEED_FACTOR);
     }
     const isPlayer = index === 0;
     const kind = isPlayer ? (config.playerGhostKind ?? "classic") : "classic";

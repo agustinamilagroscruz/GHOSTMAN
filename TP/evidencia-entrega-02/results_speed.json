@@ -13,14 +13,14 @@
  ],
  "CP-157": [
   "Aprobado",
-  "Con Pacman a 5 celdas el acelerado hizo el dash: velocidad 1.875 celdas/s (50 % de 3,75) durante 4.9 s y cooldown 9.9 s."
+  "Con Pacman a 5 celdas el acelerado hizo el dash: velocidad 1.59375 celdas/s (50 % de 3,1875, decisión 40) durante 4.9 s y cooldown 9.8 s."
  ],
  "CP-049": [
   "Aprobado",
-  "Nivel 1 observado 40 s (30 s más que en la V1): tipos ['classic'], velocidades [3.75] celdas/s; ninguno atravesó muros, saltó, colocó frutas ni hizo dash. (Vidas repuestas por script.)"
+  "Nivel 1 observado 40 s (30 s más que en la V1): tipos ['classic'], velocidades [3.1875] celdas/s; ninguno atravesó muros, saltó, colocó frutas ni hizo dash. (Vidas repuestas por script.)"
  ],
  "CP-054": [
   "Aprobado",
-  "Nivel 2, recorrido de 1 s de cada uno desde la misma celda (11,1): clásico 3.75 celdas/s, espectro 2.63 celdas/s; el espectro tarda 43 % más en recorrer la misma distancia (30 % más lento). (Espectro obtenido forzando reapariciones y fantasmas ubicados por script.)"
+  "Nivel 2, recorrido de 1 s de cada uno desde la misma celda (11,1): clásico 3.19 celdas/s, espectro 2.23 celdas/s; el espectro tarda 43 % más en recorrer la misma distancia (30 % más lento). (Espectro obtenido forzando reapariciones y fantasmas ubicados por script.)"
  ]
 }

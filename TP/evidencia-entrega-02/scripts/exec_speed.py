@@ -1,4 +1,4 @@
-"""Re-ejecución de los casos afectados por la decisión 39 (velocidad −25 %), ciclo 3."""
+"""Re-ejecución de los casos afectados por las decisiones 39 (velocidad −25 %) y 40 (fantasmas del modo Pacman −15 %), ciclo 3."""
 import sys, os, time, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import Run
@@ -30,11 +30,14 @@ def cp157(r):
     r.start_pacman(); r.to_level(3)
     r.do("s.ghosts.forEach((g,i)=>{ if(i!==3){g.eaten=true; g.respawnTimer=1e9;} }); s.ghostMode='chase'; s.ghostModeTimer=0; const a=s.ghosts[3]; a.row=13; a.col=4; a.progress=0; a.direction='right'; a.powerCooldown=0;" + PAC_STILL + "s.pacman.row=13; s.pacman.col=9; s.lives=3;")
     time.sleep(0.15); a = r.s("[s.ghosts[3].powerCooldown, s.ghosts[3].speed, s.ghosts[3].slowTimer]")
-    res("CP-157", a[0] > 9.5 and abs(a[1] - 1.875) < 1e-6, f"Con Pacman a 5 celdas el acelerado hizo el dash: velocidad {a[1]} celdas/s (50 % de 3,75) durante {a[2]:.1f} s y cooldown {a[0]:.1f} s.")
+    res("CP-157", a[0] > 9.5 and abs(a[1] - 1.59375) < 1e-6, f"Con Pacman a 5 celdas el acelerado hizo el dash: velocidad {a[1]} celdas/s (50 % de 3,1875, decisión 40) durante {a[2]:.1f} s y cooldown {a[0]:.1f} s.")
 with sync_playwright() as pw:
     r = Run(pw)
+    only = sys.argv[1:]
     for f in [cp142, cp072, cp096, cp157, RG.r049, X.c054]:
+        if only and f.__name__[-3:] not in only: continue
         try: f(r)
         except Exception as e: print(f.__name__, "ERROR", repr(e)[:200])
     r.close()
-json.dump(R, open("results_speed.json", "w"), ensure_ascii=False, indent=1)
+prev = json.load(open("results_speed.json")) if os.path.exists("results_speed.json") else {}
+prev.update(R); json.dump(prev, open("results_speed.json", "w"), ensure_ascii=False, indent=1)

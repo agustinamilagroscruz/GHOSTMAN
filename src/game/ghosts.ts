@@ -59,6 +59,8 @@ export interface Ghost extends Mover {
   phaseCellsLeft: number;
   /** Espectro: segundos durante los que no puede comer a Pacman tras atravesar un muro. */
   noEatTimer: number;
+  /** Multiplicador de la velocidad de su tipo: 0,85 para los fantasmas del modo Pacman (decisión 40), 1 en el modo GhostMan. */
+  speedFactor: number;
 }
 
 const ALL_DIRECTIONS: readonly Direction[] = ["up", "down", "left", "right"];
@@ -80,7 +82,8 @@ export function createGhost(
   col: number,
   kind: GhostKind,
   color: string,
-  scatterTarget: { row: number; col: number }
+  scatterTarget: { row: number; col: number },
+  speedFactor = 1
 ): Ghost {
   return {
     id,
@@ -91,7 +94,7 @@ export function createGhost(
     progress: 0,
     direction: null,
     desiredDirection: null,
-    speed: speedForKind(kind),
+    speed: speedForKind(kind) * speedFactor,
     color,
     scatterTarget,
     spawn: { row, col },
@@ -104,6 +107,7 @@ export function createGhost(
     slowTimer: 0,
     phaseCellsLeft: 0,
     noEatTimer: 0,
+    speedFactor,
   };
 }
 
@@ -115,7 +119,7 @@ export function createGhost(
 export function setGhostKind(ghost: Ghost, kind: GhostKind): void {
   ghost.kind = kind;
   ghost.slowTimer = 0;
-  ghost.speed = speedForKind(kind);
+  ghost.speed = speedForKind(kind) * ghost.speedFactor;
   clearSpecterState(ghost);
 }
 
@@ -301,7 +305,7 @@ export function tickPlayerPowerTimers(ghost: Ghost, deltaSeconds: number): void 
   if (ghost.powerCooldown > 0) ghost.powerCooldown = tickTimer(ghost.powerCooldown, deltaSeconds);
   if (ghost.slowTimer > 0) {
     ghost.slowTimer = tickTimer(ghost.slowTimer, deltaSeconds);
-    if (ghost.slowTimer === 0) ghost.speed = speedForKind(ghost.kind);
+    if (ghost.slowTimer === 0) ghost.speed = speedForKind(ghost.kind) * ghost.speedFactor;
   }
 }
 
