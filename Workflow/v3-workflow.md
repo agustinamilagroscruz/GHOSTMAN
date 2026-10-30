@@ -57,6 +57,13 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 | 57 | Sonidos por canal. **Música:** jingle de inicio, sirena de fondo en bucle, sirena del PowerUp, jingle de nivel completado y jingle de Game Over. **Efectos:** waka, esfera grande, comer fantasma, ojos que vuelven, fruta, derrota de Pacman, pitidos de la cuenta, un sonido por poder (atravesar, saltar, impulso, colocar fruta, explosión) y romper un muro | HU-48, HU-41 |
 | 58 | Sprites: celdas y sprites de 16 × 16 px; el mapa (448 × 496 px) se escala por un entero. Cada sprite usa roles de color (cuerpo, contorno, ojos, detalle) y una skin es una paleta para esos roles. Cada tipo de fantasma tiene un rasgo de forma que no depende del color: espectro con borde ondulado y transparencia, saltarín con resortes, naval con gorro, acelerado con líneas de velocidad, clásico con la forma tradicional. El estado vulnerable (azul con parpadeo blanco) tiene prioridad sobre cualquier skin. Cuadros: Pacman 3 por dirección, derrota unos 10, fantasmas 2 con ojos que miran hacia donde avanzan, vulnerables 2 más el parpadeo, ojos en 4 direcciones | HU-50, HU-40 |
 | 59 | Modo de prueba: las duraciones de la cuenta, del "¡Listo!" y de las animaciones son parámetros de la configuración de la partida. El núcleo usa 0 por defecto. En el navegador, `?modoPrueba=1` las pone en 0 y silencia el audio. El parámetro solo se acepta en builds de prueba (variable de entorno de build), no en el despliegue de Vercel, para que un jugador no pueda saltear la cuenta | Incremento 21 |
+| 60 | Dos proyectos de Supabase, creados y administrados por D. Savoia: producción (conectado a Vercel) y prueba (con datos de prueba precargados). En el navegador y en Vercel va solo la URL y la clave pública de cada proyecto; la clave de servicio no va nunca al repositorio ni a Vercel | HU-35 a HU-42 |
+| 61 | Autenticación: email sintético a partir del username en minúsculas (`<username>@ghostman.invalid`), con la confirmación por email desactivada; si Supabase rechaza ese dominio, se usa otro dominio sintético. El username no distingue mayúsculas, tampoco para la unicidad, y se muestra como se registró. El perfil se crea en la misma transacción que el usuario, así que un registro rechazado no deja nada creado. Las reglas de la contraseña se validan en el formulario y en la configuración de Supabase. El mensaje de error del login es único, y la sesión persiste al recargar | HU-35, HU-36 |
+| 62 | Tablas: `profiles` (username, skins de Pacman y de los fantasmas, volumen de música y de efectos de 0 a 100) y `best_scores` (una fila por usuario y modo, con el mejor puntaje y la fecha). El top 10 sale de `best_scores` y cada jugador aparece una vez por modo. **Empates:** queda arriba el puntaje logrado antes. Permisos: con sesión iniciada se leen los usernames y los tableros; cada usuario modifica solo sus preferencias; nadie escribe puntajes directamente | HU-38, HU-39, HU-40, HU-41 |
+| 63 | Los puntajes se guardan solo con una función de la base de datos que valida el modo, rechaza puntajes por encima del máximo posible de cada modo y actualiza solo si supera el mejor personal. Que un usuario pueda enviar un puntaje inventado dentro del rango es una limitación conocida, que se registra en el análisis de riesgos | HU-39 |
+| 64 | Salir del juego detiene el bucle y el audio y muestra "¡Gracias por jugar!" con un botón para volver a entrar. No cierra la sesión | HU-42 |
+| 65 | Sin conexión: al terminar la partida se muestra el resultado con "No se pudo guardar el puntaje" y un botón para reintentar, sin cola local. En el registro y el login se muestra un error general | HU-35, HU-36, HU-39 |
+| 66 | Para jugar hace falta sesión iniciada (HU-37). Todos los casos manuales de la V1 y la V2 suman la precondición "sesión iniciada con el usuario de prueba", y los scripts de navegador inician sesión contra el proyecto de prueba. Las pruebas del núcleo no cambian | HU-37, regresión |
 
 ---
 
@@ -103,13 +110,15 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 - [x] Definir un **modo de prueba** (decisión 59) que saltee la cuenta regresiva y las animaciones, para que `scripts/verify/` siga funcionando
 
 ### Cuentas y puntajes (HU-35 a HU-42)
-- [ ] Crear el proyecto de Supabase y registrar quién lo administra
+- [ ] Crear los proyectos de Supabase de producción y de prueba (D. Savoia, decisión 60) y pasar la URL y la clave pública de cada uno
 - [ ] Cargar las variables de entorno en Vercel y en `.env.local` (el archivo no se sube al repositorio)
-- [ ] Decidir cómo se autentica un *username* sin email. Supabase Auth trabaja con email, así que la propuesta es un email sintético (`<username en minúsculas>@ghostman.invalid`), que además resuelve que el username no distinga mayúsculas (HU-36)
-- [ ] Definir el esquema: `profiles` (username único, skins, volúmenes) y `scores` (usuario, modo, puntaje, fecha), con políticas RLS
-- [ ] Definir cómo se registra un puntaje para que un usuario no pueda escribir puntajes arbitrarios desde la consola. Mínimo: RLS por usuario y validación de rangos
-- [ ] Definir la "pantalla de salida" de la HU-42 en un juego web
-- [ ] Definir qué pasa al terminar una partida sin conexión a Supabase
+- [x] Decidir cómo se autentica un *username* sin email (decisión 61). Supabase Auth trabaja con email, así que la propuesta es un email sintético (`<username en minúsculas>@ghostman.invalid`), que además resuelve que el username no distinga mayúsculas (HU-36)
+- [x] Definir el esquema (decisión 62): `profiles` (username único, skins, volúmenes) y `scores` (usuario, modo, puntaje, fecha), con políticas RLS
+- [x] Definir cómo se registra un puntaje (decisión 63) para que un usuario no pueda escribir puntajes arbitrarios desde la consola. Mínimo: RLS por usuario y validación de rangos
+- [x] Definir la "pantalla de salida" de la HU-42 en un juego web (decisión 64)
+- [x] Definir qué pasa al terminar una partida sin conexión a Supabase (decisión 65)
+- [ ] En Supabase: desactivar la confirmación por email y configurar las reglas de contraseña (mínimo 8, letras y números)
+- [ ] Crear en el proyecto de prueba el usuario de prueba y los datos de prueba de los tableros
 
 ### Documentación
 - [ ] Crear `TP/entrega-03.md` con la estructura de `entrega-02.md`
@@ -213,6 +222,7 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 
 - [ ] Detallar los CP-106 a CP-140 con el formato completo, ajustados a las decisiones de la V3
 - [ ] Agregar los casos nuevos de las HU-44 a HU-50 desde el CP-164
+- [ ] Agregar a todos los casos de la V1 y la V2 la precondición de sesión iniciada (decisión 66)
 - [ ] Ajustar los casos afectados de la V1 y la V2. Como mínimo: CP-055 y CP-058 (espectro y mapas), CP-087 y CP-089 (saltarín), los del acelerado y el naval, y todos los que dependen de la posición de aparición de los fantasmas o de la cuenta de esferas
 - [ ] Mutar los casos de prioridad Alta de la V1 y la V2 para la regresión
 - [ ] Construir la matriz de trazabilidad
