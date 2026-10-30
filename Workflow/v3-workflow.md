@@ -123,7 +123,7 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 ### Documentación
 - [x] Crear `TP/entrega-03.md` con la estructura de `entrega-02.md`
 - [x] Redactar las HU-44 a HU-50 y los ajustes a las HU-24, HU-29, HU-30, HU-31 y HU-43 (sección "Ajustes a las historias de usuario")
-- [ ] Actualizar el documento de historias de usuario
+- [x] Actualizar el documento de historias de usuario
 - [x] Registrar las decisiones 41 en adelante con su fundamento (sección 5 de `entrega-03.md`)
 - [ ] Redactar los prompts 17 en adelante
 - [ ] Definir quién conduce los prompts y quién registra la sesión (no puede ser la misma persona)

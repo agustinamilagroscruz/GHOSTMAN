@@ -350,19 +350,20 @@ La numeración continúa la de la Entrega 02 (decisiones 17 a 40). Se aplica el 
 
 ### 6.1 Cambios a historias existentes
 
-Estos criterios de aceptación de `entrega-01.md` cambian por las decisiones de la sección 5. Se modifican en el documento de historias de usuario una vez que el equipo las revise, y se registran acá para la trazabilidad.
+Estos criterios de aceptación de `entrega-01.md` cambian por las decisiones de la sección 5. Ya están aplicados en el documento de historias de usuario (`GhostMan — Historias de usuario.docx`), con la decisión entre paréntesis, y se registran acá para la trazabilidad. Si el equipo modifica una decisión, hay que corregir los dos documentos.
 
 | HU | Criterio actual | Criterio ajustado | Decisión |
 |---|---|---|---|
 | HU-02 | "Pacman no puede salir de los límites del mapa" | "Pacman no puede salir de los límites del mapa, salvo por el túnel, que lo lleva al borde opuesto" | 48 |
-| HU-07 | "El fantasma comido vuelve a su punto de reaparición y reaparece a los 5 segundos con su comportamiento normal" | "El fantasma comido queda reducido a sus ojos, que vuelven a la base; al entrar, el fantasma revive y vuelve a salir con su comportamiento normal" | 46 |
+| HU-06 | "El fantasma comido vuelve a su punto de reaparición y reaparece a los 5 segundos con su comportamiento normal" | "El fantasma comido queda reducido a sus ojos, que vuelven a la base; al entrar, el fantasma revive y vuelve a salir con su comportamiento normal" | 46 |
 | HU-18 | "El espectro no puede usar su habilidad para salir de los límites del mapa" | Se agrega: "ni para atravesar los muros de la base de los fantasmas" | 26, 49 |
 | HU-25 | — | Se agrega: "El fantasma del jugador arranca dentro de la base y sale cuando el jugador lo mueve hacia la puerta" | 34, 45 |
 | HU-27 | "Con el PowerUp activo, el contacto con Pacman envía al fantasma del jugador a su punto de reaparición" | "Con el PowerUp activo, el contacto con Pacman reduce al fantasma del jugador a sus ojos, que vuelven solos a la base" | 46 |
 | HU-27 | "El jugador no controla al fantasma durante el tiempo de reaparición, y el tiempo restante se indica en pantalla" | "El jugador no controla al fantasma mientras sus ojos vuelven a la base, y recupera el control al revivir" | 46 |
 | HU-27 | "El tiempo de reaparición es de 5 segundos, u 8 segundos si el fantasma del jugador es de tipo naval" | "Si el fantasma del jugador es de tipo naval, espera 3 segundos dentro de la base antes de poder salir" | 46 |
-| HU-27 | "El poder del fantasma no puede activarse mientras está esperando reaparecer" | Se agrega: "El cooldown del poder sigue corriendo mientras el fantasma está comido" | 47 |
+| HU-27 | "El poder del fantasma no puede activarse mientras está esperando reaparecer" | "El poder del fantasma no puede activarse mientras está comido, pero su cooldown sigue corriendo" | 47 |
 | HU-28 | "La habilidad no puede usarse para salir de los límites del mapa" | Se agrega: "ni para atravesar los muros de la base de los fantasmas" | 49 |
+| HU-29 | Título: "Teletransportarse con el Saltarín". Historia: "quiero teletransportarme a un punto cercano con el Saltarín para acortar distancias con Pacman, aceptando el riesgo de no elegir el destino" | Título: "Saltar hacia adelante con el Saltarín". Historia: "quiero saltar hacia adelante con el Saltarín para acortar distancias con Pacman, aceptando el riesgo de no elegir la celda exacta de destino" | 38 |
 | HU-29 | "La barra espaciadora teletransporta al fantasma a una celda aleatoria dentro de un radio de 10 celdas" | "La barra espaciadora hace saltar al fantasma a una celda aleatoria dentro de un radio de 10 celdas, estrictamente adelante en su dirección de avance" | 38, 41 |
 | HU-29 | "El destino no es elegible ni predecible por el jugador" | "La celda de destino no es elegible por el jugador: elige hacia dónde salta, no a qué celda" | 38 |
 | HU-29 | — | Se agrega: "El salto dura 0,6 segundos y la celda de destino se marca antes del aterrizaje", "Durante el salto el fantasma no colisiona con nada" y "Si no hay ninguna celda válida adelante, el salto no se ejecuta y el poder no entra en cooldown" | 41, 55 |
@@ -373,7 +374,7 @@ Estos criterios de aceptación de `entrega-01.md` cambian por las decisiones de 
 | HU-31 | "Si el dash termina sobre Pacman y Pacman no tiene el PowerUp activo, Pacman pierde una vida" | "Si el dash pasa por Pacman o termina sobre él y Pacman no tiene el PowerUp activo, Pacman pierde una vida" | 32, 54 |
 | HU-31 | "El dash no atraviesa paredes ni los límites del mapa" | Se agrega: "salvo por el túnel, que lo lleva al borde opuesto" | 48 |
 | HU-33 | — | Se agrega: "Los muros de la base de los fantasmas y los del borde del mapa son indestructibles" | 49 |
-| HU-43 | "El saltarín de la IA se teletransporta según las reglas de la sección 4.6" | "El saltarín de la IA salta según las reglas de la sección 4.4 de la Entrega 03" | 38 |
+| HU-43 | "El saltarín de la IA se teletransporta según las reglas de la sección 4.6 de la Entrega 02 cuando Pacman está a distancia Manhattan ≤ 10" | "El saltarín de la IA salta según las reglas de la sección 4.4 de la Entrega 03 cuando Pacman está a distancia Manhattan ≤ 10" | 38 |
 
 ### 6.2 Historias nuevas
 
@@ -633,8 +634,7 @@ Especificación de la V3 cerrada por D. Savoia (decisiones 41 a 66). Sin increme
 | 5 | Confirmar y verificar DEF-002 con otro integrante | Pendiente 14 de la Entrega 02 | `[completar]` |
 | 6 | Subir el tag `v1.0` al remoto y crear el tag `v2.0` | Pendiente 15 de la Entrega 02 | Savoia |
 | 7 | Crear los proyectos de Supabase y pasar la URL y la clave pública de cada uno | Decisión 60 | Savoia |
-| 8 | Pasar los ajustes de la sección 6.1 y las HU-44 a HU-50 al documento de historias de usuario | Sección 6 | `[completar]` |
-| 9 | Definir quién conduce los prompts y quién registra la sesión | Sección 7 | Equipo completo |
+| 8 | Definir quién conduce los prompts y quién registra la sesión | Sección 7 | Equipo completo |
 
 ---
 
