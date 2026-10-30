@@ -21,6 +21,10 @@ export function renderMap(
         drawWallCell(ctx, x, y, cellSize, theme);
         continue;
       }
+      if (map.cells[row][col] === "door") {
+        drawDoorCell(ctx, x, y, cellSize);
+        continue;
+      }
 
       const pellet = map.pellets[row][col];
       if (pellet === "pellet") {
@@ -54,6 +58,14 @@ function drawWallCell(
   ctx.strokeStyle = theme.wallOutline;
   ctx.lineWidth = Math.max(1, size * 0.06);
   ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
+}
+
+const DOOR_COLOR = "#ffb8ff";
+
+/** Puerta de la base de los fantasmas (HU-44): una barra fina, como en el original. */
+function drawDoorCell(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  ctx.fillStyle = DOOR_COLOR;
+  ctx.fillRect(x, y + size * 0.42, size, size * 0.16);
 }
 
 function drawDot(
@@ -355,4 +367,49 @@ export function renderWallFlash(ctx: CanvasRenderingContext2D, row: number, col:
     ctx.fillRect(x + cellSize / 2 + dx * (cellSize * 0.2 + spread) - piece / 2, y + cellSize / 2 + dy * (cellSize * 0.2 + spread) - piece / 2, piece, piece);
   }
   ctx.restore();
+}
+
+/** Ojos de un fantasma comido que vuelve a la base (decisión 46): sin cuerpo, mirando hacia donde va. */
+export function renderGhostEyes(
+  ctx: CanvasRenderingContext2D,
+  row: number,
+  col: number,
+  cellSize: number,
+  direction: Direction | null
+): void {
+  const centerX = col * cellSize + cellSize / 2;
+  const centerY = row * cellSize + cellSize / 2;
+  const radius = cellSize * 0.45;
+  const eyeOffsetX = radius * 0.4;
+  const eyeRadius = radius * 0.24;
+  const [lookRow, lookCol] = direction ? DIRECTION_LOOK[direction] : [0, 0];
+  for (const side of [-1, 1]) {
+    const eyeX = centerX + side * eyeOffsetX;
+    const eyeY = centerY - radius * 0.15;
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(eyeX, eyeY, eyeRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#2121de";
+    ctx.beginPath();
+    ctx.arc(eyeX + lookCol * eyeRadius * 0.45, eyeY + lookRow * eyeRadius * 0.45, eyeRadius * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+const DIRECTION_LOOK: Readonly<Record<Direction, readonly [number, number]>> = {
+  up: [-1, 0],
+  down: [1, 0],
+  left: [0, -1],
+  right: [0, 1],
+};
+
+/**
+ * Dibuja un personaje a mitad del túnel en los dos bordes (decisión 50): la copia que queda fuera
+ * del canvas se recorta sola, así que se ve una parte en cada borde y nada pisa el HUD.
+ */
+export function drawWrapped(cols: number, col: number, draw: (col: number) => void): void {
+  draw(col);
+  if (col > cols - 1) draw(col - cols);
+  else if (col < 0) draw(col + cols);
 }

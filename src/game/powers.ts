@@ -1,6 +1,7 @@
 import { canPlaceFakeFruit, createFakeFruit, NAVAL_PLACE_COOLDOWN_SECONDS, type FakeFruit } from "./fakeFruits";
 import { ACCELERATED_SLOW_FACTOR, SPECTER_PHASE_COOLDOWN_SECONDS, speedForKind, type Ghost } from "./ghosts";
-import { canEnterCell, DIRECTION_VECTORS, getMoverPosition } from "./movement";
+import { isPhaseableWall } from "./ghosts";
+import { canEnterCell, cellAt, DIRECTION_VECTORS, getMoverPosition, isHouseCell, isTunnelCell, neighborCell } from "./movement";
 import type { GameMap } from "./types";
 
 // Poderes de los fantasmas (sección 4.6 de la V2). Cada función intenta usar el poder y
@@ -27,10 +28,6 @@ export interface PowerContext {
   fakeFruits: FakeFruit[];
 }
 
-function isWallInsideMap(map: GameMap, row: number, col: number): boolean {
-  return row >= 0 && row < map.rows && col >= 0 && col < map.cols && map.cells[row][col] === "wall";
-}
-
 /**
  * Espectro: atraviesa el muro de una celda contiguo en la dirección de avance, si del otro
  * lado hay una celda transitable (nunca sale del mapa: el borde no tiene "otro lado").
@@ -40,13 +37,14 @@ function isWallInsideMap(map: GameMap, row: number, col: number): boolean {
 export function trySpecterPhase(ghost: Ghost, map: GameMap): boolean {
   const facing = ghost.facing;
   if (!facing) return false;
-  const [dRow, dCol] = DIRECTION_VECTORS[facing];
   const moving = ghost.progress > 0;
-  const fromRow = moving ? ghost.row + dRow : ghost.row;
-  const fromCol = moving ? ghost.col + dCol : ghost.col;
+  const from = moving ? neighborCell(map, ghost.row, ghost.col, facing) : { row: ghost.row, col: ghost.col };
+  const wall = neighborCell(map, from.row, from.col, facing);
+  const exit = neighborCell(map, wall.row, wall.col, facing);
 
-  if (!isWallInsideMap(map, fromRow + dRow, fromCol + dCol)) return false;
-  if (!canEnterCell(map, fromRow + 2 * dRow, fromCol + 2 * dCol)) return false;
+  // Ni el borde del mapa ni los muros de la base (decisiones 26 y 49).
+  if (!isPhaseableWall(map, wall.row, wall.col)) return false;
+  if (!canEnterCell(map, exit.row, exit.col)) return false;
 
   ghost.powerCooldown = SPECTER_PHASE_COOLDOWN_SECONDS;
   ghost.direction = facing;
@@ -70,8 +68,7 @@ export function tryJumperTeleport(ghost: Ghost, map: GameMap, random: RandomSour
   if (!facing) return false;
   const [aheadRow, aheadCol] = DIRECTION_VECTORS[facing];
   const position = getMoverPosition(ghost);
-  const originRow = Math.round(position.row);
-  const originCol = Math.round(position.col);
+  const { row: originRow, col: originCol } = cellAt(map, position);
 
   const candidates: Array<{ row: number; col: number }> = [];
   for (let row = originRow - JUMPER_RADIUS_CELLS; row <= originRow + JUMPER_RADIUS_CELLS; row++) {
@@ -80,7 +77,8 @@ export function tryJumperTeleport(ghost: Ghost, map: GameMap, random: RandomSour
       // Adelante: el avance sobre el eje de la dirección tiene que ser positivo.
       const ahead = (row - originRow) * aheadRow + (col - originCol) * aheadCol;
       if (ahead <= 0) continue;
-      if (canEnterCell(map, row, col)) candidates.push({ row, col });
+      // Nunca dentro de la base (decisión 49). La distancia Manhattan no cruza el túnel (decisión 48).
+      if (canEnterCell(map, row, col) && !isHouseCell(map, row, col)) candidates.push({ row, col });
     }
   }
   if (candidates.length === 0) return false;
@@ -92,8 +90,8 @@ export function tryJumperTeleport(ghost: Ghost, map: GameMap, random: RandomSour
   ghost.powerCooldown = JUMPER_COOLDOWN_SECONDS;
   // Conserva la dirección de avance si puede seguir; si no, queda detenido.
   if (ghost.facing) {
-    const [dRow, dCol] = DIRECTION_VECTORS[ghost.facing];
-    ghost.direction = canEnterCell(map, target.row + dRow, target.col + dCol) ? ghost.facing : null;
+    const ahead = neighborCell(map, target.row, target.col, ghost.facing);
+    ghost.direction = canEnterCell(map, ahead.row, ahead.col) ? ghost.facing : null;
   }
   return true;
 }
@@ -102,10 +100,10 @@ export function tryJumperTeleport(ghost: Ghost, map: GameMap, random: RandomSour
  * Naval: coloca una fruta falsa en la celda que ocupa. Máximo 2 en el mapa y una por celda;
  * si no se puede colocar, el poder no se consume (decisión 25).
  */
-export function tryNavalPlaceFruit(ghost: Ghost, fakeFruits: FakeFruit[]): boolean {
-  const position = getMoverPosition(ghost);
-  const row = Math.round(position.row);
-  const col = Math.round(position.col);
+export function tryNavalPlaceFruit(ghost: Ghost, fakeFruits: FakeFruit[], map: GameMap): boolean {
+  const { row, col } = cellAt(map, getMoverPosition(ghost));
+  // Ni en la base ni en el túnel (decisión 49).
+  if (isHouseCell(map, row, col) || isTunnelCell(map, row, col)) return false;
   if (!canPlaceFakeFruit(fakeFruits, row, col)) return false;
   fakeFruits.push(createFakeFruit(row, col));
   ghost.powerCooldown = NAVAL_PLACE_COOLDOWN_SECONDS;
@@ -123,15 +121,12 @@ export function tryNavalPlaceFruit(ghost: Ghost, fakeFruits: FakeFruit[]): boole
 export function tryAcceleratedDash(ghost: Ghost, map: GameMap): boolean {
   const facing = ghost.facing;
   if (!facing) return false;
-  const [dRow, dCol] = DIRECTION_VECTORS[facing];
-  const position = getMoverPosition(ghost);
-  let row = Math.round(position.row);
-  let col = Math.round(position.col);
+  let { row, col } = cellAt(map, getMoverPosition(ghost));
 
   let cells = 0;
-  while (cells < DASH_MAX_CELLS && canEnterCell(map, row + dRow, col + dCol)) {
-    row += dRow;
-    col += dCol;
+  for (let next = neighborCell(map, row, col, facing); cells < DASH_MAX_CELLS && canEnterCell(map, next.row, next.col); next = neighborCell(map, row, col, facing)) {
+    row = next.row;
+    col = next.col;
     cells += 1;
   }
   if (cells === 0) return false;
@@ -139,7 +134,8 @@ export function tryAcceleratedDash(ghost: Ghost, map: GameMap): boolean {
   ghost.row = row;
   ghost.col = col;
   ghost.progress = 0;
-  ghost.direction = canEnterCell(map, row + dRow, col + dCol) ? facing : null;
+  const ahead = neighborCell(map, row, col, facing);
+  ghost.direction = canEnterCell(map, ahead.row, ahead.col) ? facing : null;
   ghost.powerCooldown = DASH_COOLDOWN_SECONDS;
   ghost.slowTimer = DASH_SLOW_SECONDS;
   ghost.speed = speedForKind(ghost.kind) * ghost.speedFactor * ACCELERATED_SLOW_FACTOR;
@@ -151,14 +147,15 @@ export function tryAcceleratedDash(ghost: Ghost, map: GameMap): boolean {
  * en pleno cruce, o si su tipo no tiene poder (clásico) o todavía no está implementado.
  */
 export function tryActivateGhostPower(ghost: Ghost, context: PowerContext): boolean {
-  if (ghost.eaten || ghost.powerCooldown > 0 || ghost.phaseCellsLeft > 0 || ghost.phasePending) return false;
+  // Dentro de la base no se usa el poder: el saltarín no puede salir sin pasar por la puerta.
+  if (ghost.eaten || ghost.inHouse || ghost.powerCooldown > 0 || ghost.phaseCellsLeft > 0 || ghost.phasePending) return false;
   switch (ghost.kind) {
     case "specter":
       return trySpecterPhase(ghost, context.map);
     case "jumper":
       return tryJumperTeleport(ghost, context.map, context.random);
     case "naval":
-      return tryNavalPlaceFruit(ghost, context.fakeFruits);
+      return tryNavalPlaceFruit(ghost, context.fakeFruits, context.map);
     case "accelerated":
       return tryAcceleratedDash(ghost, context.map);
     default:

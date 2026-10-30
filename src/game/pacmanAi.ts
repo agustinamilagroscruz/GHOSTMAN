@@ -1,5 +1,5 @@
 import { canGhostHarm, type Ghost } from "./ghosts";
-import { canEnterCell, DIRECTION_VECTORS, getMoverPosition, type Direction, type Mover } from "./movement";
+import { canEnterCell, cellAt, getMoverPosition, neighborCell, type Direction, type Mover } from "./movement";
 import { isInteriorWall, WALL_PATH_COST } from "./difficulty";
 import type { GameMap } from "./types";
 
@@ -39,9 +39,8 @@ export interface PacmanAiView {
 }
 
 /** Celda transitable más cercana a la posición interpolada de un fantasma. */
-function ghostCell(ghost: Ghost): Cell {
-  const position = getMoverPosition(ghost);
-  return { row: Math.round(position.row), col: Math.round(position.col) };
+function ghostCell(map: GameMap, ghost: Ghost): Cell {
+  return cellAt(map, getMoverPosition(ghost));
 }
 
 /** Celdas que la IA trata como muros además de los del mapa (frutas falsas que recuerda). */
@@ -70,8 +69,7 @@ function distancesFrom(map: GameMap, sources: readonly Cell[]): number[][] {
   for (let head = 0; head < queue.length; head++) {
     const { row, col } = queue[head];
     for (const direction of TIE_BREAK_ORDER) {
-      const [dRow, dCol] = DIRECTION_VECTORS[direction];
-      const next = { row: row + dRow, col: col + dCol };
+      const next = neighborCell(map, row, col, direction);
       if (!canEnterCell(map, next.row, next.col) || dist[next.row][next.col] !== Infinity) continue;
       dist[next.row][next.col] = dist[row][col] + 1;
       queue.push(next);
@@ -95,8 +93,7 @@ function searchFrom(map: GameMap, origin: Cell, blocked: Blocked = NOTHING_BLOCK
   for (let head = 0; head < queue.length; head++) {
     const { row, col } = queue[head];
     for (const direction of TIE_BREAK_ORDER) {
-      const [dRow, dCol] = DIRECTION_VECTORS[direction];
-      const next = { row: row + dRow, col: col + dCol };
+      const next = neighborCell(map, row, col, direction);
       if (!canPacmanEnter(map, blocked, next.row, next.col) || dist[next.row][next.col] !== Infinity) continue;
       dist[next.row][next.col] = dist[row][col] + 1;
       firstStep[next.row][next.col] = head === 0 ? direction : firstStep[row][col];
@@ -108,40 +105,36 @@ function searchFrom(map: GameMap, origin: Cell, blocked: Blocked = NOTHING_BLOCK
 
 /**
  * Variante de `searchFrom` con cargas de destrucción: Dijkstra en el que entrar a un muro
- * interior cuesta 3 y a un camino 1. Los bordes del mapa siguen siendo infranqueables.
+ * interior cuesta 3 y a un camino 1. Los bordes del mapa y la base siguen siendo infranqueables.
+ * Como los costos son enteros y chicos, la cola de prioridad es una cola por distancia (buckets).
  */
 function searchThroughWalls(map: GameMap, origin: Cell, blocked: Blocked = NOTHING_BLOCKED): PathSearch {
   const dist = createGrid(map, Infinity);
   const firstStep: (Direction | null)[][] = Array.from({ length: map.rows }, () => new Array(map.cols).fill(null));
   const done = createGrid(map, 0);
+  const buckets: Cell[][] = [[origin]];
   dist[origin.row][origin.col] = 0;
-  for (;;) {
-    // Selección del nodo pendiente más cercano (el mapa tiene 255 celdas: alcanza con un barrido).
-    let current: Cell | null = null;
-    let currentDist = Infinity;
-    for (let row = 0; row < map.rows; row++) {
-      for (let col = 0; col < map.cols; col++) {
-        if (!done[row][col] && dist[row][col] < currentDist) {
-          currentDist = dist[row][col];
-          current = { row, col };
-        }
+  for (let distance = 0; distance < buckets.length; distance++) {
+    // Dentro de un bucket se respeta el orden de llegada, como en la versión anterior por barrido.
+    const bucket = buckets[distance] ?? [];
+    bucket.sort((a, b) => a.row - b.row || a.col - b.col);
+    for (const current of bucket) {
+      if (done[current.row][current.col] || dist[current.row][current.col] !== distance) continue;
+      done[current.row][current.col] = 1;
+      const isOrigin = current.row === origin.row && current.col === origin.col;
+      for (const direction of TIE_BREAK_ORDER) {
+        const next = neighborCell(map, current.row, current.col, direction);
+        if (blocked.has(cellKey(next.row, next.col))) continue;
+        let cost: number;
+        if (canEnterCell(map, next.row, next.col)) cost = 1;
+        else if (isInteriorWall(map, next.row, next.col)) cost = WALL_PATH_COST;
+        else continue;
+        const candidate = distance + cost;
+        if (candidate >= dist[next.row][next.col]) continue;
+        dist[next.row][next.col] = candidate;
+        firstStep[next.row][next.col] = isOrigin ? direction : firstStep[current.row][current.col];
+        (buckets[candidate] ??= []).push(next);
       }
-    }
-    if (!current) break;
-    done[current.row][current.col] = 1;
-    const isOrigin = current.row === origin.row && current.col === origin.col;
-    for (const direction of TIE_BREAK_ORDER) {
-      const [dRow, dCol] = DIRECTION_VECTORS[direction];
-      const next = { row: current.row + dRow, col: current.col + dCol };
-      let cost: number;
-      if (blocked.has(cellKey(next.row, next.col))) continue;
-      if (canEnterCell(map, next.row, next.col)) cost = 1;
-      else if (isInteriorWall(map, next.row, next.col)) cost = WALL_PATH_COST;
-      else continue;
-      const candidate = currentDist + cost;
-      if (candidate >= dist[next.row][next.col]) continue;
-      dist[next.row][next.col] = candidate;
-      firstStep[next.row][next.col] = isOrigin ? direction : firstStep[current.row][current.col];
     }
   }
   return { dist, firstStep };
@@ -184,9 +177,7 @@ function fleeDirection(map: GameMap, from: Cell, dangerDist: number[][], blocked
   let best: Direction | null = null;
   let bestDistance = -Infinity;
   for (const direction of TIE_BREAK_ORDER) {
-    const [dRow, dCol] = DIRECTION_VECTORS[direction];
-    const row = from.row + dRow;
-    const col = from.col + dCol;
+    const { row, col } = neighborCell(map, from.row, from.col, direction);
     if (!canPacmanEnter(map, blocked, row, col)) continue;
     const distance = dangerDist[row][col];
     if (distance > bestDistance) {
@@ -207,7 +198,7 @@ export function decidePacmanDirection(view: PacmanAiView): Direction | null {
   const blocked: Blocked = new Set((view.knownFakeFruits ?? []).map((fruit) => cellKey(fruit.row, fruit.col)));
 
   // 1. Huir de un fantasma que puede dañarlo.
-  const dangerous = ghosts.filter((ghost) => canGhostHarm(ghost)).map(ghostCell);
+  const dangerous = ghosts.filter((ghost) => canGhostHarm(ghost)).map((ghost) => ghostCell(map, ghost));
   if (dangerous.length > 0) {
     const dangerDist = distancesFrom(map, dangerous);
     if (dangerDist[from.row][from.col] <= PACMAN_FLEE_DISTANCE) {
@@ -220,7 +211,7 @@ export function decidePacmanDirection(view: PacmanAiView): Direction | null {
 
   // 2. Con el PowerUp, perseguir al fantasma vulnerable más cercano.
   if (view.powerUpActive) {
-    const vulnerable = ghosts.filter((ghost) => ghost.vulnerable && !ghost.eaten).map(ghostCell);
+    const vulnerable = ghosts.filter((ghost) => ghost.vulnerable && !ghost.eaten).map((ghost) => ghostCell(map, ghost));
     const step = stepTowardNearest(search, vulnerable, PACMAN_HUNT_DISTANCE);
     if (step) return step;
   }
@@ -247,8 +238,7 @@ export function pathDistanceWithin(map: GameMap, from: Cell, to: Cell, limit: nu
     const { row, col } = queue[head];
     if (dist[row][col] >= limit) continue;
     for (const direction of TIE_BREAK_ORDER) {
-      const [dRow, dCol] = DIRECTION_VECTORS[direction];
-      const next = { row: row + dRow, col: col + dCol };
+      const next = neighborCell(map, row, col, direction);
       if (!canEnterCell(map, next.row, next.col) || dist[next.row][next.col] !== Infinity) continue;
       dist[next.row][next.col] = dist[row][col] + 1;
       if (next.row === to.row && next.col === to.col) return dist[next.row][next.col];

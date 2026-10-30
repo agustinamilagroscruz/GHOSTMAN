@@ -1,7 +1,10 @@
+import { canCrossDoor } from "./house";
 import {
   canEnterCell,
-  DIRECTION_VECTORS,
   getOppositeDirection,
+  isHouseCell,
+  isTunnelCell,
+  neighborCell,
   updateMover,
   type Direction,
   type Mover,
@@ -26,6 +29,10 @@ export const NAVAL_SPEED_FACTOR = 0.8;
 export const ACCELERATED_SLOW_FACTOR = 0.5;
 export const SPECTER_PHASE_COOLDOWN_SECONDS = 10;
 export const SPECTER_NO_EAT_SECONDS = 3;
+/** En las celdas del túnel los fantasmas van al 50 % de su velocidad (decisión 48). */
+export const TUNNEL_SPEED_FACTOR = 0.5;
+/** Los ojos de un fantasma comido vuelven a la base al doble de la velocidad del clásico (decisión 46). */
+export const EYES_SPEED = CLASSIC_GHOST_SPEED * 2;
 /** El espectro atraviesa el muro solo si del otro lado queda al menos esta distancia (en celdas) más cerca del objetivo. */
 const SPECTER_MIN_GAIN_CELLS = 1;
 
@@ -41,9 +48,18 @@ export interface Ghost extends Mover {
   speed: number;
   /** Diseño vulnerable: huye de Pacman y puede ser comido (PowerUp activo). */
   vulnerable: boolean;
-  /** Comido y fuera del mapa, esperando reaparecer en `spawn`. */
+  /**
+   * Comido (decisión 46): mientras está fuera de la base son sus ojos, que vuelven a la base; ya
+   * adentro, espera `respawnTimer` segundos (3 el naval, 0 el resto) y revive.
+   */
   eaten: boolean;
   respawnTimer: number;
+  /** Dentro de la base de los fantasmas. Al llegar a la celda de salida, sobre la puerta, deja de estarlo. */
+  inHouse: boolean;
+  /** Fantasma de la IA dentro de la base: segundos hasta empezar a salir (decisión 45). */
+  releaseTimer: number;
+  /** Segundos de espera para salir al empezar el nivel o después de perder una vida. */
+  releaseDelay: number;
   /** Segundos hasta poder volver a usar el poder (cualquier tipo). Sobrevive al reinicio del nivel. */
   powerCooldown: number;
   /**
@@ -101,6 +117,9 @@ export function createGhost(
     vulnerable: false,
     eaten: false,
     respawnTimer: 0,
+    inHouse: false,
+    releaseTimer: 0,
+    releaseDelay: 0,
     powerCooldown: 0,
     facing: null,
     phasePending: false,
@@ -176,12 +195,10 @@ function chooseDirection(
   for (const direction of ALL_DIRECTIONS) {
     if (direction === forbidden) continue;
 
-    const [dRow, dCol] = DIRECTION_VECTORS[direction];
-    const nextRow = row + dRow;
-    const nextCol = col + dCol;
-    if (!canEnterCell(map, nextRow, nextCol)) continue;
+    const next = neighborCell(map, row, col, direction);
+    if (!canEnterCell(map, next.row, next.col)) continue;
 
-    const distance = squaredDistance(nextRow, nextCol, targetRow, targetCol);
+    const distance = squaredDistance(next.row, next.col, targetRow, targetCol);
     if (distance < bestDistance) {
       bestDistance = distance;
       bestDirection = direction;
@@ -190,10 +207,10 @@ function chooseDirection(
 
   // Callejón sin salida: revertir es la única opción posible.
   if (!bestDirection && forbidden) {
-    const [dRow, dCol] = DIRECTION_VECTORS[forbidden];
-    if (canEnterCell(map, row + dRow, col + dCol)) {
+    const back = neighborCell(map, row, col, forbidden);
+    if (canEnterCell(map, back.row, back.col)) {
       bestDirection = forbidden;
-      bestDistance = squaredDistance(row + dRow, col + dCol, targetRow, targetCol);
+      bestDistance = squaredDistance(back.row, back.col, targetRow, targetCol);
     }
   }
 
@@ -202,16 +219,11 @@ function chooseDirection(
     let phaseDistance = Infinity;
     for (const direction of ALL_DIRECTIONS) {
       if (direction === forbidden) continue;
-      const [dRow, dCol] = DIRECTION_VECTORS[direction];
-      const wallRow = row + dRow;
-      const wallCol = col + dCol;
-      const exitRow = row + 2 * dRow;
-      const exitCol = col + 2 * dCol;
-      const isWall =
-        wallRow >= 0 && wallRow < map.rows && wallCol >= 0 && wallCol < map.cols && map.cells[wallRow][wallCol] === "wall";
-      // canEnterCell ya descarta salir de los límites del mapa.
-      if (!isWall || !canEnterCell(map, exitRow, exitCol)) continue;
-      const distance = squaredDistance(exitRow, exitCol, targetRow, targetCol);
+      const wall = neighborCell(map, row, col, direction);
+      const exit = neighborCell(map, wall.row, wall.col, direction);
+      // Un muro de una celda dentro del mapa y fuera de la base: ni el borde ni la base (decisiones 26 y 49).
+      if (!isPhaseableWall(map, wall.row, wall.col) || !canEnterCell(map, exit.row, exit.col)) continue;
+      const distance = squaredDistance(exit.row, exit.col, targetRow, targetCol);
       if (distance < phaseDistance) {
         phaseDistance = distance;
         phaseDirection = direction;
@@ -223,6 +235,17 @@ function chooseDirection(
   }
 
   return { direction: bestDirection, phase: false };
+}
+
+/** Muro que el espectro puede atravesar: interior (no el borde) y fuera de la base (decisiones 26 y 49). */
+export function isPhaseableWall(map: GameMap, row: number, col: number): boolean {
+  if (row <= 0 || row >= map.rows - 1 || col <= 0 || col >= map.cols - 1) return false;
+  return map.cells[row][col] === "wall" && !isHouseCell(map, row, col);
+}
+
+/** Factor de velocidad por la celda que ocupa: en el túnel, 50 % (decisión 48). */
+function tunnelFactor(map: GameMap, ghost: Ghost): number {
+  return isTunnelCell(map, ghost.row, ghost.col) ? TUNNEL_SPEED_FACTOR : 1;
 }
 
 function decide(ghost: Ghost, map: GameMap, targetRow: number, targetCol: number, allowPhase: boolean): void {
@@ -256,12 +279,12 @@ export function updateGhost(
 
   if (!ghost.direction) return;
 
-  ghost.progress += ghost.speed * deltaSeconds;
+  ghost.progress += ghost.speed * tunnelFactor(map, ghost) * deltaSeconds;
 
   while (ghost.progress >= 1) {
-    const [dRow, dCol] = DIRECTION_VECTORS[ghost.direction];
-    ghost.row += dRow;
-    ghost.col += dCol;
+    const next = neighborCell(map, ghost.row, ghost.col, ghost.direction);
+    ghost.row = next.row;
+    ghost.col = next.col;
     ghost.progress -= 1;
 
     if (isPhasing(ghost)) {
@@ -293,8 +316,10 @@ export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: numb
   }
 
   ghost.desiredDirection = desiredDirection;
-  updateMover(ghost, map, deltaSeconds);
+  // Dentro de la base puede cruzar la puerta para salir; afuera, la puerta es un muro (decisión 44).
+  updateMover(ghost, map, deltaSeconds, undefined, ghost.inHouse ? canCrossDoor : canEnterCell, tunnelFactor(map, ghost));
   if (ghost.direction) ghost.facing = ghost.direction;
+  if (ghost.inHouse && ghost.progress === 0 && ghost.row < map.house.top) ghost.inHouse = false;
 }
 
 /**
@@ -320,9 +345,9 @@ function advancePlayerPhase(ghost: Ghost, map: GameMap, deltaSeconds: number): v
   ghost.progress += ghost.speed * deltaSeconds;
 
   while (ghost.progress >= 1) {
-    const [dRow, dCol] = DIRECTION_VECTORS[ghost.facing];
-    ghost.row += dRow;
-    ghost.col += dCol;
+    const next = neighborCell(map, ghost.row, ghost.col, ghost.facing);
+    ghost.row = next.row;
+    ghost.col = next.col;
     ghost.progress -= 1;
 
     if (ghost.phasePending) {
@@ -338,22 +363,23 @@ function advancePlayerPhase(ghost: Ghost, map: GameMap, deltaSeconds: number): v
     // celda de salida para que el movimiento normal retome desde ahí.
     ghost.noEatTimer = SPECTER_NO_EAT_SECONDS;
     ghost.progress = 0;
-    if (!canEnterCell(map, ghost.row + dRow, ghost.col + dCol)) ghost.direction = null;
+    const ahead = neighborCell(map, ghost.row, ghost.col, ghost.facing);
+    if (!canEnterCell(map, ahead.row, ahead.col)) ghost.direction = null;
     break;
   }
 }
 
 /** Única excepción a la regla de no reversa: se fuerza al cambiar entre persecución y dispersión. */
-export function reverseGhostDirection(ghost: Ghost): void {
+export function reverseGhostDirection(ghost: Ghost, map: GameMap): void {
   // La reversa forzada es de la IA: al fantasma del jugador lo sigue controlando el jugador.
   if (ghost.controlledByPlayer || !ghost.direction) return;
   // Un espectro a mitad de un muro completa el cruce antes de poder invertir la marcha.
   if (isPhasing(ghost)) return;
 
   if (ghost.progress > 0) {
-    const [dRow, dCol] = DIRECTION_VECTORS[ghost.direction];
-    ghost.row += dRow;
-    ghost.col += dCol;
+    const next = neighborCell(map, ghost.row, ghost.col, ghost.direction);
+    ghost.row = next.row;
+    ghost.col = next.col;
     ghost.progress = 1 - ghost.progress;
   }
 

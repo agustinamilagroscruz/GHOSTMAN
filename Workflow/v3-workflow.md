@@ -6,7 +6,7 @@ Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo 
 
 La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 17, decisiones desde la 41, historias desde la HU-44 y casos de prueba desde el CP-164.
 
-> **Estado al 30/10/2026:** V2 cerrada. Especificación de la V3 cerrada por D. Savoia (decisiones 26, 34, 37, 38 y 41 a 66). Incremento 18 ejecutado.
+> **Estado al 30/10/2026:** V2 cerrada. Especificación de la V3 cerrada por D. Savoia (decisiones 26, 34, 37, 38 y 41 a 66). Incrementos 18 y 19 ejecutados.
 
 ---
 
@@ -75,6 +75,7 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 - [x] Decidir la decisión 37 (memoria de frutas: opción B, *p* = 5 %)
 - [x] Decidir la decisión 38 (saltarín: opción A)
 - [x] Aprobar las decisiones 41 y 42 (detalles de la 37 y la 38)
+- [ ] Decidir si se registra como decisión 67 la interpretación del incremento 19: dentro de la base no se puede usar el poder (tabla 7.5 de `entrega-03.md`, fila 6)
 - [ ] Revisar las decisiones 17 a 36 y pasarlas a Aprobada o Modificada
 - [x] Decidir si el cooldown de los fantasmas de la IA sigue corriendo mientras están comidos (pendiente 6): sí, decisión 47
 - [ ] Validar la explosión de la fruta falsa como derrota en modo GhostMan (pendiente 8)
@@ -144,15 +145,15 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Commit del incremento
 
 ### Incremento 19 — Mapas nuevos, base de los fantasmas y túneles (HU-44, HU-45; decisiones 26 y 34)
-- [ ] Redactar y ejecutar el Prompt 18
-- [ ] Verificar: Pacman no entra a la base, en ningún modo ni con cargas para destruir muros
-- [ ] Verificar: los fantasmas salen de la base cada 3 s (decisión 45), los ojos de los comidos vuelven a la base y el naval espera 3 s adentro (decisión 46)
-- [ ] Verificar: el espectro tiene al menos un cruce válido en cada nivel y nunca atraviesa el borde
-- [ ] Verificar: Pacman, los fantasmas de la IA y el fantasma del jugador cruzan el túnel en los dos sentidos. La IA de Pacman lo usa para huir y los fantasmas lo usan para perseguir. La velocidad dentro del túnel es la definida
-- [ ] Verificar: en una simulación con el jugador quieto, en modo GhostMan gana Pacman y en modo Pacman lo comen
-- [ ] Volver a medir el balance y decidir si se ajustan las 5 cargas de la decisión 22 (decisión 51)
-- [ ] Registrar problemas en la tabla de la sesión
-- [ ] Commit del incremento
+- [x] Redactar y ejecutar el Prompt 18
+- [x] Verificar: Pacman no entra a la base, en ningún modo ni con cargas para destruir muros
+- [x] Verificar: los fantasmas salen de la base cada 3 s (decisión 45), los ojos de los comidos vuelven a la base y el naval espera 3 s adentro (decisión 46)
+- [x] Verificar: el espectro tiene al menos un cruce válido en cada nivel y nunca atraviesa el borde
+- [x] Verificar: Pacman cruza el túnel en los dos sentidos, la IA de Pacman lo usa para llegar a una esfera del otro lado, el contacto se detecta a través del borde y los fantasmas van al 50 % dentro del túnel. La huida de Pacman y la persecución de los fantasmas usan la misma regla de vecindad, pero no tienen una comprobación propia
+- [x] Verificar: en una simulación con el jugador quieto, en modo GhostMan gana Pacman y en modo Pacman lo comen
+- [x] Volver a medir el balance (sección 7.6 de `entrega-03.md`). **Pendiente del equipo:** decidir, después de un playtest, si se ajustan las velocidades y las 5 cargas de la decisión 22 (decisión 51)
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
 
 ### Incremento 20 — Impulso del acelerado (HU-31, HU-49)
 - [ ] Redactar y ejecutar el Prompt 19

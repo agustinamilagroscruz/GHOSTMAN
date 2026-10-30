@@ -1,14 +1,16 @@
 .wrapper {
+  /* Mapas de 28 x 31 (V3): el tablero ocupa lo que entra en la pantalla, hasta el tamaño del canvas (24 px por celda). */
+  --board-width: min(672px, 94vw, calc((100vh - 96px) * 28 / 31));
   display: inline-flex;
   flex-direction: column;
   gap: 8px;
-  width: 408px;
+  width: var(--board-width);
 }
 
 .canvasContainer {
   position: relative;
-  width: 408px;
-  height: 360px;
+  width: 100%;
+  aspect-ratio: 28 / 31;
 }
 
 .canvas {

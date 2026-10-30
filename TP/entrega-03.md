@@ -598,6 +598,66 @@ corré npm run verify:balance con y sin --power y anotá el resultado. Si algo e
 ambiguo, preguntame antes de generar código.
 ```
 
+#### Prompt 18 — Mapas nuevos, base de los fantasmas y túnel (HU-44, HU-45; decisiones 26, 34, 44 a 51)
+
+```
+Incremento 19. Leé primero Workflow/v3-mapas.md y las secciones 4.1 a 4.3 de
+este documento: son la especificación completa. Todavía no hay cuenta
+regresiva, sprites ni animaciones (incrementos 21 a 23).
+
+1. Mapas. Reemplazá los tres mapas por los de v3-mapas.md, copiados tal cual
+   (28 × 31). Ampliá el lector: espacio = pasillo sin esfera, "-" = puerta.
+   Pacman aparece en (23,13). En modo GhostMan, nivel 3, las 6 esferas grandes
+   fijas son las 4 del mapa más (15,1) y (15,26).
+
+2. Túnel (fila 13). Salir por la columna 0 lleva a la 27 y al revés, para
+   todos los personajes. Toda la lógica que mira la celda vecina (movimiento,
+   IA de Pacman, IA de los fantasmas, dash, explosión, distancias por
+   recorrido) tiene que usar la misma función de vecindad con el salto de
+   borde. La distancia Manhattan del saltarín NO cruza el túnel. Las celdas
+   del túnel son las de la fila 13 sin esfera pegadas a cada borde (columnas
+   0 a 3 y 24 a 27): ahí los fantasmas van al 50 % de su velocidad; Pacman,
+   los ojos y el dash no se frenan.
+
+3. Base de los fantasmas (filas 12 a 16, columnas 10 a 17, puerta en
+   (12,13) y (12,14)).
+   - Pacman no puede entrar nunca. Los muros de la base no se atraviesan con
+     el espectro, no los rompe Pacman con cargas y el saltarín no cae adentro.
+   - Inicio del nivel y después de perder una vida: un fantasma de la IA
+     arranca afuera, en (11,13); los demás arrancan adentro y salen de a uno
+     cada 3 s. En modo GhostMan el fantasma del jugador arranca adentro, en el
+     centro, y sale cuando el jugador lo lleva a la puerta; los dos fantasmas
+     de la IA que arrancan adentro salen a los 3 y a los 6 s.
+   - La puerta se cruza solo hacia afuera (fantasmas vivos) y solo hacia
+     adentro (ojos). Un fantasma que salió no puede volver a entrar.
+   - Fantasma comido: quedan sus ojos, que van solos hasta la puerta por el
+     camino más corto, al doble de la velocidad del clásico, sin colisionar, y
+     entran. Adentro revive y sale enseguida; el naval espera 3 s antes. En
+     modo Pacman el tipo se sortea al revivir. Si el PowerUp sigue activo,
+     revive vulnerable. Esto reemplaza los temporizadores de 5 y 8 s.
+   - Mientras un fantasma está dentro de la base no puede usar su poder (el
+     intento no consume el cooldown). Ninguna decisión lo cubre: es una
+     interpretación para que el saltarín no salga de la base sin pasar por la
+     puerta; registralo como hueco de especificación.
+   - Frutas reales, frutas falsas y esferas grandes dinámicas no aparecen ni
+     se colocan dentro de la base ni en el túnel.
+
+4. Dibujo: el canvas tiene que entrar en la pantalla con el mapa nuevo; la
+   puerta se dibuja como una barra fina; los fantasmas comidos se dibujan
+   como ojos; un personaje a mitad del túnel se ve recortado en un borde y
+   asomando por el otro, sin pisar el HUD. Los sprites definitivos son del
+   incremento 22: usá el dibujo actual.
+
+Adaptá las suites de scripts/verify/ que dependen de las coordenadas de los
+mapas viejos o de la reaparición a los 5 s, y agregá core/inc19.js con: Pacman
+nunca entra a la base, salida cada 3 s, puerta de un solo sentido, ojos que
+vuelven y espera del naval, túnel en los dos sentidos con la velocidad
+reducida, celdas restringidas, al menos un cruce válido del espectro por
+nivel, y una simulación con el jugador quieto en la base (gana Pacman en modo
+GhostMan). Después medí el balance. Si algo es ambiguo, preguntame antes de
+generar código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -609,6 +669,13 @@ ambiguo, preguntame antes de generar código.
 | 3 | 18 | Prompt 17 | **Cambio esperado en las suites anteriores:** las comprobaciones del saltarín de `core/inc13.js` usaban un fantasma recién aparecido, sin dirección de avance. Con la decisión 41 ese salto no se ejecuta | Se les asigna una dirección de avance. La regla del semiplano se verifica en `core/inc18.js` | No |
 | 4 | 18 | Prompt 17 | **Artefacto de la prueba:** en la prueba de la espera, el naval colocaba la fruta al lado de Pacman y Pacman huía de él (prioridad 1 de la IA) en el mismo paso, antes de que el script sacara al naval del juego | Pacman queda quieto (velocidad 0) mientras el naval coloca la fruta. No es un defecto del juego: con el naval a 3 celdas, huir es el comportamiento especificado | No |
 | 5 | 18 | Prompt 17 | **Alcance:** el prompt incluyó la decisión 47 (cooldown que corre mientras el fantasma de la IA está comido), que el workflow no asignaba a ningún incremento | Se implementó en este incremento por ser un cambio de una línea en el mismo código. Se verifica en `core/inc18.js` | No |
+| 6 | 19 — Mapas nuevos, base de los fantasmas y túnel | Prompt 18 | **Hueco de especificación:** ninguna decisión dice si un fantasma puede usar su poder dentro de la base. Con el saltarín, el jugador podría salir de la base sin pasar por la puerta, contra la decisión 44 | Se interpretó en el prompt: dentro de la base el poder no se usa y el intento no consume el cooldown. **Pendiente:** registrarlo como decisión 67 | No |
+| 7 | 19 | Prompt 18 | **Hueco de especificación:** la decisión 45 dice que en modo GhostMan "los fantasmas de la IA salen cada 3 s, como en el modo Pacman", pero no cuál de los tres arranca afuera | Se interpretó en el prompt: uno de la IA arranca afuera y los otros dos salen a los 3 y a los 6 s. El del jugador arranca en el centro de la base | No |
+| 8 | 19 | Prompt 18 | **Defecto detectado por la suite nueva:** un fantasma comido a mitad de camino entre dos celdas terminaba ese paso aunque lo alejara de la base, y sus ojos recorrían dos celdas de más | Si el paso en curso aleja de la base, los ojos dan media vuelta. Lo verifica `core/inc19.js`, que compara el tiempo de vuelta con el camino más corto | No |
+| 9 | 19 | Prompt 18 | **Cambio esperado en las suites anteriores:** las suites 10 a 18 usaban coordenadas de los mapas de 17 × 15, la aparición de los fantasmas en las esquinas y la reaparición a los 5 s. La comprobación "nivel 1: ningún cruce válido para el espectro" de la suite 13 pasa a ser lo contrario: 480, 492 y 444 cruces en los niveles 1 a 3 (decisión 26) | Se reescribieron las coordenadas sobre los mapas nuevos y las comprobaciones de la reaparición pasan a verificar los ojos y la espera dentro de la base | No |
+| 10 | 19 | Prompt 18 | **Rendimiento:** el mapa nuevo tiene 868 celdas (3,4 veces el anterior) y la búsqueda de caminos de la IA de Pacman con cargas recorría todo el mapa en cada paso de Dijkstra | Se reemplazó por una cola por distancia (los costos son 1 y 3), con el mismo orden de desempate | No |
+| 11 | 19 | Prompt 18 | **Interfaz:** el aviso "Reaparecés en N" de la HU-27 contaba los 5 s de la V2. Con los ojos, la vuelta no tiene un tiempo fijo | Mientras vuelven los ojos se muestra "Volviendo a la base…"; el naval, ya adentro, muestra "Reaparecés en N" durante su espera de 3 s | No |
+| 12 | 19 | Prompt 18 | **Entorno:** las suites de navegador no se podían correr porque `playwright-core`, que figura en las dependencias de desarrollo, no estaba instalado | Se instaló con `npm install` desde el lockfile, sin cambiar `package.json` ni `package-lock.json` | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 
@@ -623,6 +690,23 @@ ambiguo, preguntame antes de generar código.
 | Acelerado | 7 | 9 | 9 |
 
 Sin usar el poder, los resultados no cambian, porque el incremento solo afecta al saltarín que salta y al naval que coloca frutas. El **saltarín** pasa de empeorar al usar su poder (6 frente a 7) a mejorar (8): el salto hacia adelante dejó de jugar en contra. El **naval** baja de 9 a 6: la trampa ya no funciona sola. El bot coloca la fruta cuando persigue a Pacman de cerca, que es justo cuando Pacman la ve colocar, y le alcanza con recordarla 10 s para esquivarla. Un jugador que la coloque fuera de la vista de Pacman debería sacarle más provecho. Las dos correcciones van en la dirección que buscaban las decisiones 37 y 38. El bot no es un jugador real, así que la medición sirve para comparar el efecto del cambio, no para afirmar que el juego está balanceado.
+
+**Balance después del incremento 19.** Mismo bot, actualizado para salir de la base por la puerta y usar el túnel (antes del ajuste se quedaba en la base y perdía todas las partidas, como el jugador quieto de la decisión 34). Resultados en 10 partidas por tipo: V es victoria, GO es Game Over y "?" es una partida que no terminó en 15 minutos de juego.
+
+| Tipo | Sin usar el poder | Usando el poder |
+|---|---|---|
+| Clásico | 6 V · 4 ? | 6 V · 4 ? (no tiene poder) |
+| Espectro | 10 GO en el nivel 1 | 10 GO en el nivel 1 |
+| Saltarín | 6 V · 4 ? | 9 V · 1 GO |
+| Naval | 10 ? | 7 GO · 3 ? |
+| Acelerado | 6 V · 4 ? | 8 V · 2 GO |
+
+Tres lecturas para el playtest que prevé la decisión 51:
+- **Partidas sin terminar.** Con mapas 3,4 veces más grandes aparecen persecuciones sin fin: Pacman huye cuando el bot está a 4 celdas o menos, vuelve hacia la esfera más cercana y vuelve a huir. Pasa sobre todo en el anillo de la base, donde el bot se queda en la entrada en lugar de entrar. Es una limitación del bot, no un defecto del juego: un jugador que entra al anillo lo alcanza o lo obliga a salir. Se revisaron las posiciones de los fantasmas de la IA en una de esas partidas y se siguen moviendo.
+- **Los tipos lentos.** El espectro (2,625 celdas/s) no alcanza a Pacman (3,75) en ningún nivel, y el naval (3) gana 0 de 10 aunque use su poder. En los mapas de 17 × 15 el bot ganaba con los dos. Las distancias más largas castigan la diferencia de velocidad.
+- **El saltarín y el acelerado** son los que mejor aprovechan su poder en los mapas grandes: el salto y el *dash* acortan distancias que ahora son más largas.
+
+Los valores a revisar después de jugar son las velocidades (decisiones 39 y 40) y las cargas de destrucción de la decisión 22, que en esta medición no se tocaron.
 
 *El resto, a completar al cierre de la etapa de generación.*
 

@@ -1,4 +1,4 @@
-import { canEnterCell, DIRECTION_VECTORS, type Direction } from "./movement";
+import { canEnterCell, neighborCell, type Direction } from "./movement";
 import type { GameMap } from "./types";
 
 // Frutas falsas del Naval (sección 4.6 de la V2, sección 4.8 de la V1). Son entidades del
@@ -57,9 +57,7 @@ export function explosionCells(map: GameMap, row: number, col: number): Array<{ 
     const next: Array<{ row: number; col: number }> = [];
     for (const cell of frontier) {
       for (const direction of DIRECTIONS) {
-        const [dRow, dCol] = DIRECTION_VECTORS[direction];
-        const r = cell.row + dRow;
-        const c = cell.col + dCol;
+        const { row: r, col: c } = neighborCell(map, cell.row, cell.col, direction);
         const key = `${r},${c}`;
         if (visited.has(key) || !canEnterCell(map, r, c)) continue;
         visited.add(key);

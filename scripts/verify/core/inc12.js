@@ -23,7 +23,7 @@ const pelletsEaten = s => { let n = 0; for (const r of s.map.pellets) for (const
   touchPlayer(s);
   check(s.lives === 2, "toque del fantasma del jugador: Pacman pierde una vida (3 → 2)");
   check(s.score === 500 && s.scoreBreakdown.pacmanDefeats === 500, "suma 500 al jugador");
-  check(s.pacman.row === 7 && s.pacman.col === 8, "Pacman vuelve a su posición inicial");
+  check(s.pacman.row === 23 && s.pacman.col === 13, "Pacman vuelve a su posición inicial");
   check(s.ghosts.every(g => g.row === g.spawn.row && g.col === g.spawn.col), "todos los fantasmas vuelven a su posición inicial");
   check(s.pelletsRemaining === remainingBefore && pelletsEaten(s) === eatenBefore, "las esferas consumidas se conservan");
   check(Math.abs(pg.powerCooldown - (6.5 - DT)) < 1e-6, `el cooldown del poder NO se reinicia (${pg.powerCooldown.toFixed(3)} s)`);
@@ -63,7 +63,7 @@ const pelletsEaten = s => { let n = 0; for (const r of s.map.pellets) for (const
   touchPlayer(s);
   check(s.lives === 2, "1 derrota acumulada");
   for (const g of s.ghosts) { g.eaten = true; g.respawnTimer = 1e9; } // nadie lo molesta
-  let t = 0; while (!s.gameOver && !s.levelComplete && t < 120) { step(s); t += DT; }
+  let t = 0; while (!s.gameOver && !s.levelComplete && t < 300) { step(s); t += DT; }
   check(s.gameOver && !s.won && !s.levelComplete, `Pacman consume la última esfera → Game Over (a los ${t.toFixed(1)} s)`);
   check(s.score === 500 && s.scoreBreakdown.pelletsLeft === 0, "el puntaje queda en las derrotas: 500");
   check(sumBreakdown(s.scoreBreakdown) === s.score, "el desglose suma el total");
@@ -80,31 +80,42 @@ const pelletsEaten = s => { let n = 0; for (const r of s.map.pellets) for (const
   const aiPos = `${ai.row},${ai.col}`;
   st.updateGameState(s, 0, null); // paso de tiempo 0: solo colisiones
   check(s.lives === 3 && s.score === 0, "toque de un fantasma de la IA: Pacman no pierde vidas y no hay puntos");
-  check(s.pacman.row === 7 && s.pacman.col === 8, "Pacman vuelve a su posición inicial");
+  check(s.pacman.row === 23 && s.pacman.col === 13, "Pacman vuelve a su posición inicial");
   check(`${ai.row},${ai.col}` === aiPos && s.ghosts.filter(g => g !== ai).map(g => `${g.row},${g.col},${g.progress.toFixed(3)}`).join() === others.join(), "los fantasmas no cambian de posición");
   check(s.pelletsRemaining === remaining && !s.levelComplete, "el mapa no cambia");
 }
 
-// Vulnerabilidad del fantasma del jugador (HU-27)
+// Vulnerabilidad del fantasma del jugador (HU-27). Desde el incremento 19, al ser comido quedan
+// sus ojos, que vuelven solos a la base; el naval espera 3 s adentro (decisión 46). Hasta el 18
+// reaparecía a los 5 s (8 el naval) en (1,1).
 for (const kind of ["classic", "naval"]) {
-  const s = gm(kind);
-  const pg = st.getPlayerGhost(s);
-  for (const g of s.ghosts) if (g !== pg) { g.eaten = true; g.respawnTimer = 1e9; }
-  // Pacman come una esfera grande: el jugador pasa a vulnerable
-  s.pacman.row = 1; s.pacman.col = 2; s.pacman.progress = 0; s.pacman.direction = null;
-  pg.row = 13; pg.col = 8; pg.progress = 0; pg.direction = null;
-  let t = 0; while (!s.powerUpActive && t < 5) { step(s); t += DT; }
-  check(s.powerUpActive && pg.vulnerable, `${kind}: con el PowerUp de Pacman el fantasma del jugador queda vulnerable`);
-  pg.row = s.pacman.row; pg.col = s.pacman.col; pg.progress = s.pacman.progress; pg.direction = s.pacman.direction;
-  step(s);
-  check(pg.eaten && s.lives === 3 && s.score === 0 && !s.levelComplete, `${kind}: Pacman lo come; no hay descuento, puntos ni reinicio`);
-  const expected = kind === "naval" ? 8 : 5;
-  check(Math.abs(pg.respawnTimer - expected) < 0.05, `${kind}: reaparece en ${expected} s (${pg.respawnTimer.toFixed(2)})`);
-  const r0 = `${pg.row},${pg.col}`;
-  step(s, 60, "right");
-  check(`${pg.row},${pg.col}` === r0 && pg.eaten, `${kind}: mientras espera, el jugador no lo controla`);
-  step(s, (expected - 1) / DT + 2);
-  check(!pg.eaten && pg.row === 1 && pg.col === 1, `${kind}: reaparece en (1,1)`);
+  const run = input => {
+    const s = gm(kind);
+    const pg = st.getPlayerGhost(s);
+    for (const g of s.ghosts) if (g !== pg) { g.eaten = true; g.respawnTimer = 1e9; }
+    // Pacman al lado de la esfera grande de (23,1): el jugador pasa a vulnerable
+    s.pacman.row = 23; s.pacman.col = 2; s.pacman.progress = 0; s.pacman.direction = null;
+    pg.row = 5; pg.col = 8; pg.progress = 0; pg.direction = null; pg.inHouse = false;
+    let t = 0; while (!s.powerUpActive && t < 5) { step(s); t += DT; }
+    const vulnerable = s.powerUpActive && pg.vulnerable;
+    pg.row = s.pacman.row; pg.col = s.pacman.col; pg.progress = s.pacman.progress; pg.direction = s.pacman.direction;
+    step(s);
+    const eatenOk = pg.eaten && !pg.inHouse && s.lives === 3 && s.score === 0 && !s.levelComplete;
+    const path = []; t = 0;
+    while (pg.eaten && !pg.inHouse && t < 10) { step(s, 1, input); t += DT; path.push(`${pg.row},${pg.col}`); }
+    return { s, pg, vulnerable, eatenOk, path: path.join(" "), back: t };
+  };
+  const a = run("right"), b = run("left");
+  check(a.vulnerable, `${kind}: con el PowerUp de Pacman el fantasma del jugador queda vulnerable`);
+  check(a.eatenOk, `${kind}: Pacman lo come; no hay descuento, puntos ni reinicio, y quedan sus ojos fuera de la base`);
+  check(a.pg.inHouse && a.pg.row === 14 && a.pg.col === 13, `${kind}: los ojos llegan al centro de la base (en ${a.back.toFixed(2)} s)`);
+  check(a.path === b.path, `${kind}: mientras vuelven los ojos, el jugador no lo controla (mismo recorrido con → y con ←)`);
+  const { s, pg } = a;
+  const wait = kind === "naval" ? 3 : 0;
+  step(s, Math.max(1, Math.round((wait - 0.1) / DT)));
+  check(kind === "naval" ? pg.eaten : !pg.eaten, kind === "naval" ? "naval: a los 2,9 s sigue esperando dentro de la base" : "classic: revive apenas entra a la base");
+  step(s, Math.round(0.2 / DT));
+  check(!pg.eaten && pg.inHouse && pg.vulnerable === s.powerUpActive, `${kind}: revive dentro de la base${s.powerUpActive ? ", vulnerable porque el PowerUp sigue activo" : ""}`);
 }
 
 // Victoria al completar el nivel 3
@@ -125,7 +136,7 @@ for (const kind of ["classic", "naval"]) {
   step(s);
   check(s.lives === 2 && s.score === 0, "modo Pacman: el toque de un fantasma sigue restando una vida al jugador");
   for (const gh of s.ghosts) { gh.eaten = true; gh.respawnTimer = 1e9; }
-  for (let r = 0; r < s.map.rows; r++) for (let c = 0; c < s.map.cols; c++) if (s.map.pellets[r][c] !== "none" && !(r === 7 && c === 7)) { s.map.pellets[r][c] = "none"; s.pelletsRemaining--; }
+  for (let r = 0; r < s.map.rows; r++) for (let c = 0; c < s.map.cols; c++) if (s.map.pellets[r][c] !== "none" && !(r === 23 && c === 12)) { s.map.pellets[r][c] = "none"; s.pelletsRemaining--; }
   step(s, 30, "left");
   check(s.levelComplete && s.lastLevelTimeBonus > 0 && s.scoreBreakdown.pelletsLeft === 0, `modo Pacman: la última esfera completa el nivel con bonus por tiempo (${s.lastLevelTimeBonus})`);
 }

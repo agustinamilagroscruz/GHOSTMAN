@@ -23,6 +23,12 @@ async function startGhostman(page, rights) {
   await startGhostman(page, 2); // Saltarín
   const ready = () => page.getAttribute("[data-testid=power-indicator]", "data-ready");
   check(await ready() === "true", "saltarín: estrella disponible al empezar");
+  // Desde el incremento 19 arranca dentro de la base, donde el poder no se usa: primero sale.
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(150);
+  check(await ready() === "true", "dentro de la base el espacio no tiene efecto: la estrella sigue disponible");
+  await page.keyboard.press("ArrowUp");
+  await page.waitForTimeout(1300);
   await page.screenshot({ path: SHOTS_DIR + "/11-estrella-disponible.png", clip: { x: 140, y: 480, width: 420, height: 100 } });
   await page.keyboard.press("Space");
   await page.waitForTimeout(150);

@@ -11,9 +11,16 @@ export const LAST_LEVEL = 3;
 export interface GhostSetup {
   id: GhostId;
   color: string;
-  spawn: { row: number; col: number };
   scatterTarget: { row: number; col: number };
 }
+
+/** Posición inicial respecto de la base (decisión 45): afuera, sobre la puerta, o en el interior. */
+export type HouseSlot = "outside" | "center" | "left" | "right";
+
+/** Modo Pacman, en el orden de `ghosts`: uno afuera y tres adentro, que salen en ese orden. */
+export const PACMAN_MODE_SLOTS: readonly HouseSlot[] = ["outside", "center", "left", "right"];
+/** Modo GhostMan: el fantasma del jugador (el primero) en el centro; de la IA, uno afuera y dos adentro. */
+export const GHOSTMAN_MODE_SLOTS: readonly HouseSlot[] = ["center", "outside", "left", "right"];
 
 export interface LevelDefinition {
   number: number;
@@ -31,20 +38,21 @@ export interface LevelDefinition {
   fruitSpawnIntervalSeconds: number | null;
 }
 
-// Los tres mapas son de 17 x 15: esquinas transitables en (1,1), (1,15), (13,1) y (13,15).
-const CORNER_GHOSTS: readonly GhostSetup[] = [
-  { id: "blinky", color: "#ff0000", spawn: { row: 1, col: 1 }, scatterTarget: { row: 1, col: 15 } },
-  { id: "pinky", color: "#ffb8ff", spawn: { row: 1, col: 15 }, scatterTarget: { row: 1, col: 1 } },
-  { id: "inky", color: "#00ffff", spawn: { row: 13, col: 1 }, scatterTarget: { row: 13, col: 15 } },
-  { id: "clyde", color: "#ffb851", spawn: { row: 13, col: 15 }, scatterTarget: { row: 13, col: 1 } },
+// Los tres mapas son de 28 x 31 (V3): las esquinas transitables son (1,1), (1,26), (29,1) y
+// (29,26). La posición inicial de cada fantasma la da la base (PACMAN_MODE_SLOTS y GHOSTMAN_MODE_SLOTS).
+const HOUSE_GHOSTS: readonly GhostSetup[] = [
+  { id: "blinky", color: "#ff0000", scatterTarget: { row: 1, col: 26 } },
+  { id: "pinky", color: "#ffb8ff", scatterTarget: { row: 1, col: 1 } },
+  { id: "inky", color: "#00ffff", scatterTarget: { row: 29, col: 26 } },
+  { id: "clyde", color: "#ffb851", scatterTarget: { row: 29, col: 1 } },
 ];
 
 export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
   1: {
     number: 1,
     createMap: createLevel1Map,
-    pacmanSpawn: { row: 7, col: 8 },
-    ghosts: CORNER_GHOSTS,
+    pacmanSpawn: { row: 23, col: 13 },
+    ghosts: HOUSE_GHOSTS,
     initialGhostKinds: ["classic", "classic", "classic", "classic"],
     poweredRespawnChance: 0,
     fruitSpawnIntervalSeconds: null,
@@ -52,8 +60,8 @@ export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
   2: {
     number: 2,
     createMap: createLevel2Map,
-    pacmanSpawn: { row: 7, col: 8 },
-    ghosts: CORNER_GHOSTS,
+    pacmanSpawn: { row: 23, col: 13 },
+    ghosts: HOUSE_GHOSTS,
     initialGhostKinds: ["classic", "classic", "classic", "classic"],
     poweredRespawnChance: 0.5,
     fruitSpawnIntervalSeconds: null,
@@ -61,8 +69,8 @@ export const LEVELS: Readonly<Record<number, LevelDefinition>> = {
   3: {
     number: 3,
     createMap: createLevel3Map,
-    pacmanSpawn: { row: 7, col: 8 },
-    ghosts: CORNER_GHOSTS,
+    pacmanSpawn: { row: 23, col: 13 },
+    ghosts: HOUSE_GHOSTS,
     // Uno de cada tipo con poderes (decisión 23): composición determinista y verificable a la vista.
     initialGhostKinds: ["specter", "jumper", "naval", "accelerated"],
     poweredRespawnChance: 1,

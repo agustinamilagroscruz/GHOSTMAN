@@ -8,15 +8,18 @@ const path = require("path");
 const { compileGameCore } = require("../compile");
 const B = compileGameCore();
 const st = require(path.join(B, "state.js"));
-const { canEnterCell, DIRECTION_VECTORS } = require(path.join(B, "movement.js"));
+const { canEnterCell, neighborCell } = require(path.join(B, "movement.js"));
+const { directionToward } = require(path.join(B, "house.js"));
 const DIRS = ["up", "left", "down", "right"];
 function chaseDir(s, g) {
-  // BFS desde Pacman; el bot va a la vecina con menor distancia
+  // Desde el incremento 19 el fantasma arranca dentro de la base: primero sale por la puerta.
+  if (g.inHouse) return directionToward(s.map, g, s.map.house.exit);
+  // BFS desde Pacman (con el túnel); el bot va a la vecina con menor distancia
   const m = s.map, dist = m.cells.map(r => r.map(() => Infinity)), q = [[s.pacman.row, s.pacman.col]];
   dist[s.pacman.row][s.pacman.col] = 0;
-  for (let h = 0; h < q.length; h++) { const [r, c] = q[h]; for (const d of DIRS) { const [dr, dc] = DIRECTION_VECTORS[d]; if (canEnterCell(m, r + dr, c + dc) && dist[r + dr][c + dc] === Infinity) { dist[r + dr][c + dc] = dist[r][c] + 1; q.push([r + dr, c + dc]); } } }
+  for (let h = 0; h < q.length; h++) { const [r, c] = q[h]; for (const d of DIRS) { const n = neighborCell(m, r, c, d); if (canEnterCell(m, n.row, n.col) && dist[n.row][n.col] === Infinity) { dist[n.row][n.col] = dist[r][c] + 1; q.push([n.row, n.col]); } } }
   let best = null, bd = Infinity;
-  for (const d of DIRS) { const [dr, dc] = DIRECTION_VECTORS[d]; const r = g.row + dr, c = g.col + dc; if (canEnterCell(m, r, c) && dist[r][c] < bd) { bd = dist[r][c]; best = d; } }
+  for (const d of DIRS) { const n = neighborCell(m, g.row, g.col, d); if (canEnterCell(m, n.row, n.col) && dist[n.row][n.col] < bd) { bd = dist[n.row][n.col]; best = d; } }
   return best;
 }
 const USE_POWER = process.argv.includes("--power");

@@ -22,7 +22,9 @@ function respawnKinds(s, n) {
   const g = s.ghosts[0];
   const counts = {};
   for (let i = 0; i < n; i++) {
-    g.eaten = true; g.respawnTimer = 1e-6; g.vulnerable = false;
+    // Ya dentro de la base (incremento 19): revive en el paso siguiente.
+    g.eaten = true; g.inHouse = true; g.row = s.map.house.center.row; g.col = s.map.house.center.col; g.progress = 0;
+    g.respawnTimer = 1e-6; g.vulnerable = false;
     step(s, 1);
     counts[g.kind] = (counts[g.kind] || 0) + 1;
     if (s.gameOver) { s.gameOver = false; s.lives = 3; }
@@ -60,8 +62,9 @@ const chi2 = (counts, keys, n) => keys.reduce((acc, k) => acc + ((counts[k] || 0
   check(!c3.classic && x3 < 11.34, `N3: 1000 reapariciones, siempre con poderes y uniformes (${JSON.stringify(c3)}, chi² ${x3.toFixed(2)})`);
 }
 
-// --- Poderes de la IA. Un solo fantasma activo; los demás comidos.
-function solo(kind, { pacman = [13, 8], ghost = [13, 4], dir = "right", mode = "chase" } = {}) {
+// --- Poderes de la IA. Un solo fantasma activo; los demás comidos. Coordenadas sobre el nivel 3
+// de la V3 (incremento 19): la fila 19 es camino de la columna 1 a la 9; (29,26) es una esquina lejana.
+function solo(kind, { pacman = [19, 8], ghost = [19, 4], dir = "right", mode = "chase" } = {}) {
   const s = atLevel(3);
   s.ghosts.forEach((g, i) => { if (i > 0) { g.eaten = true; g.respawnTimer = 1e9; } });
   const g = s.ghosts[0];
@@ -75,24 +78,24 @@ function solo(kind, { pacman = [13, 8], ghost = [13, 4], dir = "right", mode = "
 
 {
   // Saltarín: con Pacman a ≤ 10 en persecución salta; queda a ≤ 10 de donde estaba, en celda transitable
-  const [s, g] = solo("jumper", { pacman: [1, 8], ghost: [13, 4] });
+  const [s, g] = solo("jumper", { pacman: [29, 26], ghost: [19, 1] });
   const before = { row: g.row, col: g.col };
   step(s, 1);
-  check(g.powerCooldown === 0 && g.row === before.row && g.col === before.col, "saltarín: Pacman a 16 celdas → no salta");
-  g.powerCooldown = 0; s.pacman.row = 13; s.pacman.col = 12; g.row = 13; g.col = 4; g.progress = 0;
+  check(g.powerCooldown === 0 && g.row === before.row && g.col === before.col, "saltarín: Pacman a 35 celdas → no salta");
+  g.powerCooldown = 0; s.pacman.row = 19; s.pacman.col = 9; g.row = 19; g.col = 1; g.progress = 0;
   step(s, 1);
-  const jumped = Math.abs(g.row - 13) + Math.abs(g.col - 4);
+  const jumped = Math.abs(g.row - 19) + Math.abs(g.col - 1);
   check(g.powerCooldown > 9.9 && jumped >= 1 && jumped <= 11 && s.map.cells[g.row][g.col] === "path",
     `saltarín: Pacman a 8 celdas → salta a una celda transitable a distancia ${jumped} y arranca el cooldown de 10 s`);
 }
 {
-  const [s, g] = solo("jumper", { pacman: [13, 8], ghost: [13, 4], mode: "scatter" });
+  const [s, g] = solo("jumper", { pacman: [19, 8], ghost: [19, 4], mode: "scatter" });
   step(s, 1);
   check(g.powerCooldown === 0, "saltarín: en dispersión no salta");
 }
 {
   // Naval: coloca en persecución y en dispersión; máximo 2; cooldown de 5 s; no repite celda
-  const [s, g] = solo("naval", { pacman: [1, 8], ghost: [13, 1], mode: "scatter" });
+  const [s, g] = solo("naval", { pacman: [29, 26], ghost: [19, 1], mode: "scatter" });
   step(s, 1);
   check(s.fakeFruits.length === 1 && Math.abs(g.powerCooldown - 5) < 0.05, "naval: en dispersión coloca una fruta falsa y arranca el cooldown de 5 s");
   step(s, 60 * 5 + 2);
@@ -104,15 +107,15 @@ function solo(kind, { pacman = [13, 8], ghost = [13, 4], dir = "right", mode = "
 }
 {
   // Acelerado: dash con Pacman a ≤ 6 y la celda siguiente libre; penalidad 5 s; cooldown 10 s
-  const [s, g] = solo("accelerated", { pacman: [1, 8], ghost: [13, 1] });
+  const [s, g] = solo("accelerated", { pacman: [29, 26], ghost: [19, 1] });
   step(s, 1);
-  check(g.powerCooldown === 0, "acelerado: Pacman a 19 celdas → no hace dash");
-  s.pacman.row = 13; s.pacman.col = 12; g.row = 13; g.col = 3; g.progress = 0; g.direction = "right"; g.facing = "right";
+  check(g.powerCooldown === 0, "acelerado: Pacman a 35 celdas → no hace dash");
+  s.pacman.row = 21; s.pacman.col = 9; g.row = 19; g.col = 2; g.progress = 0; g.direction = "right"; g.facing = "right";
   step(s, 1);
   check(g.powerCooldown === 0 && Math.abs(g.speed - 3.1875) < 1e-9, `acelerado: Pacman a 9 celdas → no hace dash (${g.powerCooldown}, ${g.speed}, ${g.col})`);
 }
 {
-  const [s, g] = solo("accelerated", { pacman: [13, 9], ghost: [13, 4] });
+  const [s, g] = solo("accelerated", { pacman: [19, 9], ghost: [19, 4] });
   step(s, 1);
   check(g.powerCooldown > 9.9 && g.col === 7 && Math.abs(g.speed - 1.59375) < 1e-9, `acelerado: Pacman a 5 → dash de 3 celdas (col ${g.col}) y velocidad 1,59 (50 % de 3,19)`);
   step(s, 60 * 5 + 2);
@@ -120,7 +123,7 @@ function solo(kind, { pacman = [13, 8], ghost = [13, 4], dir = "right", mode = "
 }
 {
   // Contacto en todo el trayecto del dash: Pacman en el medio pierde una vida
-  const [s] = solo("accelerated", { pacman: [13, 6], ghost: [13, 4] });
+  const [s] = solo("accelerated", { pacman: [19, 6], ghost: [19, 4] });
   const lives = s.lives;
   step(s, 1);
   check(s.lives === lives - 1, "acelerado: el dash que pasa por encima de Pacman le quita una vida (decisión 32)");
@@ -128,7 +131,7 @@ function solo(kind, { pacman = [13, 8], ghost = [13, 4], dir = "right", mode = "
 {
   // Ningún fantasma de la IA usa su poder mientras está vulnerable
   for (const kind of ["jumper", "naval", "accelerated"]) {
-    const [s, g] = solo(kind, { pacman: [13, 9], ghost: [13, 4] });
+    const [s, g] = solo(kind, { pacman: [19, 9], ghost: [19, 4] });
     g.vulnerable = true; s.powerUpActive = true; s.powerUpTimer = 8;
     step(s, 10);
     check(g.powerCooldown === 0 && s.fakeFruits.length === 0, `${kind}: vulnerable no usa el poder`);
@@ -177,7 +180,8 @@ function solo(kind, { pacman = [13, 8], ghost = [13, 4], dir = "right", mode = "
       for (const g of s.ghosts) {
         if (g.eaten) continue;
         if (g.row < 0 || g.col < 0 || g.row >= s.map.rows || g.col >= s.map.cols) bad.push(`${g.kind} fuera del mapa`);
-        else if (g.phaseCellsLeft === 0 && s.map.cells[g.row][g.col] !== "path") bad.push(`${g.kind} dentro de un muro`);
+        // La puerta de la base no es un muro: la cruzan los fantasmas al salir (incremento 19).
+        else if (g.phaseCellsLeft === 0 && s.map.cells[g.row][g.col] === "wall") bad.push(`${g.kind} dentro de un muro`);
       }
       if (s.score < lastScore) bad.push("el puntaje bajó"); lastScore = s.score;
     }

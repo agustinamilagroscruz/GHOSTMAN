@@ -18,6 +18,7 @@ function atLevel(level, config = GHOSTMAN, seed = 7) {
   for (const g of s.ghosts) { g.eaten = true; g.respawnTimer = 1e9; }
   return s;
 }
+const { isHouseCell } = require(path.join(B, "movement.js"));
 const countPower = (s) => s.map.pellets.flat().filter(p => p === "power").length;
 const isBorder = (s, r, c) => r === 0 || c === 0 || r === s.map.rows - 1 || c === s.map.cols - 1;
 /**
@@ -27,10 +28,10 @@ const isBorder = (s, r, c) => r === 0 || c === 0 || r === s.map.rows - 1 || c ==
 function eatPowerPellet(s) {
   const p = s.pacman;
   for (let r = 0; r < s.map.rows; r++) for (let c = 0; c < s.map.cols; c++) s.map.pellets[r][c] = "none";
-  s.map.pellets[13][15] = "pellet";
+  s.map.pellets[29][26] = "pellet"; // esquina lejana en los mapas de la V3
   for (const [dr, dc] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
     const r = p.row + dr, c = p.col + dc;
-    if (s.map.cells[r][c] === "path" && !(r === 13 && c === 15)) { s.map.pellets[r][c] = "power"; break; }
+    if (s.map.cells[r][c] === "path" && !(r === 29 && c === 26)) { s.map.pellets[r][c] = "power"; break; }
   }
   s.pelletsRemaining = 2;
   for (let i = 0; i < 60 && !s.powerUpActive; i++) step(s, 1);
@@ -45,7 +46,7 @@ function clearSomePellets(s) {
   const s = atLevel(1); eatPowerPellet(s);
   check(s.powerUpActive && s.wallCharges === 0, "GhostMan N1: la esfera grande no da cargas de destrucción");
   const p = atLevel(2, PACMAN); p.pacman.speed = 0;
-  p.map.pellets[7][9] = "power"; p.pacman.speed = 3.75;
+  p.map.pellets[23][14] = "power"; p.pacman.speed = 3.75; // a la derecha de la aparición (23,13)
   for (let i = 0; i < 30; i++) st.updateGameState(p, DT, "right");
   check(p.powerUpActive && p.wallCharges === 0, "modo Pacman N2: la esfera grande no da cargas");
 }
@@ -139,6 +140,7 @@ function findThinWall(s) {
       if (destroyedNow > prevDestroyed) usedSinceCharge += destroyedNow - prevDestroyed;
       if (usedSinceCharge > 5) bad.push("más de 5 paredes con una esfera grande");
       for (const w of s.destroyedWalls) if (isBorder(s, w.row, w.col)) bad.push("destruyó un borde");
+      for (const w of s.destroyedWalls) if (isHouseCell(s.map, w.row, w.col)) bad.push("destruyó un muro de la base");
       prevCharges = s.wallCharges; total += Math.max(0, destroyedNow - prevDestroyed); prevDestroyed = destroyedNow;
     }
   }
@@ -159,7 +161,7 @@ function enterCell(s, cell) {
 // --- Esferas grandes del nivel 3
 {
   const g = atLevel(3); const p = atLevel(3, PACMAN);
-  check(countPower(g) === 6 && g.map.pellets[7][1] === "power" && g.map.pellets[7][15] === "power", "GhostMan N3: 6 esferas grandes fijas (esquinas, (7,1) y (7,15))");
+  check(countPower(g) === 6 && g.map.pellets[15][1] === "power" && g.map.pellets[15][26] === "power", "GhostMan N3: 6 esferas grandes fijas (las 4 del mapa, (15,1) y (15,26); decisión 51)");
   check(countPower(p) === 4, "modo Pacman N3: siguen siendo 4");
   check(g.pelletsRemaining === p.pelletsRemaining, "las 2 fijas nuevas reemplazan esferas comunes: la cuenta total no cambia");
 }

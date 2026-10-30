@@ -2,6 +2,7 @@ import {
   canGhostHarm,
   clearSpecterState,
   createGhost,
+  EYES_SPEED,
   reverseGhostDirection,
   setGhostKind,
   tickPowerTimers,
@@ -33,12 +34,26 @@ import {
   type WallFlash,
 } from "./difficulty";
 import { ageFruits, createFruit, type Fruit } from "./fruits";
-import { LAST_LEVEL, LEVELS, MAX_SIMULTANEOUS_FRUITS, POWERED_GHOST_KINDS, type LevelDefinition } from "./levels";
+import { HOUSE_RELEASE_INTERVAL_SECONDS, moveToward, NAVAL_HOUSE_WAIT_SECONDS, turnTowardIfMidStep } from "./house";
+import {
+  GHOSTMAN_MODE_SLOTS,
+  LAST_LEVEL,
+  LEVELS,
+  MAX_SIMULTANEOUS_FRUITS,
+  PACMAN_MODE_SLOTS,
+  POWERED_GHOST_KINDS,
+  type HouseSlot,
+  type LevelDefinition,
+} from "./levels";
 import {
   canEnterCell,
+  cellAt,
+  colDelta,
   createMover,
-  DIRECTION_VECTORS,
   getMoverPosition,
+  isHouseCell,
+  isTunnelCell,
+  neighborCell,
   updateMover,
   type Direction,
   type Mover,
@@ -78,9 +93,6 @@ const SCATTER_DURATION_SECONDS = 7;
 const INITIAL_LIVES = 3;
 const POWER_UP_DURATION_SECONDS = 8;
 export const POWER_UP_WARNING_SECONDS = 2;
-const GHOST_RESPAWN_SECONDS = 5;
-/** El naval tarda más en reaparecer al ser comido (sección 4.5). */
-const NAVAL_RESPAWN_SECONDS = 8;
 const GHOST_POINTS_SCALE = [200, 400, 800, 1600] as const;
 /** Distancia (en celdas) entre centros a partir de la cual Pacman y un fantasma se tocan. */
 const CONTACT_DISTANCE = 0.5;
@@ -171,20 +183,43 @@ function countPellets(map: GameMap): number {
   return count;
 }
 
+/** Celda de la base que corresponde a cada posición inicial (decisión 45). */
+function slotCell(map: GameMap, slot: HouseSlot): { row: number; col: number } {
+  const house = map.house;
+  switch (slot) {
+    case "outside":
+      return house.exit;
+    case "center":
+      return house.center;
+    case "left":
+      return house.leftSlot;
+    case "right":
+      return house.rightSlot;
+  }
+}
+
 /**
  * Modo Pacman: los cuatro fantasmas son de la IA, con el tipo inicial del nivel.
- * Modo GhostMan: el primer fantasma (esquina superior izquierda) es el del jugador, con el
- * tipo elegido en el carrusel; los otros tres son clásicos de la IA en todos los niveles.
+ * Modo GhostMan: el primer fantasma es el del jugador, con el tipo elegido en el carrusel, y
+ * arranca en el centro de la base; los otros tres son clásicos de la IA en todos los niveles.
+ * De la IA, uno arranca afuera y los que arrancan adentro salen de a uno, cada 3 s (decisión 45).
  */
-function createLevelGhosts(definition: LevelDefinition, config: GameConfig): Ghost[] {
+function createLevelGhosts(definition: LevelDefinition, config: GameConfig, map: GameMap): Ghost[] {
+  const slots = config.mode === "pacman" ? PACMAN_MODE_SLOTS : GHOSTMAN_MODE_SLOTS;
+  let insideAiGhosts = 0;
   return definition.ghosts.map((setup, index) => {
-    if (config.mode === "pacman") {
-      return createGhost(setup.id, setup.spawn.row, setup.spawn.col, definition.initialGhostKinds[index], setup.color, setup.scatterTarget, PACMAN_MODE_GHOST_SPEED_FACTOR);
-    }
-    const isPlayer = index === 0;
-    const kind = isPlayer ? (config.playerGhostKind ?? "classic") : "classic";
-    const ghost = createGhost(setup.id, setup.spawn.row, setup.spawn.col, kind, setup.color, setup.scatterTarget);
+    const cell = slotCell(map, slots[index]);
+    const isPlayer = config.mode === "ghostman" && index === 0;
+    const kind =
+      config.mode === "pacman" ? definition.initialGhostKinds[index] : isPlayer ? (config.playerGhostKind ?? "classic") : "classic";
+    const speedFactor = config.mode === "pacman" ? PACMAN_MODE_GHOST_SPEED_FACTOR : 1;
+    const ghost = createGhost(setup.id, cell.row, cell.col, kind, setup.color, setup.scatterTarget, speedFactor);
     ghost.controlledByPlayer = isPlayer;
+    if (!isPlayer && slots[index] !== "outside") {
+      insideAiGhosts += 1;
+      ghost.releaseDelay = insideAiGhosts * HOUSE_RELEASE_INTERVAL_SECONDS;
+    }
+    placeGhostAtSpawn(ghost, map);
     return ghost;
   });
 }
@@ -194,9 +229,12 @@ export function getPlayerGhost(state: GameState): Ghost | undefined {
   return state.ghosts.find((ghost) => ghost.controlledByPlayer);
 }
 
-function placeGhostAtSpawn(ghost: Ghost): void {
+/** Posición inicial del nivel o después de perder una vida: afuera o dentro de la base, esperando salir. */
+function placeGhostAtSpawn(ghost: Ghost, map: GameMap): void {
   ghost.row = ghost.spawn.row;
   ghost.col = ghost.spawn.col;
+  ghost.inHouse = isHouseCell(map, ghost.row, ghost.col);
+  ghost.releaseTimer = ghost.releaseDelay;
   ghost.progress = 0;
   ghost.direction = null;
   ghost.desiredDirection = null;
@@ -206,9 +244,9 @@ function placeGhostAtSpawn(ghost: Ghost): void {
   ghost.noEatTimer = 0;
 }
 
-function resetGhostPositions(ghosts: Ghost[]): void {
+function resetGhostPositions(ghosts: Ghost[], map: GameMap): void {
   for (const ghost of ghosts) {
-    placeGhostAtSpawn(ghost);
+    placeGhostAtSpawn(ghost, map);
     clearSpecterState(ghost);
     ghost.vulnerable = false;
     ghost.eaten = false;
@@ -234,7 +272,7 @@ function loadLevel(state: GameState, level: number): void {
   state.level = level;
   state.map = map;
   state.pacman = createMover(definition.pacmanSpawn.row, definition.pacmanSpawn.col, PACMAN_SPEED_CELLS_PER_SECOND);
-  state.ghosts = createLevelGhosts(definition, state.config);
+  state.ghosts = createLevelGhosts(definition, state.config, map);
   state.ghostMode = "chase";
   state.ghostModeTimer = 0;
   state.pelletsRemaining = countPellets(map);
@@ -254,8 +292,8 @@ function loadLevel(state: GameState, level: number): void {
   state.wallFlashes = [];
   state.dynamicPowerPellets = [];
   state.powerPelletSpawnTimer = 0;
-  // Modo GhostMan, nivel 3: 6 esferas grandes fijas, las 4 esquinas más (7,1) y (7,15)
-  // (decisión 22). Reemplazan esferas comunes, así que la cuenta de esferas no cambia.
+  // Modo GhostMan, nivel 3: 6 esferas grandes fijas, las 4 del mapa más (15,1) y (15,26)
+  // (decisiones 22 y 51). Reemplazan esferas comunes, así que la cuenta de esferas no cambia.
   if (state.config.mode === "ghostman" && level === 3) {
     for (const cell of EXTRA_FIXED_POWER_PELLETS) {
       if (map.pellets[cell.row][cell.col] !== "none") map.pellets[cell.row][cell.col] = "power";
@@ -342,6 +380,8 @@ function updateFruitSpawns(state: GameState, deltaSeconds: number): void {
   for (let row = 0; row < state.map.rows; row++) {
     for (let col = 0; col < state.map.cols; col++) {
       if (state.map.cells[row][col] !== "path") continue;
+      // Ni en la base ni en el túnel (decisión 49).
+      if (isHouseCell(state.map, row, col) || isTunnelCell(state.map, row, col)) continue;
       if (state.fruits.some((fruit) => fruit.row === row && fruit.col === col)) continue;
       if (isCellOccupiedByCharacter(state, row, col)) continue;
       candidates.push({ row, col });
@@ -434,7 +474,7 @@ function activatePowerUp(state: GameState): void {
   for (const ghost of state.ghosts) {
     if (ghost.eaten) continue;
     ghost.vulnerable = true;
-    reverseGhostDirection(ghost);
+    reverseGhostDirection(ghost, state.map);
   }
 }
 
@@ -463,23 +503,44 @@ export function isPowerUpWarning(state: GameState): boolean {
   return state.powerUpActive && state.powerUpTimer <= POWER_UP_WARNING_SECONDS;
 }
 
-/** Reaparición de los fantasmas comidos: 5 s en su punto de reaparición. */
-function updateGhostRespawns(state: GameState, deltaSeconds: number): void {
+/**
+ * Base de los fantasmas (decisiones 45 y 46). Los ojos de un fantasma comido vuelven solos a la
+ * base; ya adentro, el fantasma espera (3 s el naval, 0 el resto) y revive. Un fantasma de la IA
+ * dentro de la base espera su turno y sale por la puerta. Al fantasma del jugador lo saca el jugador.
+ */
+function updateGhostHouse(state: GameState, deltaSeconds: number): void {
+  const house = state.map.house;
   for (const ghost of state.ghosts) {
-    if (!ghost.eaten) continue;
-    ghost.respawnTimer -= deltaSeconds;
-    if (ghost.respawnTimer <= 0) {
-      ghost.eaten = false;
-      ghost.respawnTimer = 0;
-      placeGhostAtSpawn(ghost);
-      // Modo GhostMan: el fantasma del jugador conserva su tipo y los de la IA siguen clásicos.
-      if (state.config.mode === "pacman") {
-        setGhostKind(ghost, respawnKind(state));
+    if (ghost.eaten && !ghost.inHouse) {
+      if (moveToward(ghost, state.map, deltaSeconds, house.center, EYES_SPEED)) ghost.inHouse = true;
+    } else if (ghost.eaten) {
+      ghost.respawnTimer -= deltaSeconds;
+      if (ghost.respawnTimer <= 0) reviveGhost(state, ghost);
+    } else if (ghost.inHouse && !ghost.controlledByPlayer) {
+      ghost.releaseTimer = tickTimer(ghost.releaseTimer, deltaSeconds);
+      if (ghost.releaseTimer > 0) continue;
+      if (moveToward(ghost, state.map, deltaSeconds, house.exit, ghost.speed)) {
+        ghost.inHouse = false;
+        ghost.direction = "left";
+        ghost.facing = "left";
       }
-      // Si el PowerUp sigue activo reaparece vulnerable y la escala continúa.
-      ghost.vulnerable = state.powerUpActive;
     }
   }
+}
+
+/** El fantasma revive dentro de la base y sale enseguida. */
+function reviveGhost(state: GameState, ghost: Ghost): void {
+  ghost.eaten = false;
+  ghost.respawnTimer = 0;
+  ghost.releaseTimer = 0;
+  ghost.direction = null;
+  ghost.progress = 0;
+  // Modo GhostMan: el fantasma del jugador conserva su tipo y los de la IA siguen clásicos.
+  if (state.config.mode === "pacman") {
+    setGhostKind(ghost, respawnKind(state));
+  }
+  // Si el PowerUp sigue activo revive vulnerable y la escala continúa.
+  ghost.vulnerable = state.powerUpActive;
 }
 
 /**
@@ -503,7 +564,8 @@ function checkGhostCollisions(state: GameState): void {
     if (ghost.eaten) continue;
 
     const position = getMoverPosition(ghost);
-    const distance = Math.hypot(pacman.row - position.row, pacman.col - position.col);
+    // A través del túnel, la distancia se mide por el borde (decisión 48).
+    const distance = Math.hypot(pacman.row - position.row, colDelta(state.map, pacman.col, position.col));
     if (distance >= CONTACT_DISTANCE) continue;
 
     // Un único contacto dañino por paso: nunca dos descuentos por la misma colisión.
@@ -585,10 +647,14 @@ function eatGhost(state: GameState, ghost: Ghost): void {
   addPoints(state, "ghosts", GHOST_POINTS_SCALE[index]);
   state.ghostsEatenInPowerUp += 1;
 
+  // Quedan sus ojos, que vuelven solos a la base desde donde está (decisión 46).
   ghost.eaten = true;
   ghost.vulnerable = false;
-  ghost.respawnTimer = ghost.kind === "naval" ? NAVAL_RESPAWN_SECONDS : GHOST_RESPAWN_SECONDS;
-  placeGhostAtSpawn(ghost);
+  ghost.inHouse = false;
+  ghost.respawnTimer = ghost.kind === "naval" ? NAVAL_HOUSE_WAIT_SECONDS : 0;
+  ghost.desiredDirection = null;
+  clearSpecterState(ghost);
+  turnTowardIfMidStep(ghost, state.map, state.map.house.center);
 }
 
 function loseLife(state: GameState): void {
@@ -610,7 +676,7 @@ function loseLife(state: GameState): void {
  */
 function restartLevelPositions(state: GameState): void {
   resetPacmanPosition(state);
-  resetGhostPositions(state.ghosts);
+  resetGhostPositions(state.ghosts, state.map);
   state.ghostMode = "chase";
   state.ghostModeTimer = 0;
   state.fakeFruits = [];
@@ -631,9 +697,7 @@ function restartLevelPositions(state: GameState): void {
  */
 function breakWallAhead(state: GameState, pacman: Mover, direction: Direction | null): void {
   if (!direction || state.wallCharges <= 0) return;
-  const [dRow, dCol] = DIRECTION_VECTORS[direction];
-  const row = pacman.row + dRow;
-  const col = pacman.col + dCol;
+  const { row, col } = neighborCell(state.map, pacman.row, pacman.col, direction);
   if (!isInteriorWall(state.map, row, col)) return;
   destroyWall(state.map, row, col);
   state.wallCharges -= 1;
@@ -659,6 +723,7 @@ function updateDynamicPowerPellets(state: GameState, deltaSeconds: number): void
   for (let row = 0; row < state.map.rows; row++) {
     for (let col = 0; col < state.map.cols; col++) {
       if (state.map.cells[row][col] !== "path" || state.map.pellets[row][col] !== "none") continue;
+      if (isHouseCell(state.map, row, col) || isTunnelCell(state.map, row, col)) continue;
       if (destroyed.has(`${row},${col}`) || isCellOccupiedByCharacter(state, row, col)) continue;
       candidates.push({ row, col });
     }
@@ -690,7 +755,7 @@ function pacmanLosesLife(state: GameState): void {
 function noticePlacedFakeFruits(state: GameState, firstNew: number): void {
   if (state.config.mode !== "ghostman") return;
   const position = getMoverPosition(state.pacman);
-  const pacmanCell = { row: Math.round(position.row), col: Math.round(position.col) };
+  const pacmanCell = cellAt(state.map, position);
   for (const fruit of state.fakeFruits.slice(firstNew)) {
     if (pathDistanceWithin(state.map, pacmanCell, fruit, PACMAN_SIGHT_DISTANCE) <= PACMAN_SIGHT_DISTANCE) {
       fruit.knownByPacman = true;
@@ -731,8 +796,7 @@ function updateFakeFruits(state: GameState, deltaSeconds: number): void {
   state.fakeFruits = state.fakeFruits.filter((fruit) => fruit.timeLeft > 0);
 
   const pacman = getMoverPosition(state.pacman);
-  const pacmanRow = Math.round(pacman.row);
-  const pacmanCol = Math.round(pacman.col);
+  const { row: pacmanRow, col: pacmanCol } = cellAt(state.map, pacman);
   let pacmanHit = false;
   for (const fruit of exploding) {
     const cells = explosionCells(state.map, fruit.row, fruit.col);
@@ -755,15 +819,15 @@ function updateGhostMode(state: GameState, deltaSeconds: number): void {
   state.ghostModeTimer -= duration;
   state.ghostMode = state.ghostMode === "chase" ? "scatter" : "chase";
   for (const ghost of state.ghosts) {
-    reverseGhostDirection(ghost);
+    reverseGhostDirection(ghost, state.map);
   }
 }
 
 function updateGhosts(state: GameState, deltaSeconds: number, playerDirection: Direction | null): void {
   for (const ghost of state.ghosts) {
-    if (ghost.eaten) {
-      // El cooldown del poder sigue corriendo mientras espera reaparecer, para el fantasma del
-      // jugador y para los de la IA (decisiones 35 y 47).
+    // Comido o esperando dentro de la base: lo mueve updateGhostHouse. El cooldown del poder
+    // sigue corriendo, para el fantasma del jugador y para los de la IA (decisiones 35 y 47).
+    if (ghost.eaten || (ghost.inHouse && !ghost.controlledByPlayer)) {
       tickPowerTimers(ghost, deltaSeconds);
       continue;
     }
@@ -796,8 +860,10 @@ function updateGhosts(state: GameState, deltaSeconds: number, playerDirection: D
 }
 
 /** Distancia Manhattan entre la celda que ocupa (visualmente) un personaje y la de otro. */
-function manhattanCells(a: { row: number; col: number }, b: { row: number; col: number }): number {
-  return Math.abs(Math.round(a.row) - Math.round(b.row)) + Math.abs(Math.round(a.col) - Math.round(b.col));
+function manhattanCells(map: GameMap, a: { row: number; col: number }, b: { row: number; col: number }): number {
+  const from = cellAt(map, a);
+  const to = cellAt(map, b);
+  return Math.abs(from.row - to.row) + Math.abs(from.col - to.col);
 }
 
 /**
@@ -807,28 +873,28 @@ function manhattanCells(a: { row: number; col: number }, b: { row: number; col: 
  * fantasma usa su poder mientras está vulnerable.
  */
 function triggerAiGhostPower(state: GameState, ghost: Ghost): void {
-  if (ghost.eaten || ghost.vulnerable || ghost.powerCooldown > 0) return;
+  if (ghost.eaten || ghost.inHouse || ghost.vulnerable || ghost.powerCooldown > 0) return;
   // La dirección de avance de la IA es la de su movimiento (decisión 24 aplicada a la IA).
   if (ghost.direction) ghost.facing = ghost.direction;
 
   const chasing = state.ghostMode === "chase";
   const from = getMoverPosition(ghost);
-  const distance = manhattanCells(from, getMoverPosition(state.pacman));
+  const distance = manhattanCells(state.map, from, getMoverPosition(state.pacman));
 
   switch (ghost.kind) {
     case "jumper":
       if (chasing && distance <= AI_JUMPER_TRIGGER_CELLS) tryJumperTeleport(ghost, state.map, state.random);
       break;
     case "naval": {
-      const row = Math.round(from.row);
-      const col = Math.round(from.col);
-      if (canPlaceFakeFruit(state.fakeFruits, row, col)) tryNavalPlaceFruit(ghost, state.fakeFruits);
+      const { row, col } = cellAt(state.map, from);
+      if (canPlaceFakeFruit(state.fakeFruits, row, col)) tryNavalPlaceFruit(ghost, state.fakeFruits, state.map);
       break;
     }
     case "accelerated": {
       if (!chasing || distance > AI_DASH_TRIGGER_CELLS || !ghost.facing) break;
-      const [dRow, dCol] = DIRECTION_VECTORS[ghost.facing];
-      if (!canEnterCell(state.map, Math.round(from.row) + dRow, Math.round(from.col) + dCol)) break;
+      const origin = cellAt(state.map, from);
+      const ahead = neighborCell(state.map, origin.row, origin.col, ghost.facing);
+      if (!canEnterCell(state.map, ahead.row, ahead.col)) break;
       if (tryAcceleratedDash(ghost, state.map)) checkDashContact(state, ghost, from);
       break;
     }
@@ -893,7 +959,7 @@ export function updateGameState(
   for (const flash of state.wallFlashes) flash.timeLeft -= deltaSeconds;
   state.wallFlashes = state.wallFlashes.filter((flash) => flash.timeLeft > 0);
   updatePowerUp(state, deltaSeconds);
-  updateGhostRespawns(state, deltaSeconds);
+  updateGhostHouse(state, deltaSeconds);
   updateGhostMode(state, deltaSeconds);
   // El poder se resuelve antes de la cuenta regresiva de las frutas falsas: un intento en el
   // mismo instante en que explota una fruta todavía la cuenta para el máximo de 2.

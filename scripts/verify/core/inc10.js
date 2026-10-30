@@ -15,13 +15,14 @@ let s = st.createInitialGameState(undefined, seeded());
 check(s.config.mode === "pacman", "configuración por defecto = modo Pacman");
 check(s.ghosts.every(g => !g.controlledByPlayer && g.kind === "classic"), "modo Pacman N1: 4 fantasmas de la IA, clásicos");
 run(s, 0.5, "left");
-check(s.pacman.col < 8, "modo Pacman: Pacman responde al teclado");
+check(s.pacman.col < 13, "modo Pacman: Pacman responde al teclado");
 
 // --- Modo GhostMan, un caso por tipo
 for (const { kind } of GHOST_CATALOG) {
   s = st.createInitialGameState({ mode: "ghostman", playerGhostKind: kind }, seeded());
   const pg = st.getPlayerGhost(s);
-  check(pg && pg.kind === kind && pg.row === 1 && pg.col === 1, `${kind}: fantasma del jugador en (1,1) con su tipo`);
+  // Desde el incremento 19 arranca en el centro de la base (decisión 45); hasta el 18, en (1,1).
+  check(pg && pg.kind === kind && pg.row === 14 && pg.col === 13 && pg.inHouse, `${kind}: fantasma del jugador en el centro de la base (14,13) con su tipo`);
   check(s.ghosts.filter(g => g.controlledByPlayer).length === 1, `${kind}: un único fantasma del jugador`);
   check(s.ghosts.filter(g => !g.controlledByPlayer).every(g => g.kind === "classic"), `${kind}: los otros 3 son clásicos`);
   const expected = { classic: 3.75, specter: 2.625, jumper: 3.75, naval: 3, accelerated: 3.75 }[kind];
@@ -31,12 +32,14 @@ for (const { kind } of GHOST_CATALOG) {
 // Control del fantasma: avanza continuo, respeta muros
 s = st.createInitialGameState({ mode: "ghostman", playerGhostKind: "classic" }, seeded());
 let pg = st.getPlayerGhost(s);
+// Se lo saca de la base a (1,7): fila 1, pasillo de las columnas 7 a 20 con el borde arriba.
+pg.row = 1; pg.col = 7; pg.inHouse = false;
 const pacStart = { row: s.pacman.row, col: s.pacman.col };
 const otherStart = s.ghosts.filter(g => !g.controlledByPlayer).map(g => [g.row, g.col].join());
 run(s, 5.05 / 3.75, "right");
-check(pg.row === 1 && pg.col === 6, `fantasma avanza 5 celdas en 1,33 s (3,75 celdas/s) hacia la derecha (col=${pg.col})`);
+check(pg.row === 1 && pg.col === 12, `fantasma avanza 5 celdas en 1,33 s (3,75 celdas/s) hacia la derecha (col=${pg.col})`);
 run(s, 0.27, null);
-check(pg.col > 6, "avance continuo sin mantener la tecla");
+check(pg.col > 12, "avance continuo sin mantener la tecla");
 run(s, 0.2, "up");
 check(pg.row === 1, "no atraviesa el muro del borde superior");
 run(s, 0.1, "left");
@@ -49,7 +52,7 @@ check(otherNow.some((p, i) => p !== otherStart[i]), "los fantasmas de la IA se m
 s = st.createInitialGameState({ mode: "ghostman", playerGhostKind: "naval" }, seeded());
 pg = st.getPlayerGhost(s);
 const dirs = ["up", "down", "left", "right"]; let r = seeded(); let onWall = false;
-for (let i = 0; i < 60 * 60 && !s.gameOver; i++) { st.updateGameState(s, DT, dirs[Math.floor(r() * 4)]); if (s.map.cells[pg.row][pg.col] !== "path") onWall = true; }
+for (let i = 0; i < 60 * 60 && !s.gameOver; i++) { st.updateGameState(s, DT, dirs[Math.floor(r() * 4)]); if (s.map.cells[pg.row][pg.col] === "wall") onWall = true; }
 check(!onWall, "60 s de input aleatorio: el fantasma del jugador nunca entra a un muro");
 check(s.lives >= 0 && s.lives <= 3, "vidas de Pacman dentro de 0..3");
 

@@ -17,8 +17,12 @@ function setup(level = 1) {
   return [s, st.getPlayerGhost(s)];
 }
 const step = (s, n, dir = null, power = false) => { for (let i = 0; i < n; i++) st.updateGameState(s, DT, dir, power && i === 0); };
-const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; };
+// Fuera de la base desde el incremento 19: dentro, el poder no se puede usar.
+const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; g.inHouse = false; };
 const secs = t => Math.round(t / DT);
+
+// Coordenadas sobre los mapas de la V3 (incremento 19). Nivel 1: la columna 1 es pasillo en las
+// filas 1 a 9 y la fila 5 es un pasillo de las columnas 1 a 26; (29,26) es una esquina lejana.
 
 // Línea de tiempo del prompt
 {
@@ -27,20 +31,20 @@ const secs = t => Math.round(t / DT);
   step(s, 1, null, true); // t=0
   check(s.fakeFruits.length === 1 && s.fakeFruits[0].row === 1 && s.fakeFruits[0].col === 3 && isPowerReady(g) === false, "t=0: coloca una fruta en su celda y arranca el cooldown de 5 s");
   step(s, secs(3) - 1);
-  place(g, 4, 3); step(s, 1, null, true); // t=3
+  place(g, 3, 3); step(s, 1, null, true); // t=3
   check(s.fakeFruits.length === 1, "t=3: intento sin efecto (cooldown)");
   step(s, secs(2) - 1);
-  place(g, 7, 3); step(s, 1, null, true); // t=5
+  place(g, 5, 3); step(s, 1, null, true); // t=5
   check(s.fakeFruits.length === 2, "t=5: coloca la segunda");
   step(s, secs(5) - 2);
-  place(g, 10, 3);
+  place(g, 9, 3);
   check(s.fakeFruits.length === 2 && g.powerCooldown > 0 && g.powerCooldown < 0.05, "t≈10: siguen 2 frutas y al cooldown le quedan instantes");
   // En t=10 coinciden el fin del cooldown y la explosión de la primera (así está planteada la línea
   // de tiempo). Para aislar la regla del máximo de 2, el intento se hace sin cooldown.
   g.powerCooldown = 0;
   step(s, 1, null, true); // t=10: intento con 2 en el mapa, y la primera explota
-  check(s.fakeFruits.length === 1 && s.fakeFruits[0].row === 7, "t=10: la primera explota y queda una sola");
-  check(g.powerCooldown === 0 && !s.fakeFruits.some(f => f.row === 10), "t=10: el intento no tuvo efecto (había 2) y no consumió el poder");
+  check(s.fakeFruits.length === 1 && s.fakeFruits[0].row === 5, "t=10: la primera explota y queda una sola");
+  check(g.powerCooldown === 0 && !s.fakeFruits.some(f => f.row === 9), "t=10: el intento no tuvo efecto (había 2) y no consumió el poder");
   check(s.explosions.length === 1, "la explosión se registra para dibujarse");
   check(s.lives === 3, "Pacman lejos de la explosión: no pierde vidas");
 }
@@ -58,19 +62,19 @@ const secs = t => Math.round(t / DT);
 // Explosión sobre Pacman sin PowerUp → derrota producida por el jugador
 {
   const [s, g] = setup();
-  s.pacman.row = 4; s.pacman.col = 3;
-  place(g, 4, 1); step(s, 1, null, true);
-  place(g, 13, 15);
+  s.pacman.row = 5; s.pacman.col = 3;
+  place(g, 5, 1); step(s, 1, null, true);
+  place(g, 29, 26);
   step(s, secs(10));
   check(s.lives === 2 && s.scoreBreakdown.pacmanDefeats === 500, "Pacman a 2 pasos cuando explota: pierde una vida y cuenta como derrota (500)");
-  check(s.pacman.row === 7 && s.pacman.col === 8, "y el nivel se reinicia");
+  check(s.pacman.row === 23 && s.pacman.col === 13, "y el nivel se reinicia");
 }
 {
   // Con PowerUp: la explosión no lo afecta
   const [s, g] = setup();
-  s.pacman.row = 4; s.pacman.col = 3;
-  place(g, 4, 1); step(s, 1, null, true);
-  place(g, 13, 15);
+  s.pacman.row = 5; s.pacman.col = 3;
+  place(g, 5, 1); step(s, 1, null, true);
+  place(g, 29, 26);
   step(s, secs(9));
   s.powerUpActive = true; s.powerUpTimer = 5;
   step(s, secs(1.1));
@@ -79,30 +83,30 @@ const secs = t => Math.round(t / DT);
 {
   // Explosión sobre un fantasma: no lo afecta
   const [s, g] = setup();
-  place(g, 4, 1); step(s, 1, null, true);
+  place(g, 5, 1); step(s, 1, null, true);
   step(s, secs(10.1));
-  check(!g.eaten && g.row === 4 && g.col === 1 && s.lives === 3, "la explosión no afecta al fantasma que está encima");
+  check(!g.eaten && g.row === 5 && g.col === 1 && s.lives === 3, "la explosión no afecta al fantasma que está encima");
 }
 
 // Pacman consume la fruta falsa
 {
   const [s, g] = setup();
-  s.pacman.speed = 5; s.pacman.row = 13; s.pacman.col = 8;
-  for (const row of s.map.pellets) row.fill("none"); s.map.pellets[1][15] = "pellet"; s.pelletsRemaining = 1;
+  s.pacman.speed = 5;
+  for (const row of s.map.pellets) row.fill("none"); s.map.pellets[1][20] = "pellet"; s.pelletsRemaining = 1;
   // Desde el incremento 18 Pacman recuerda las frutas que ve colocar (decisión 37): se coloca
   // con Pacman lejos y después se lo acerca, así la fruta no queda registrada.
-  s.pacman.row = 1; s.pacman.col = 1;
-  place(g, 13, 10); step(s, 1, null, true); place(g, 1, 1); s.pacman.row = 13; s.pacman.col = 8; // fruta en (13,10), a 2 celdas: la IA va por ella
+  s.pacman.row = 29; s.pacman.col = 26;
+  place(g, 5, 10); step(s, 1, null, true); place(g, 29, 1); s.pacman.row = 5; s.pacman.col = 8; // fruta en (5,10), a 2 celdas: la IA va por ella
   let t = 0; while (s.fakeFruits.length && t < 3) { step(s, 1); t += DT; }
   check(s.lives === 2 && s.score === 500, `Pacman (IA) va por la fruta falsa y pierde una vida (a los ${t.toFixed(2)} s)`);
 }
 {
   const [s, g] = setup();
-  s.pacman.speed = 5; s.pacman.row = 13; s.pacman.col = 8;
+  s.pacman.speed = 5;
   s.powerUpActive = true; s.powerUpTimer = 8;
-  for (const row of s.map.pellets) row.fill("none"); s.map.pellets[1][15] = "pellet"; s.pelletsRemaining = 1;
-  s.pacman.row = 1; s.pacman.col = 1;
-  place(g, 13, 10); step(s, 1, null, true); place(g, 1, 1); s.pacman.row = 13; s.pacman.col = 8;
+  for (const row of s.map.pellets) row.fill("none"); s.map.pellets[1][20] = "pellet"; s.pelletsRemaining = 1;
+  s.pacman.row = 29; s.pacman.col = 26;
+  place(g, 5, 10); step(s, 1, null, true); place(g, 29, 1); s.pacman.row = 5; s.pacman.col = 8;
   let t = 0; while (s.fakeFruits.length && t < 3) { step(s, 1); t += DT; }
   check(s.fakeFruits.length === 0 && s.lives === 3 && s.score === 0, "con PowerUp la consume sin efecto y sin puntos");
 }

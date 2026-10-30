@@ -18,6 +18,9 @@ const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fail
   await page.keyboard.press("Enter");
   await page.waitForSelector("[data-testid=ghostman-status]");
   const ready = () => page.getAttribute("[data-testid=power-indicator]", "data-ready");
+  // Desde el incremento 19 arranca dentro de la base, donde el poder no se usa: primero sale.
+  await page.keyboard.press("ArrowUp");
+  await page.waitForTimeout(1300);
   await page.keyboard.press("ArrowRight");
   await page.waitForTimeout(500);
   await page.keyboard.press("Space"); // primera fruta

@@ -9,11 +9,13 @@ import { isPowerReady } from "../game/powers";
 import { EXPLOSION_DISPLAY_SECONDS, FAKE_FRUIT_WARNING_SECONDS } from "../game/fakeFruits";
 import { WALL_FLASH_SECONDS } from "../game/difficulty";
 import {
+  drawWrapped,
   isBlinkOn,
   renderExplosion,
   renderFakeFruit,
   renderFruit,
   renderGhost,
+  renderGhostEyes,
   renderMap,
   renderPacman,
   renderWallFlash,
@@ -47,6 +49,7 @@ interface UiSnapshot {
   levelPelletsLeftBonus: number;
   /** Modo GhostMan: segundos enteros que faltan para que reaparezca el fantasma del jugador (0 = en juego). */
   playerRespawnSeconds: number;
+  playerEyesReturning: boolean;
   /** Modo GhostMan (HU-32): null si el fantasma no tiene poder; si no, si está disponible. */
   powerReady: boolean | null;
   gameOver: boolean;
@@ -66,6 +69,7 @@ function takeSnapshot(state: GameState): UiSnapshot {
     levelTimeBonus: state.lastLevelTimeBonus,
     levelPelletsLeftBonus: state.lastLevelPelletsLeftBonus,
     playerRespawnSeconds: playerRespawnSeconds(state),
+    playerEyesReturning: playerEyesReturning(state),
     powerReady: playerPowerReady(state),
     gameOver: state.gameOver,
     won: state.won,
@@ -75,9 +79,16 @@ function takeSnapshot(state: GameState): UiSnapshot {
   };
 }
 
+/** Segundos que el fantasma del jugador espera dentro de la base para revivir (el naval, 3 s; decisión 46). */
 function playerRespawnSeconds(state: GameState): number {
   const ghost = getPlayerGhost(state);
-  return ghost?.eaten ? Math.ceil(ghost.respawnTimer) : 0;
+  return ghost?.eaten && ghost.inHouse ? Math.ceil(ghost.respawnTimer) : 0;
+}
+
+/** El fantasma del jugador fue comido y sus ojos vuelven a la base: el jugador no lo controla. */
+function playerEyesReturning(state: GameState): boolean {
+  const ghost = getPlayerGhost(state);
+  return !!ghost?.eaten && !ghost.inHouse;
 }
 
 function playerPowerReady(state: GameState): boolean | null {
@@ -162,19 +173,31 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
       const isWarning = isPowerUpWarning(state);
       const blinkOn = isBlinkOn(state.powerUpTimer);
       for (const ghost of state.ghosts) {
-        if (ghost.eaten) continue; // comido: fuera del mapa hasta reaparecer
         const ghostPosition = getMoverPosition(ghost);
-        renderGhost(ctx, ghostPosition.row, ghostPosition.col, CELL_SIZE, {
-          color: ghost.color,
-          kind: ghost.kind,
-          isHarmless: ghost.noEatTimer > 0 || isPhasing(ghost),
-          isVulnerable: ghost.vulnerable,
-          isWarning,
-          blinkOn,
-        });
+        // Comido: sus ojos vuelven a la base (decisión 46); ya adentro, espera sin dibujarse.
+        if (ghost.eaten) {
+          if (!ghost.inHouse) {
+            drawWrapped(state.map.cols, ghostPosition.col, (col) =>
+              renderGhostEyes(ctx, ghostPosition.row, col, CELL_SIZE, ghost.direction)
+            );
+          }
+          continue;
+        }
+        drawWrapped(state.map.cols, ghostPosition.col, (col) =>
+          renderGhost(ctx, ghostPosition.row, col, CELL_SIZE, {
+            color: ghost.color,
+            kind: ghost.kind,
+            isHarmless: ghost.noEatTimer > 0 || isPhasing(ghost),
+            isVulnerable: ghost.vulnerable,
+            isWarning,
+            blinkOn,
+          })
+        );
       }
       const position = getMoverPosition(state.pacman);
-      renderPacman(ctx, position.row, position.col, CELL_SIZE, state.pacman.direction);
+      drawWrapped(state.map.cols, position.col, (col) =>
+        renderPacman(ctx, position.row, col, CELL_SIZE, state.pacman.direction)
+      );
       renderFireworks(ctx, fireworks, CELL_SIZE);
     };
 
@@ -226,9 +249,9 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
             </div>
           </div>
         )}
-        {ui.playerRespawnSeconds > 0 && !ui.paused && (
+        {(ui.playerEyesReturning || ui.playerRespawnSeconds > 0) && !ui.paused && (
           <div className={styles.respawn} data-testid="player-respawn">
-            Reaparecés en {ui.playerRespawnSeconds}
+            {ui.playerEyesReturning ? "Volviendo a la base…" : `Reaparecés en ${ui.playerRespawnSeconds}`}
           </div>
         )}
         {ui.paused && (

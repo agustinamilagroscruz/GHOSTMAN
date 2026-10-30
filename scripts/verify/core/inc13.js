@@ -17,7 +17,8 @@ function setup(kind, level = 1, seed) {
   return [s, st.getPlayerGhost(s)];
 }
 const step = (s, n, dir = null, power = false) => { for (let i = 0; i < n; i++) st.updateGameState(s, DT, dir, power && i === 0); };
-const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; };
+// Fuera de la base desde el incremento 19: dentro, el poder no se puede usar.
+const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; g.inHouse = false; };
 
 // ---------- Espectro (nivel 2: muros de una celda)
 {
@@ -71,16 +72,25 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
   check(g2.powerCooldown === 0, "sin dirección de avance (recién aparecido): sin efecto");
 }
 {
-  // Nivel 1: ningún cruce válido (decisión 26)
-  const [s, g] = setup("specter", 1);
-  let valid = 0;
+  // Desde el incremento 19 los mapas tienen muros finos: el espectro tiene cruces en los tres
+  // niveles, nunca por el borde ni por los muros de la base (decisiones 26 y 49). Hasta el 18,
+  // en el nivel 1 no tenía ninguno.
   const { trySpecterPhase } = require(path.join(B, "powers.js"));
-  for (let r = 0; r < s.map.rows; r++) for (let c = 0; c < s.map.cols; c++) for (const f of ["up", "down", "left", "right"]) {
-    if (s.map.cells[r][c] !== "path") continue;
-    place(g, r, c); g.facing = f; g.powerCooldown = 0; g.phaseCellsLeft = 0;
-    if (trySpecterPhase(g, s.map)) valid++;
+  const { isHouseCell } = require(path.join(B, "movement.js"));
+  for (const level of [1, 2, 3]) {
+    const [s, g] = setup("specter", level);
+    let valid = 0, bad = 0;
+    for (let r = 0; r < s.map.rows; r++) for (let c = 0; c < s.map.cols; c++) for (const f of ["up", "down", "left", "right"]) {
+      if (s.map.cells[r][c] !== "path" || isHouseCell(s.map, r, c)) continue;
+      place(g, r, c); g.facing = f; g.powerCooldown = 0; g.phaseCellsLeft = 0;
+      if (!trySpecterPhase(g, s.map)) continue;
+      valid++;
+      const v = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] }[f];
+      const wr = r + v[0], wc = c + v[1];
+      if (wr <= 0 || wr >= s.map.rows - 1 || wc <= 0 || wc >= s.map.cols - 1 || isHouseCell(s.map, wr, wc)) bad++;
+    }
+    check(valid > 0 && bad === 0, `nivel ${level}: ${valid} cruces válidos para el espectro, ninguno por el borde ni por la base`);
   }
-  check(valid === 0, `nivel 1: ningún cruce válido para el espectro (decisión 26) — ${valid}`);
 }
 
 // ---------- Saltarín
@@ -131,13 +141,13 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
 {
   // Salto sobre Pacman: derrota sin PowerUp. Se fuerza el azar para caer en la celda de Pacman.
   const [s, g] = setup("jumper", 1);
-  s.pacman.row = 4; s.pacman.col = 3;
-  place(g, 4, 1); g.facing = "right";
+  s.pacman.row = 5; s.pacman.col = 3; // fila 5 del nivel 1 de la V3: pasillo de las columnas 1 a 26
+  place(g, 5, 1); g.facing = "right";
   const { tryJumperTeleport } = require(path.join(B, "powers.js"));
   // buscar un valor de azar que elija (4,3)
   let hit = null;
-  for (let k = 0; k < 400 && !hit; k++) { const v = (k + 0.5) / 400; place(g, 4, 1); tryJumperTeleport(g, s.map, () => v); if (g.row === 4 && g.col === 3) hit = v; }
-  place(g, 4, 1); g.facing = "right"; g.powerCooldown = 0; s.random = () => hit;
+  for (let k = 0; k < 400 && !hit; k++) { const v = (k + 0.5) / 400; place(g, 5, 1); tryJumperTeleport(g, s.map, () => v); if (g.row === 5 && g.col === 3) hit = v; }
+  place(g, 5, 1); g.facing = "right"; g.powerCooldown = 0; s.random = () => hit;
   step(s, 1, null, true);
   check(s.lives === 2 && s.score === 500, "salto sobre Pacman sin PowerUp: Pacman pierde una vida");
 }
