@@ -1,0 +1,643 @@
+# Proyecto Integrador de Testing de Aplicaciones
+## Entrega 03 — GhostMan · Versión 3
+
+**Materia:** Testing de Aplicaciones
+**Comisión:** 15852
+**Grupo:** Nº 1
+**Fecha de presentación:** [fecha]
+
+### Integrantes
+
+| Integrante | LU |
+|---|---|
+| Cruz, Agustina | 1241748 |
+| Luzzi, María Eugenia | 1121159 |
+| Rodriguez Castro, Alejandro | 1117972 |
+| Savoia, Diego Agustín | 1175679 |
+| Tsai, Leonardo Kevin | 1120569 |
+
+### Enlaces del proyecto
+
+| Recurso | Enlace |
+|---|---|
+| Repositorio de código | https://github.com/agustinamilagroscruz/GHOSTMAN |
+| Aplicación desplegada | `[URL de despliegue]` |
+| Planilla de casos de prueba y defectos | `[planilla de la Entrega 3]` |
+| Documento de la Entrega 01 (V1) | [`TP/entrega-01.md`](entrega-01.md) |
+| Documento de la Entrega 02 (V2) | [`TP/entrega-02.md`](entrega-02.md) |
+| Bocetos de los mapas de la V3 | [`Workflow/v3-mapas.md`](../Workflow/v3-mapas.md) |
+| Checklist de trabajo de la V3 | [`Workflow/v3-workflow.md`](../Workflow/v3-workflow.md) |
+
+---
+
+## Índice
+
+1. [Objetivo de la entrega](#1-objetivo-de-la-entrega)
+2. [Punto de partida](#2-punto-de-partida)
+3. [Alcance de la V3](#3-alcance-de-la-v3)
+4. [Reglas de negocio y parámetros de la V3](#4-reglas-de-negocio-y-parámetros-de-la-v3)
+5. [Decisiones sobre ambigüedades de la V3](#5-decisiones-sobre-ambigüedades-de-la-v3)
+6. [Ajustes a las historias de usuario](#6-ajustes-a-las-historias-de-usuario)
+7. [Implementación de la V3 con AI](#7-implementación-de-la-v3-con-ai)
+8. [Estrategia de pruebas de la V3](#8-estrategia-de-pruebas-de-la-v3)
+9. [Especificación de casos de prueba de la V3](#9-especificación-de-casos-de-prueba-de-la-v3)
+10. [Matriz de trazabilidad](#10-matriz-de-trazabilidad)
+11. [Reporte de ejecución de casos de prueba](#11-reporte-de-ejecución-de-casos-de-prueba)
+12. [Reporte de defectos](#12-reporte-de-defectos)
+13. [Conclusiones y próximos pasos](#13-conclusiones-y-próximos-pasos)
+14. [Anexos](#14-anexos)
+
+---
+
+## 1. Objetivo de la entrega
+
+Esta entrega documenta la construcción y la verificación de la **Versión 3** de GhostMan, la versión final del juego. La V3 suma lo que estaba planificado desde la Entrega 01 (cuentas de usuario, tableros de puntaje, skins y opciones) y una épica nueva de **look & feel**, que recupera elementos clásicos del Pac-Man que el juego todavía no tenía: la base de los fantasmas, el túnel lateral, la cuenta regresiva, la animación de derrota de Pacman, la música y los efectos de sonido, y los sprites de pixel art.
+
+Sigue la misma estructura metodológica de las entregas anteriores:
+
+- Cierre de las ambigüedades de la especificación de la V3 **antes** de generar código (sección 5).
+- Generación incremental con AI, con un prompt y un commit por incremento, y registro de los problemas de la sesión (sección 7).
+- Detalle completo de los casos de prueba de la V3, que en la Entrega 01 quedaron en formato sintético (sección 9).
+- Ejecución de los casos de la V3 y de la regresión de la V1 y la V2, con su reporte de defectos (secciones 11 y 12).
+
+Este documento **no repite** el contenido de las entregas anteriores. Las historias de usuario de la V3 planificadas desde el principio (HU-35 a HU-42) están en la sección 7.5 de `entrega-01.md`, y las reglas de cuentas y puntajes en su sección 4.9. Acá se registra solo lo que la V3 agrega o modifica.
+
+---
+
+## 2. Punto de partida
+
+### 2.1 Estado de la V2
+
+La V2 está **cerrada**: generada (incrementos 10 a 17), desplegada en Vercel, con los 62 casos de la V2 ejecutados junto con la regresión completa de la V1, y los defectos reportados (sección 11 de la Entrega 02). La V3 parte de `main` después del documento de la Entrega 2.
+
+| Dato | Valor |
+|---|---|
+| Commit base de la V3 | `d587568` |
+| Tag de referencia | `v2.0` *(pendiente de crear, sección 13.2)* |
+| Casos de la V1 | CP-001 a CP-066 |
+| Casos de la V2 | CP-067 a CP-105 y CP-141 a CP-163 |
+| Casos de la V3 | CP-106 a CP-140 (sintéticos, Entrega 01) y desde el CP-164 (nuevos) |
+
+**Pendientes de la V2 que se resuelven en esta entrega.** Las decisiones 26, 34, 37 y 38, que en la Entrega 02 quedaron a decidir por el equipo, se resolvieron el 30/10/2026 (sección 5.1). El incremento 18, que dependía de las decisiones 37 y 38, pasa a ser el primero de la V3.
+
+### 2.2 Flujo de despliegue
+
+Se mantiene el flujo de la V2: los incrementos se integran **directamente sobre `main`**, cada push despliega en Vercel y cada incremento debe cerrar compilando y jugable. Si hiciera falta reproducir un defecto sobre una versión anterior, se usan los tags `v1.0` y `v2.0`.
+
+La V3 agrega un servicio externo, **Supabase**, con dos proyectos (decisión 60):
+
+| Proyecto | Uso |
+|---|---|
+| Producción | Conectado al despliegue de Vercel. Cuentas y puntajes reales |
+| Prueba | Builds de prueba locales y ejecución del ciclo. Contiene el usuario de prueba y los datos de prueba de los tableros |
+
+La URL y la clave pública de cada proyecto se cargan como variables de entorno (en Vercel y en `.env.local`, que no se sube al repositorio). La clave de servicio no se usa en la aplicación ni se publica.
+
+---
+
+## 3. Alcance de la V3
+
+| Épica | Nombre | HU |
+|---|---|---|
+| E9 | Cuentas de usuario | HU-35 a HU-37 |
+| E10 | Puntajes y estadísticas | HU-38, HU-39 |
+| E11 | Opciones y personalización | HU-40 a HU-42 |
+| **E12** | **Look & feel** *(nueva)* | **HU-44 a HU-50** (sección 6.2) |
+| E6 a E8 (ajustes) | Memoria de frutas de la IA de Pacman y salto hacia adelante | Ajustes a HU-29, HU-30 y HU-43 (incremento 18, arrastrado de la V2) |
+
+**Por qué se agrega la épica E12.** La V2 dejó el juego completo en sus reglas, pero lejos del Pac-Man que los jugadores reconocen: los fantasmas aparecen en las esquinas, no hay túnel, la partida arranca sin aviso, la derrota de Pacman no tiene animación, no hay sonido y los poderes del acelerado y del saltarín no se ven como lo que son (el acelerado "se teletransporta" en lugar de impulsarse). Además, dos pendientes de la V2 (decisiones 26 y 34) se resuelven mejor con mapas nuevos y una base de los fantasmas que con parches a los mapas actuales. Las historias se numeran desde la HU-44, después de la HU-43 de la V2, para no alterar identificadores ya usados.
+
+| HU | Historia | Prioridad |
+|---|---|---|
+| HU-44 | Base de los fantasmas y mapas rediseñados | Alta |
+| HU-45 | Túnel lateral | Alta |
+| HU-46 | Cuenta regresiva al inicio del nivel | Media |
+| HU-47 | Animación de derrota de Pacman | Baja |
+| HU-48 | Música y efectos de sonido | Baja |
+| HU-49 | Animaciones y efectos de los poderes | Baja |
+| HU-50 | Sprites de pixel art con soporte de skins | Media |
+
+**Fuera de alcance:** juego en línea entre jugadores, recuperación de contraseña, edición del username y cualquier sistema antitrampas más allá de la validación de rangos de la decisión 63.
+
+---
+
+## 4. Reglas de negocio y parámetros de la V3
+
+Esta sección **extiende** la sección 4 de la Entrega 01 y la sección 4 de la Entrega 02. Todo lo que no se redefine acá sigue vigente. Es la sección que se entrega completa al agente como contexto y contra la que se calculan los resultados esperados.
+
+> **Estado.** Todas las reglas de esta sección provienen de decisiones aceptadas en la sesión de planificación del 30/10/2026 (sección 5) y todavía no están implementadas. Si el equipo cambia una decisión, hay que actualizar el valor acá.
+
+### 4.1 Mapas *(D-41 a D-51)*
+
+Los tres mapas se reemplazan por los de [`Workflow/v3-mapas.md`](../Workflow/v3-mapas.md), que es la fuente de verdad del trazado.
+
+| Parámetro | Valor |
+|---|---|
+| Tamaño | 28 columnas × 31 filas, como el Pac-Man original (en la V1 y la V2: 17 × 15) |
+| Diseño | Laberintos propios, simétricos. Cada nivel tiene un trazado distinto, siempre el mismo |
+| Muros interiores | Mayormente de una celda de espesor, para que el espectro tenga cruces en todo el mapa *(D-26)* |
+| Marco común a los tres niveles | Base de los fantasmas, anillo alrededor de la base, túnel y aparición de Pacman en las mismas posiciones |
+| Aparición de Pacman | Fila 23, entre las columnas 13 y 14 |
+| Esferas grandes, nivel 1 | (1,1), (1,26), (23,1), (23,26) |
+| Esferas grandes, nivel 2 | (5,1), (5,26), (25,1), (25,26) |
+| Esferas grandes, nivel 3 | (1,1), (1,26), (29,1), (29,26). En modo GhostMan, además, las fijas (15,1) y (15,26) *(D-51)* |
+| Esferas comunes | Nivel 1: 388 · Nivel 2: 352 · Nivel 3: 344 |
+| Celdas sin esfera | Anillo de la base, celdas del túnel, aparición de Pacman e interior de la base |
+
+**Formato de texto del mapa.** Se amplía el de la V1: `#` muro, `.` pasillo con esfera común, `o` pasillo con esfera grande, espacio pasillo sin esfera y `-` puerta de la base.
+
+### 4.2 Base de los fantasmas *(D-44 a D-47, D-49)*
+
+| Parámetro | Valor |
+|---|---|
+| Ubicación | Filas 12 a 16, columnas 10 a 17. Interior: filas 13 a 15, columnas 11 a 16 |
+| Puerta | Fila 12, columnas 13 y 14 |
+| Muros de la base | Infranqueables para todos, incluidos el espectro, el saltarín, el acelerado y la destrucción de muros de Pacman |
+| Quién cruza la puerta | Los fantasmas vivos, solo para **salir**. Los ojos de los fantasmas comidos, solo para **entrar**. Pacman, nunca |
+| Inicio, modo Pacman | Un fantasma arranca afuera, sobre la puerta (fila 11). Los otros tres arrancan adentro y salen de a uno, **cada 3 s** contados desde el "¡ya!" de la cuenta regresiva |
+| Inicio, modo GhostMan | El fantasma del jugador arranca adentro y sale cuando el jugador lo mueve hacia la puerta. Si no se mueve, sigue adentro y Pacman termina completando el nivel *(D-34)*. Los fantasmas de la IA salen cada 3 s, como en el modo Pacman |
+| Después de perder una vida | Igual que al inicio del nivel |
+| Fantasma comido | Quedan sus **ojos**, que vuelven solos a la base al doble de la velocidad del fantasma clásico y sin colisionar con nada. Al entrar, el fantasma revive y vuelve a salir |
+| Espera dentro de la base | 0 s, salvo el **naval**, que espera 3 s (conserva su penalidad de reaparición) |
+| Tipo al revivir, modo Pacman | Se sortea al revivir, con las reglas de la sección 4.9 de la Entrega 02 |
+| Fantasma del jugador comido | Sus ojos vuelven en piloto automático; el jugador recupera el control al revivir |
+| Estado al revivir | Vulnerable si el PowerUp sigue activo, como en la V1 |
+| Cooldown del poder | Sigue corriendo mientras el fantasma está comido, para el jugador y para la IA *(D-47)* |
+
+Esta regla **reemplaza** los temporizadores fijos de reaparición de la sección 4.5 de la Entrega 02 (5 s y 8 s para el naval).
+
+### 4.3 Túnel *(D-48 a D-50)*
+
+| Parámetro | Valor |
+|---|---|
+| Ubicación | Fila 13. Sale por la columna 0 y entra por la 27, y al revés |
+| Celdas del túnel | Fila 13, columnas 0 a 3 y 24 a 27 |
+| Quién lo usa | Todos los personajes, en los dos sentidos |
+| Velocidad dentro del túnel | Los fantasmas, al **50 %** de su velocidad. Pacman y los ojos de los fantasmas comidos mantienen la suya. El *dash* del acelerado ignora la reducción |
+| Distancias por recorrido | Cuentan el paso por el túnel (IA de Pacman, persecución de los fantasmas, visión de 8 celdas de la sección 4.5) |
+| Distancia Manhattan | No cuenta el túnel (radio del saltarín) |
+| Frutas | Ni las reales ni las falsas aparecen en las celdas del túnel |
+| Dibujado | Un personaje a mitad del cruce se dibuja recortado en el borde y aparece del otro lado, sin quedar sobre el HUD |
+
+### 4.4 Poderes de los fantasmas *(D-38, D-41, D-54 a D-56)*
+
+Cambios sobre la sección 4.6 de la Entrega 02:
+
+**Espectro.** Atraviesa muros de exactamente una celda de espesor. No atraviesa el borde del mapa ni los muros de la base.
+
+**Saltarín.**
+
+| Parámetro | Valor |
+|---|---|
+| Destino | Al azar, en forma uniforme, entre las celdas transitables a distancia Manhattan ≤ 10 que están **estrictamente adelante** del fantasma en su dirección de avance. La fila o la columna actual no cuenta *(D-38, D-41)* |
+| Fantasma quieto | Se usa su última dirección de avance |
+| Celdas excluidas | El interior de la base y la celda actual |
+| Sin destino válido | El salto no se ejecuta y el poder no entra en cooldown |
+| Duración del salto | 0,6 s, en arco. El destino se marca con una sombra que crece hasta el aterrizaje |
+| Durante el salto | No colisiona con nada y el jugador no lo controla |
+| Al aterrizar | Colisión normal. Si Pacman está en la celda, se resuelve como cualquier contacto |
+| IA del modo Pacman | Usa la misma regla |
+
+**Acelerado.**
+
+| Parámetro | Valor |
+|---|---|
+| Recorrido | Hasta 3 celdas en su dirección de avance, como en la V2, pero **recorriéndolas** en 0,25 s (12 celdas/s) en lugar de teletransportarse |
+| Colisión | Normal con Pacman en todo el trayecto: lo derrota o, si el acelerado está vulnerable, Pacman se lo come |
+| Efecto | Estela de 2 o 3 siluetas que se desvanecen |
+| Sin cambios | La regla de 3, 2, 1 o 0 celdas según el muro, el cooldown de 10 s y la penalidad de velocidad de 5 s |
+
+**Naval.** Sin cambios en las reglas. Efectos: aparición al colocar la fruta, parpadeo en los últimos 2 s antes de explotar y explosión de 0,5 s que muestra el radio.
+
+### 4.5 IA de Pacman: memoria de frutas falsas *(D-37, D-42)*
+
+Reemplaza la prioridad 3 de la sección 4.7 de la Entrega 02 ("va hacia la fruta, real o falsa, sin distinguirlas").
+
+| Parámetro | Valor |
+|---|---|
+| Registro | Pacman registra una fruta falsa si, **en el instante en que el naval la coloca**, está a 8 celdas de recorrido o menos. Una fruta colocada más lejos no se registra después, aunque Pacman se acerque |
+| Olvido | Cada fruta registrada se olvida con una probabilidad de 5 % por segundo (vida media de unos 14 s) |
+| Fruta no registrada | La trata como real: si está a 5 celdas de recorrido o menos, va hacia ella |
+| Fruta falsa registrada | La evita como si fuera un muro al calcular recorridos. No se aleja del radio de la explosión. Si la única ruta a las esferas pasa por esa celda, espera a que explote |
+| Azar | El olvido usa la fuente de azar inyectable del juego, para poder fijarla en los scripts de verificación |
+
+**Caso determinista para la prueba manual:** una fruta falsa colocada a la vista de Pacman no la consume mientras la recuerde. Con el azar fijado en los scripts, el olvido también es reproducible.
+
+### 4.6 Cuenta regresiva y derrota de Pacman *(D-52, D-53)*
+
+| Momento | Qué se muestra | Duración |
+|---|---|---|
+| Inicio de cada nivel | "3", "2", "1" y "¡ya!". En el nivel 1 suena el jingle de inicio | 1 s por número y 0,5 s para "¡ya!" (3,5 s) |
+| Después de perder una vida | "¡Listo!" | 2 s |
+
+Durante la cuenta y el "¡Listo!" se congelan el reloj del bonus por tiempo, los cooldowns, los temporizadores de las frutas y de las frutas falsas, la IA y la salida de la base. La pausa también detiene la cuenta.
+
+**Derrota de Pacman** (en los dos modos):
+
+1. 0,5 s con todo congelado y los fantasmas visibles.
+2. Los fantasmas desaparecen y Pacman se desarma hasta desaparecer, con su sonido (1,5 s).
+3. "¡Listo!" o la pantalla de Game Over, según corresponda.
+
+### 4.7 Música y efectos de sonido *(D-43, D-57)*
+
+Todos los sonidos son **originales**, sintetizados con la Web Audio API al estilo del Pac-Man original. No se usan los archivos del juego original.
+
+| Canal | Sonidos |
+|---|---|
+| Música | Jingle de inicio · sirena de fondo (en bucle durante el nivel) · sirena del PowerUp · jingle de nivel completado · jingle de Game Over |
+| Efectos | Waka (al comer esferas) · esfera grande · comer un fantasma · ojos que vuelven a la base · fruta · derrota de Pacman · pitidos de la cuenta regresiva · atravesar (espectro) · saltar (saltarín) · impulso (acelerado) · colocar fruta y explosión (naval) · romper un muro |
+
+- El audio arranca después de la primera interacción del usuario, por la política de reproducción automática de los navegadores.
+- Nada suena con la partida en pausa ni con la pestaña oculta.
+- El volumen de cada canal se regula por separado (HU-41).
+
+### 4.8 Sprites y skins *(D-58)*
+
+| Parámetro | Valor |
+|---|---|
+| Tamaño | Celdas y sprites de 16 × 16 px. El mapa (448 × 496 px) se escala por un número entero para entrar en la pantalla |
+| Herramienta | Pixel art dibujado con pxl |
+| Roles de color | Cada sprite usa roles: cuerpo, contorno, ojos y detalle |
+| Skin | Una paleta para esos roles. Las skins con forma propia son opcionales |
+| Distinción entre tipos | Un rasgo de forma por tipo, que no depende del color: espectro con borde ondulado y transparencia, saltarín con resortes, naval con gorro, acelerado con líneas de velocidad, clásico con la forma tradicional |
+| Estado vulnerable | Azul con parpadeo blanco. Tiene prioridad sobre cualquier skin |
+| Cuadros | Pacman: 3 por dirección · derrota: unos 10 · fantasmas: 2, con ojos que miran hacia donde avanzan · vulnerables: 2 más el parpadeo · ojos: 4 direcciones |
+
+### 4.9 Modo de prueba *(D-59)*
+
+| Parámetro | Valor |
+|---|---|
+| Parámetros de la partida | La duración de la cuenta, del "¡Listo!" y de las animaciones forma parte de la configuración de la partida |
+| Núcleo del juego | Usa 0 por defecto: las pruebas del núcleo no cambian |
+| Navegador | `?modoPrueba=1` pone esas duraciones en 0 y silencia el audio |
+| Dónde se acepta | Solo en builds de prueba, activados con una variable de entorno de build. En el despliegue de Vercel se ignora |
+
+### 4.10 Cuentas y puntajes *(D-60 a D-66)*
+
+Extiende la sección 4.9 de la Entrega 01.
+
+| Regla | Definición |
+|---|---|
+| Autenticación | Supabase Auth con email sintético `<username en minúsculas>@ghostman.invalid` y la confirmación por email desactivada |
+| Username | No distingue mayúsculas al iniciar sesión ni para la unicidad. Se muestra como se registró |
+| Registro atómico | El perfil se crea en la misma transacción que el usuario. Un registro rechazado no deja nada creado |
+| Contraseña | Mínimo 8 caracteres, con letras y números. Se valida en el formulario y en la configuración de Supabase |
+| Error de login | Mensaje único, sin precisar si falló el username o la contraseña |
+| Sesión | Persiste al recargar la página |
+| Acceso al juego | Para jugar hace falta sesión iniciada (HU-37) |
+| Tabla `profiles` | Username, skin de Pacman, skin de los fantasmas, volumen de música y volumen de efectos (0 a 100) |
+| Tabla `best_scores` | Una fila por usuario y modo, con el mejor puntaje y la fecha en que se logró |
+| Tablero global | Top 10 de `best_scores` por modo. Cada jugador aparece una vez por modo |
+| Empates | Queda arriba el puntaje que se logró antes |
+| Registro de un puntaje | Solo mediante una función de la base de datos, que valida el modo, rechaza puntajes por encima del máximo posible del modo y actualiza solo si supera el mejor personal |
+| Permisos | Con sesión iniciada se leen los usernames y los tableros. Cada usuario modifica solo sus preferencias. Nadie escribe puntajes directamente |
+| Salir del juego | Detiene el bucle y el audio y muestra "¡Gracias por jugar!" con un botón para volver a entrar. No cierra la sesión |
+| Sin conexión | Al terminar la partida se muestra el resultado con "No se pudo guardar el puntaje" y un botón para reintentar. En el registro y el login, un error general |
+
+---
+
+## 5. Decisiones sobre ambigüedades de la V3
+
+La numeración continúa la de la Entrega 02 (decisiones 17 a 40). Se aplica el mismo criterio: cada punto que no permitía escribir un resultado esperado pass/fail, o que dejaba un comportamiento librado al agente, se resuelve **antes** de generar código.
+
+**Estados:** los de la Entrega 02, más uno nuevo.
+- *Aceptada · sin implementar*: aceptada por D. Savoia en la sesión de planificación del 30/10/2026. Falta la revisión del equipo; si el equipo la cambia, pasa a *Modificada*.
+- *Implementada*, *Aprobada* y *Modificada*: como en la Entrega 02.
+
+### 5.1 Resolución de las decisiones pendientes de la V2
+
+| # | Pendiente en la Entrega 02 | Resolución | Fundamento | Estado |
+|---|---|---|---|---|
+| 26 | Espesor de muro que atraviesa el espectro. Con los mapas de la V1, el espectro del jugador no tenía cruces válidos en el nivel 1 | El espectro atraviesa muros de **exactamente una celda** de espesor, nunca el borde del mapa. Los mapas se rediseñan (sección 4.1) con muros finos, para que tenga cruces en los tres niveles | Mantener la regla de una celda conserva los casos CP-055 y CP-058. El problema estaba en el mapa, no en la regla | Aceptada · sin implementar |
+| 34 | Un jugador que no toca ninguna tecla podía ganar en modo GhostMan, porque su fantasma custodiaba la esfera grande de (1,1) | Un jugador quieto **no puede ganar**. Se resuelve con la base de los fantasmas: el fantasma del jugador arranca dentro de la base y, si no sale, Pacman completa el nivel | La base elimina la causa (el fantasma aparecía sobre una esfera que Pacman necesitaba) en lugar de compensarla con un cambio en la cuenta de esferas | Aceptada · sin implementar |
+| 37 | La IA de Pacman no distinguía la fruta falsa de la real, y el naval que usaba su poder ganaba 10 de 10 partidas | **Opción B**, con *p* = 5 % por segundo: memoria de las frutas falsas que Pacman ve colocar (sección 4.5) | La opción A dejaba al naval sin trampa en los niveles 1 y 2 del modo GhostMan, donde no hay frutas reales. La B funciona en los tres niveles y convierte la trampa en una habilidad: colocar la fruta fuera de la vista de Pacman | Aceptada · sin implementar |
+| 38 | El destino uniforme del saltarín lo alejaba de Pacman tantas veces como lo acercaba, y usar el poder empeoraba sus resultados | **Opción A**: salto hacia adelante (sección 4.4) | Conserva la idea de la pre-entrega ("el destino no es elegible") y premia al jugador que sabe usar el poder. La B no requería habilidad y la C no cambiaba que la mitad de los saltos fueran en contra | Aceptada · sin implementar |
+
+### 5.2 Decisiones nuevas
+
+| # | Ambigüedad o hueco detectado | Decisión | Fundamento | Estado |
+|---|---|---|---|---|
+| 41 | La opción A de la decisión 38 habla del "semiplano de la dirección de avance", sin decir si incluye la fila o la columna actual, qué pasa si el fantasma está quieto o si no hay destino | El semiplano es **estricto**: la fila o la columna actual no cuenta. Si está quieto, se usa su última dirección. Sin destino válido, el salto no se ejecuta y el poder no entra en cooldown | Un semiplano que incluyera la fila actual permitiría saltos laterales, que no son "hacia adelante". No consumir el cooldown sigue el criterio de la decisión 25 para los poderes sin efecto | Aceptada · sin implementar |
+| 42 | La opción B de la decisión 37 dice "si la ve colocar", sin precisar cuándo se mide la distancia | Pacman registra la fruta **en el instante de la colocación**, si está a 8 celdas de recorrido o menos | Medir en un solo instante da un resultado esperado verificable. Si el registro pudiera ocurrir después, una fruta colocada lejos se volvería visible al acercarse y la trampa perdería sentido | Aceptada · sin implementar |
+| 43 | La V3 pide la música y los efectos clásicos del Pac-Man, pero son obra de Bandai Namco y el juego está desplegado públicamente | Música y efectos **originales**, sintetizados con la Web Audio API al estilo del original | Evita usar material protegido sin licencia y no requiere archivos de audio en el repositorio | Aceptada · sin implementar |
+| 44 | La base de los fantasmas no estaba especificada: quién cruza la puerta y en qué sentido | Los fantasmas vivos solo salen; los ojos de los comidos solo entran; Pacman nunca la cruza. Vale también para el fantasma del jugador | Si el fantasma del jugador pudiera volver a entrar, tendría un refugio donde Pacman no lo alcanza, por ejemplo durante el PowerUp | Aceptada · sin implementar |
+| 45 | No se define cómo salen los fantasmas de la base ni dónde arranca el fantasma del jugador | Modo Pacman: uno afuera y tres que salen cada 3 s desde el "¡ya!". Modo GhostMan: el jugador sale cuando quiere; la IA, cada 3 s | Sigue el patrón del original. Que el jugador decida cuándo salir resuelve la decisión 34 | Aceptada · sin implementar |
+| 46 | Con una base, el temporizador fijo de reaparición (5 s, 8 s el naval) deja de tener un lugar natural | Los ojos vuelven a la base al doble de velocidad y el fantasma revive al entrar. El naval espera 3 s adentro | Es el comportamiento clásico. La espera del naval conserva la penalidad que la pre-entrega le asigna | Aceptada · sin implementar |
+| 47 | Pendiente 6 de la V2: el cooldown de los fantasmas de la IA se congelaba mientras estaban comidos, y el del jugador no (decisión 35 b) | El cooldown sigue corriendo mientras el fantasma está comido, para todos | Una sola regla para el jugador y la IA. Con los ojos volviendo a la base, el tiempo comido es variable, y congelar el cooldown haría el comportamiento difícil de predecir | Aceptada · sin implementar |
+| 48 | El túnel no estaba especificado: velocidad dentro del túnel y cómo cuentan las distancias que lo cruzan | Fantasmas al 50 % en las celdas del túnel; Pacman, los ojos y el *dash* sin reducción. Las distancias por recorrido cuentan el túnel; la Manhattan no | La reducción para los fantasmas es la del original y le da a Pacman una vía de escape real. La Manhattan no cuenta el túnel porque el ejecutor la verifica contando celdas en pantalla | Aceptada · sin implementar |
+| 49 | No se define qué poderes y apariciones pueden ocurrir en la base y en el túnel | Las frutas reales y falsas no aparecen en la base ni en el túnel. El saltarín nunca cae en la base. La destrucción de muros nunca rompe la base ni el borde | Una fruta en el túnel tendría que dibujarse partida en los dos bordes. Romper la base anularía las decisiones 44 y 45 | Aceptada · sin implementar |
+| 50 | No se define cómo se ve un personaje a mitad del túnel | Se dibuja recortado en el borde y aparece del otro lado, sin quedar sobre el HUD | Es lo que hace el original y evita que el sprite tape el HUD | Aceptada · sin implementar |
+| 51 | Con mapas de muros finos, cada carga de destrucción de paredes (decisión 22) abre un camino nuevo. Además, las esferas grandes fijas del nivel 3 tenían coordenadas de los mapas de 17 × 15 | Se mantienen las 5 cargas y se vuelve a medir el balance con el bot después del incremento 19. Las 6 esferas grandes fijas del nivel 3 del modo GhostMan quedan en las 4 esquinas del boceto más (15,1) y (15,26) | Ajustar las cargas sin datos sería adivinar. El bot de balance de la V2 permite medir el efecto | Aceptada · sin implementar |
+| 52 | La partida arranca de inmediato al elegir el modo o el fantasma, sin tiempo para prepararse | Cuenta "3, 2, 1, ¡ya!" de 3,5 s al inicio de cada nivel y "¡Listo!" de 2 s después de perder una vida. Durante la cuenta todo queda congelado | El "READY!" del original cumple la misma función. Congelar todo evita que la cuenta altere el bonus por tiempo o los cooldowns | Aceptada · sin implementar |
+| 53 | La derrota de Pacman no tiene animación | 0,5 s congelado, después Pacman se desarma durante 1,5 s sin fantasmas en pantalla. Se usa en los dos modos | Es la animación más reconocible del original. En modo GhostMan marca el logro del jugador | Aceptada · sin implementar |
+| 54 | El *dash* del acelerado se ve como un teletransporte, no como un impulso | Recorre sus hasta 3 celdas en 0,25 s, con estela y colisión normal con Pacman en todo el trayecto | Al recorrer las celdas, la decisión 32 (contacto en cada celda del trayecto) pasa a ser visible para el jugador | Aceptada · sin implementar |
+| 55 | El salto del saltarín no tiene animación ni define si colisiona durante el salto | Salto de 0,6 s en arco, con el destino marcado; sin colisión en el aire y con colisión normal al aterrizar | Marcar el destino hace legible la regla de la decisión 38. Sin colisión en el aire, el resultado de un salto depende solo de dónde cae | Aceptada · sin implementar |
+| 56 | Los demás poderes no tienen efectos visuales propios | Espectro semitransparente y ondulado al atravesar; naval con aparición, parpadeo y explosión visible; escombros de muro redibujados | Que cada poder se vea al usarse ayuda tanto al jugador como al ejecutor de los casos | Aceptada · sin implementar |
+| 57 | La HU-41 pide volumen separado para música y efectos, pero ninguna lista dice qué sonido es de cada canal | Lista de la sección 4.7 | Sin la lista, el resultado esperado de "el volumen de música en 0 silencia la música" no es verificable | Aceptada · sin implementar |
+| 58 | La HU-40 exige que las skins conserven la distinción entre tipos y el estado vulnerable, pero hoy los tipos se distinguen solo por color | Sprites de 16 × 16 con roles de color; skins por paleta; un rasgo de forma por tipo; el estado vulnerable con prioridad sobre la skin | Si los tipos dependieran solo del color, cualquier skin que cambia la paleta rompería la HU-40 | Aceptada · sin implementar |
+| 59 | La cuenta regresiva y las animaciones agregan esperas que rompen los scripts de verificación | Duraciones como parámetros de la partida, en 0 en el núcleo y con `?modoPrueba=1` en builds de prueba | El parámetro no se acepta en el despliegue de Vercel para que un jugador no pueda saltear la cuenta | Aceptada · sin implementar |
+| 60 | No se define quién administra Supabase ni cómo se separan los datos de prueba | Dos proyectos, producción y prueba, administrados por D. Savoia. Solo la clave pública va al navegador | La sección 9 de la Entrega 01 pide datos de prueba precargados para el tablero; mezclarlos con los de producción contaminaría el ranking real | Aceptada · sin implementar |
+| 61 | Supabase Auth trabaja con email, y la HU-35 pide username sin email | Email sintético a partir del username en minúsculas; confirmación por email desactivada; perfil creado en la misma transacción | Pasar el username a minúsculas resuelve la regla de mayúsculas de la HU-36. La transacción única cumple el criterio de la HU-35 sobre cuentas parciales | Aceptada · sin implementar |
+| 62 | La sección 4.9 de la Entrega 01 no define la estructura de los datos ni el orden de los empates | Tablas `profiles` y `best_scores`, una fila por usuario y modo. En empates, queda arriba el puntaje logrado antes | Como solo se registra el mejor personal, el historial no hace falta. Sin regla de empate, el orden del tablero no es verificable | Aceptada · sin implementar |
+| 63 | El juego corre en el navegador, así que un usuario podría enviar un puntaje inventado | Los puntajes se guardan solo con una función que valida el modo, el rango y la mejora | No se puede impedir del todo en un juego de cliente. La validación limita el daño, y la limitación se registra en el análisis de riesgos (sección 8.1) | Aceptada · sin implementar |
+| 64 | La HU-42 pide una "pantalla de salida", pero un navegador no deja que una página se cierre sola | "Salir" detiene el juego y el audio y muestra "¡Gracias por jugar!". No cierra la sesión | Es la forma verificable de "no dejar una partida activa en segundo plano" en un juego web | Aceptada · sin implementar |
+| 65 | No se define qué pasa si no hay conexión con Supabase | Resultado visible con mensaje y reintento, sin cola local; error general en el registro y el login | Una cola local agregaría estados difíciles de probar para un caso poco frecuente | Aceptada · sin implementar |
+| 66 | La HU-37 exige sesión para llegar al menú, lo que cambia la entrada a todos los casos de la V1 y la V2 | Todos los casos manuales suman la precondición "sesión iniciada con el usuario de prueba"; los scripts de navegador inician sesión contra el proyecto de prueba | Es la misma situación que generó el menú de la V2 (sección 8.2 de la Entrega 02) | Aceptada · sin implementar |
+
+---
+
+## 6. Ajustes a las historias de usuario
+
+### 6.1 Cambios a historias existentes
+
+Estos criterios de aceptación de `entrega-01.md` cambian por las decisiones de la sección 5. Se modifican en el documento de historias de usuario una vez que el equipo las revise, y se registran acá para la trazabilidad.
+
+| HU | Criterio actual | Criterio ajustado | Decisión |
+|---|---|---|---|
+| HU-02 | "Pacman no puede salir de los límites del mapa" | "Pacman no puede salir de los límites del mapa, salvo por el túnel, que lo lleva al borde opuesto" | 48 |
+| HU-07 | "El fantasma comido vuelve a su punto de reaparición y reaparece a los 5 segundos con su comportamiento normal" | "El fantasma comido queda reducido a sus ojos, que vuelven a la base; al entrar, el fantasma revive y vuelve a salir con su comportamiento normal" | 46 |
+| HU-18 | "El espectro no puede usar su habilidad para salir de los límites del mapa" | Se agrega: "ni para atravesar los muros de la base de los fantasmas" | 26, 49 |
+| HU-25 | — | Se agrega: "El fantasma del jugador arranca dentro de la base y sale cuando el jugador lo mueve hacia la puerta" | 34, 45 |
+| HU-27 | "Con el PowerUp activo, el contacto con Pacman envía al fantasma del jugador a su punto de reaparición" | "Con el PowerUp activo, el contacto con Pacman reduce al fantasma del jugador a sus ojos, que vuelven solos a la base" | 46 |
+| HU-27 | "El jugador no controla al fantasma durante el tiempo de reaparición, y el tiempo restante se indica en pantalla" | "El jugador no controla al fantasma mientras sus ojos vuelven a la base, y recupera el control al revivir" | 46 |
+| HU-27 | "El tiempo de reaparición es de 5 segundos, u 8 segundos si el fantasma del jugador es de tipo naval" | "Si el fantasma del jugador es de tipo naval, espera 3 segundos dentro de la base antes de poder salir" | 46 |
+| HU-27 | "El poder del fantasma no puede activarse mientras está esperando reaparecer" | Se agrega: "El cooldown del poder sigue corriendo mientras el fantasma está comido" | 47 |
+| HU-28 | "La habilidad no puede usarse para salir de los límites del mapa" | Se agrega: "ni para atravesar los muros de la base de los fantasmas" | 49 |
+| HU-29 | "La barra espaciadora teletransporta al fantasma a una celda aleatoria dentro de un radio de 10 celdas" | "La barra espaciadora hace saltar al fantasma a una celda aleatoria dentro de un radio de 10 celdas, estrictamente adelante en su dirección de avance" | 38, 41 |
+| HU-29 | "El destino no es elegible ni predecible por el jugador" | "La celda de destino no es elegible por el jugador: elige hacia dónde salta, no a qué celda" | 38 |
+| HU-29 | — | Se agrega: "El salto dura 0,6 segundos y la celda de destino se marca antes del aterrizaje", "Durante el salto el fantasma no colisiona con nada" y "Si no hay ninguna celda válida adelante, el salto no se ejecuta y el poder no entra en cooldown" | 41, 55 |
+| HU-29 | "Si el salto ubica al fantasma sobre Pacman y Pacman no tiene el PowerUp activo, Pacman pierde una vida" | "Si el fantasma aterriza sobre Pacman y Pacman no tiene el PowerUp activo, Pacman pierde una vida" | 55 |
+| HU-30 | "El Naval se desplaza un 20 % más lento que el fantasma clásico y tarda 8 segundos en reaparecer" | "El Naval se desplaza un 20 % más lento que el fantasma clásico y, al ser comido, espera 3 segundos dentro de la base antes de salir" | 46 |
+| HU-30 | — | Se agrega: "La IA de Pacman no consume una fruta falsa que vio colocar a 8 celdas de recorrido o menos, mientras la recuerde" | 37, 42 |
+| HU-31 | "La barra espaciadora desplaza al fantasma hasta 3 celdas en su dirección de avance" | "La barra espaciadora impulsa al fantasma hasta 3 celdas en su dirección de avance, recorriéndolas en 0,25 segundos" | 54 |
+| HU-31 | "Si el dash termina sobre Pacman y Pacman no tiene el PowerUp activo, Pacman pierde una vida" | "Si el dash pasa por Pacman o termina sobre él y Pacman no tiene el PowerUp activo, Pacman pierde una vida" | 32, 54 |
+| HU-31 | "El dash no atraviesa paredes ni los límites del mapa" | Se agrega: "salvo por el túnel, que lo lleva al borde opuesto" | 48 |
+| HU-33 | — | Se agrega: "Los muros de la base de los fantasmas y los del borde del mapa son indestructibles" | 49 |
+| HU-43 | "El saltarín de la IA se teletransporta según las reglas de la sección 4.6" | "El saltarín de la IA salta según las reglas de la sección 4.4 de la Entrega 03" | 38 |
+
+### 6.2 Historias nuevas
+
+#### Épica E12 — Look & feel
+
+---
+
+**HU-44 · Base de los fantasmas**
+*Épica: E12 · Versión: V3 · Prioridad: Alta*
+
+> **Como** jugador
+> **quiero** que los fantasmas aparezcan y vuelvan a una base en el centro del mapa
+> **para** reconocer la estructura del Pac-Man clásico y anticipar desde dónde salen los fantasmas.
+
+**Criterios de aceptación:**
+- Los tres niveles tienen una base de los fantasmas en el centro del mapa, en la misma posición.
+- Pacman no puede entrar a la base en ningún modo, ni siquiera con cargas de destrucción de paredes.
+- Los muros de la base no se pueden atravesar con ningún poder.
+- En modo Pacman, al inicio del nivel un fantasma está afuera, sobre la puerta, y los otros tres salen de a uno, cada 3 segundos desde el "¡ya!".
+- En modo GhostMan, el fantasma del jugador arranca dentro de la base y sale cuando el jugador lo mueve hacia la puerta.
+- Un fantasma vivo no puede volver a entrar a la base.
+- Un fantasma comido queda reducido a sus ojos, que vuelven solos a la base sin colisionar con nada.
+- Al entrar a la base, el fantasma revive y vuelve a salir. El naval espera 3 segundos adentro antes de salir.
+- Si un jugador de fantasma no mueve a su fantasma, Pacman termina completando el nivel.
+- Cada nivel tiene su propio laberinto, con muros de una celda de espesor en la mayor parte del mapa.
+
+---
+
+**HU-45 · Cruzar el mapa por el túnel**
+*Épica: E12 · Versión: V3 · Prioridad: Alta*
+
+> **Como** jugador
+> **quiero** salir por un borde del mapa y entrar por el opuesto a través de un túnel
+> **para** escapar o perseguir tomando un atajo, como en el Pac-Man clásico.
+
+**Criterios de aceptación:**
+- Los tres niveles tienen un túnel en la misma fila, que conecta el borde izquierdo con el derecho.
+- Pacman y todos los fantasmas pueden cruzar el túnel en los dos sentidos.
+- Al salir por un borde, el personaje aparece en el borde opuesto con la misma dirección de avance.
+- Los fantasmas se desplazan al 50 % de su velocidad dentro del túnel; Pacman mantiene la suya.
+- La IA de Pacman y la de los fantasmas usan el túnel al calcular sus recorridos.
+- Ni las frutas reales ni las falsas aparecen dentro del túnel.
+- Un personaje a mitad del cruce se ve recortado en un borde y asomando por el otro, sin tapar el HUD.
+
+---
+
+**HU-46 · Prepararme antes de que empiece el nivel**
+*Épica: E12 · Versión: V3 · Prioridad: Media*
+
+> **Como** jugador
+> **quiero** ver una cuenta regresiva antes de que empiece cada nivel
+> **para** tener tiempo de ubicarme en el mapa antes de que todo se mueva.
+
+**Criterios de aceptación:**
+- Al inicio de cada nivel, en los dos modos, se muestra "3", "2", "1" y "¡ya!", con 1 segundo por número y medio segundo para "¡ya!".
+- Después de perder una vida se muestra "¡Listo!" durante 2 segundos antes de continuar.
+- Durante la cuenta ningún personaje se mueve y ningún temporizador avanza: ni el bonus por tiempo, ni los cooldowns, ni las frutas, ni la salida de la base.
+- Las teclas presionadas durante la cuenta no mueven a ningún personaje.
+- Si el jugador pausa durante la cuenta, la cuenta se detiene y se reanuda al quitar la pausa.
+
+---
+
+**HU-47 · Ver la derrota de Pacman**
+*Épica: E12 · Versión: V3 · Prioridad: Baja*
+
+> **Como** jugador
+> **quiero** ver a Pacman desarmarse cuando lo derrotan
+> **para** reconocer al instante que perdió una vida, como en el juego clásico.
+
+**Criterios de aceptación:**
+- Cuando Pacman pierde una vida, el juego queda congelado medio segundo con los fantasmas visibles.
+- Después, los fantasmas desaparecen y Pacman se desarma hasta desaparecer, en 1,5 segundos, con su sonido.
+- Al terminar la animación se muestra "¡Listo!" o, si era la última vida, la pantalla de Game Over.
+- La animación se usa en los dos modos, también cuando el jugador de fantasma derrota a Pacman.
+- Durante la animación no se suman puntos ni avanza ningún temporizador.
+
+---
+
+**HU-48 · Escuchar la música y los sonidos del juego**
+*Épica: E12 · Versión: V3 · Prioridad: Baja*
+
+> **Como** jugador
+> **quiero** escuchar música y efectos de sonido durante la partida
+> **para** sentir el ritmo del juego y recibir señales de lo que pasa sin tener que mirar todo.
+
+**Criterios de aceptación:**
+- Suena un jingle al iniciar la partida y una sirena de fondo durante el nivel.
+- Durante el PowerUp la sirena de fondo cambia por la del PowerUp.
+- Comer esferas produce el sonido "waka" característico.
+- Cada evento de la lista de la sección 4.7 tiene su sonido: esfera grande, comer un fantasma, ojos que vuelven, fruta, derrota de Pacman, cuenta regresiva, cada poder y romper un muro.
+- Cada sonido pertenece al canal de música o al de efectos, según la sección 4.7.
+- Nada suena con la partida en pausa ni con la pestaña del navegador oculta.
+- La música y los efectos son originales.
+
+---
+
+**HU-49 · Ver los poderes de los fantasmas en acción**
+*Épica: E12 · Versión: V3 · Prioridad: Baja*
+
+> **Como** jugador
+> **quiero** que cada poder tenga su animación y su sonido
+> **para** entender qué hizo un fantasma en el momento en que lo usa.
+
+**Criterios de aceptación:**
+- El acelerado se impulsa recorriendo las celdas, con una estela que se desvanece, en lugar de aparecer de golpe en el destino.
+- El saltarín salta en arco; la celda de destino se marca con una sombra antes del aterrizaje y levanta polvo al caer.
+- El espectro se ve semitransparente y ondulado mientras atraviesa un muro.
+- El naval muestra una aparición al colocar la fruta falsa, la fruta parpadea en sus últimos 2 segundos y la explosión deja ver su radio.
+- Romper un muro muestra escombros sobre la celda.
+- Cada poder tiene su propio sonido.
+- Las animaciones no cambian las reglas de los poderes: duraciones, colisiones y cooldowns son los de la sección 4.4.
+
+---
+
+**HU-50 · Ver a Pacman y a los fantasmas en pixel art**
+*Épica: E12 · Versión: V3 · Prioridad: Media*
+
+> **Como** jugador
+> **quiero** que Pacman, los fantasmas y las frutas tengan sprites de pixel art
+> **para** que el juego se vea como un arcade clásico.
+
+**Criterios de aceptación:**
+- Pacman abre y cierra la boca mientras avanza, en las cuatro direcciones.
+- Los ojos de los fantasmas miran hacia donde avanzan.
+- Cada tipo de fantasma se distingue de los demás por un rasgo de forma, además del color.
+- El estado vulnerable se ve igual con cualquier skin, y parpadea en los últimos 2 segundos del PowerUp.
+- Los ojos de un fantasma comido se distinguen de un fantasma vivo.
+- La fruta falsa se distingue de la real.
+- Los sprites se dibujan sin difuminar, escalados por un número entero.
+
+---
+
+## 7. Implementación de la V3 con AI
+
+### 7.1 Estrategia de generación
+
+Se mantiene la estrategia de las entregas anteriores: **incrementos verificables**, un prompt por incremento y un commit por incremento, con `npm run build`, `npm run lint` y `npm run verify` sin errores. La numeración continúa la de la V2.
+
+| # | Incremento | HU cubiertas | Criterio de avance |
+|---|---|---|---|
+| 18 | Memoria de frutas falsas y salto hacia adelante | HU-29, HU-30, HU-43 | Con el azar fijado, Pacman no consume una fruta falsa que vio colocar mientras la recuerda; el saltarín cae siempre adelante |
+| 19 | Mapas nuevos, base de los fantasmas y túnel | HU-44, HU-45 | Pacman no entra a la base, los fantasmas salen cada 3 s, los ojos vuelven, todos cruzan el túnel y un jugador quieto no gana |
+| 20 | Impulso del acelerado | HU-31, HU-49 | El *dash* recorre las celdas en 0,25 s con colisión en el trayecto |
+| 21 | Cuenta regresiva y modo de prueba | HU-46 | La cuenta congela todo, y con el modo de prueba las suites de `scripts/verify/` pasan sin cambios de tiempos |
+| 22 | Sprites de pixel art | HU-50 | Tipos y estado vulnerable distinguibles, al menos una skin alternativa funcionando |
+| 23 | Animaciones | HU-47, HU-49 | Derrota de Pacman con el juego pausado; las animaciones no alteran tiempos ni colisiones |
+| 24 | Música y efectos de sonido | HU-48 | Dos canales; cada evento de la sección 4.7 suena |
+| 25 | Registro, inicio de sesión y menú principal | HU-35, HU-36, HU-37 | Validaciones de la sección 4.10, sesión persistente y menú inaccesible sin sesión |
+| 26 | Tableros de puntaje | HU-38, HU-39 | Top 10 por modo, tablero personal y actualización inmediata |
+| 27 | Opciones: skins, volumen, cerrar sesión y salir | HU-40, HU-41, HU-42 | Persistencia entre sesiones y ninguna skin altera las mecánicas |
+
+**Orden.** Primero van los incrementos que cambian las mecánicas (18 a 21), para que los sprites, las animaciones y el audio se hagan sobre el juego definitivo. Las cuentas van al final porque son independientes del juego y requieren los proyectos de Supabase.
+
+### 7.2 Agente utilizado
+
+| Agente / LLM | Interfaz | Uso previsto |
+|---|---|---|
+| Claude Opus 5.5 | Claude Code (CLI) con acceso al repositorio local: puede compilar, correr lint, ejecutar scripts de verificación, manejar un navegador sin interfaz (Chromium) y dibujar pixel art con pxl | Generación de los incrementos 18 a 27, sprites y verificación de sus criterios de avance |
+
+Se mantiene la **decisión metodológica** de las entregas anteriores: el código no se corrige a mano durante la generación. Los ajustes se piden mediante prompts que quedan registrados, y toda edición manual se anota en la tabla 7.5.
+
+### 7.3 Contexto entregado al agente
+
+1. La sección **4** de la Entrega 01, la sección **4** de la Entrega 02 y la sección **4** de este documento.
+2. Las historias de usuario de la V3 (sección 7.5 de la Entrega 01 y sección 6.2 de este documento), con los ajustes de la sección 6.1.
+3. Las decisiones 41 a 66 de la sección 5.
+4. Los mapas de `Workflow/v3-mapas.md`.
+
+### 7.4 Prompts
+
+*A redactar antes de cada incremento, desde el Prompt 17.*
+
+### 7.5 Registro de problemas de la sesión de generación
+
+*A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
+
+| # | Incremento | Prompt | Problema observado | Cómo se resolvió | ¿Requirió edición manual? |
+|---|---|---|---|---|---|
+
+### 7.6 Observaciones sobre la implementación con AI
+
+*A completar al cierre de la etapa de generación.*
+
+---
+
+## 8. Estrategia de pruebas de la V3
+
+Se mantiene la estrategia de la sección 9 de la Entrega 01: pruebas manuales de caja negra sobre la aplicación desplegada, con las mismas técnicas, la misma priorización y los mismos criterios de entrada y de salida. Esta sección registra solo lo que cambia con la V3.
+
+### 8.1 Análisis de riesgos de la V3
+
+| Área | Probabilidad | Impacto | Riesgo | Fundamento |
+|---|---|---|---|---|
+| Mapas nuevos y base de los fantasmas | Alta | Alto | **Crítico** | Cambia el escenario de todas las reglas de la V1 y la V2: posiciones de aparición, cuenta de esferas, reaparición y recorridos de las IA |
+| Regresión de la V1 y la V2 | Alta | Alto | **Crítico** | Los mapas, la base, el túnel y la cuenta regresiva modifican el resultado esperado de muchos casos ya aprobados |
+| Registro e inicio de sesión | Media | Alto | **Alto** | Si falla, nadie puede jugar (HU-37). Depende de un servicio externo |
+| Túnel | Media | Medio | **Medio** | El salto de un borde al otro es un caso especial para el movimiento, las colisiones, las distancias y el dibujado |
+| Tableros de puntaje | Media | Medio | **Medio** | Orden, empates, límites del top 10 y la actualización inmediata dependen de la base de datos |
+| Puntajes falsos | Baja | Medio | **Bajo** | Limitación conocida y aceptada (decisión 63): un usuario podría enviar un puntaje dentro del rango válido sin haberlo logrado |
+| Animaciones y cuenta regresiva | Media | Bajo | **Bajo** | Si alteran tiempos o colisiones, afectan a las reglas. Se mitiga con la regla de la decisión 59 y la verificación del incremento 23 |
+| Audio | Baja | Bajo | **Bajo** | No afecta las reglas del juego |
+
+### 8.2 Regresión de la V1 y la V2
+
+*A completar en la Etapa 2 del workflow.* Como mínimo, estos casos cambian:
+
+| Caso | Cambio | Decisión |
+|---|---|---|
+| Todos los de la V1 y la V2 | Precondición nueva: sesión iniciada con el usuario de prueba | 66 |
+| Todos los que dependen de posiciones del mapa o de la cuenta de esferas | Se reescriben sobre los mapas nuevos | 26, 34 |
+| Los que verifican la reaparición a los 5 s o a los 8 s | Pasan a verificar los ojos que vuelven a la base y la espera del naval | 46 |
+| CP-055, CP-058 | El espectro se prueba sobre muros de una celda de los mapas nuevos | 26 |
+| CP-087, CP-089 | El destino del saltarín pasa a estar adelante | 38, 41 |
+| Los del *dash* del acelerado | El *dash* recorre las celdas en 0,25 s | 54 |
+| Los que miden tiempos desde el inicio del nivel | Se descuentan los 3,5 s de la cuenta regresiva | 52 |
+
+---
+
+## 9. Especificación de casos de prueba de la V3
+
+*A completar en la Etapa 2 del workflow:* detalle completo de los CP-106 a CP-140 y casos nuevos de las HU-44 a HU-50 desde el CP-164.
+
+---
+
+## 10. Matriz de trazabilidad
+
+*A completar en la Etapa 2 del workflow.*
+
+---
+
+## 11. Reporte de ejecución de casos de prueba
+
+*A completar en la Etapa 4 del workflow.*
+
+---
+
+## 12. Reporte de defectos
+
+*A completar en las Etapas 4 y 5 del workflow.*
+
+---
+
+## 13. Conclusiones y próximos pasos
+
+### 13.1 Estado al 30/10/2026
+
+Especificación de la V3 cerrada por D. Savoia (decisiones 41 a 66). Sin incrementos de la V3 ejecutados.
+
+### 13.2 Pendientes
+
+| # | Pendiente | Origen | Responsable |
+|---|---|---|---|
+| 1 | Revisar las decisiones 26, 34, 37, 38 y 41 a 66 y pasarlas a *Aprobada* o *Modificada* | Sección 5 | Equipo completo |
+| 2 | Revisar las decisiones 17 a 36 de la V2 | Pendiente 1 de la Entrega 02 | Equipo completo |
+| 3 | Validar la explosión de la fruta falsa como derrota en modo GhostMan | Pendiente 8 de la Entrega 02 | Equipo completo |
+| 4 | Decidir qué hacer con CP-032 (HU-08): marcarlo *No aplica* o reformular el criterio | Pendiente 14 de la Entrega 02 | Equipo completo |
+| 5 | Confirmar y verificar DEF-002 con otro integrante | Pendiente 14 de la Entrega 02 | `[completar]` |
+| 6 | Subir el tag `v1.0` al remoto y crear el tag `v2.0` | Pendiente 15 de la Entrega 02 | Savoia |
+| 7 | Crear los proyectos de Supabase y pasar la URL y la clave pública de cada uno | Decisión 60 | Savoia |
+| 8 | Pasar los ajustes de la sección 6.1 y las HU-44 a HU-50 al documento de historias de usuario | Sección 6 | `[completar]` |
+| 9 | Definir quién conduce los prompts y quién registra la sesión | Sección 7 | Equipo completo |
+
+---
+
+## 14. Anexos
+
+*A completar.*
