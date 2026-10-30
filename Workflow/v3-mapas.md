@@ -35,7 +35,7 @@ Bocetos de los tres niveles de la V3, aprobados el 30/10/2026. Son la entrada de
 |---|---|---|---|
 | Muros interiores que el espectro puede cruzar | 234 de 282 | 240 de 318 | 210 de 328 |
 | Esferas comunes | 388 | 352 | 344 |
-| Esferas grandes | (1,1) (1,26) (23,1) (23,26) | (5,1) (5,26) (25,1) (25,26) | (1,1) (1,26) (29,1) (29,26) |
+| Esferas grandes | (1,1) (1,26) (23,1) (23,26) | (5,1) (5,26) (25,1) (25,26) | (1,1) (1,26) (29,1) (29,26); en modo GhostMan, además (15,1) y (15,26) |
 
 Los conteos excluyen el borde y la base. Las posiciones de las esferas grandes van como (fila, columna). En el nivel 3 del modo GhostMan las esferas grandes son dinámicas (incremento 17 de la V2), así que esas posiciones son solo las iniciales.
 
@@ -164,5 +164,5 @@ Más compartimentado. Hay tramos donde las columnas 12 a 15 forman un muro de 4 
 ## Pendientes antes del incremento 19
 
 - [ ] Pasar el formato de texto de `src/game/maps/parse.ts` a esta leyenda: espacio como pasillo sin esfera, `-` como puerta y las celdas de borde de la fila 13 como túnel
-- [ ] Definir el resto de los puntos de la base y el túnel de la Etapa 0 de `v3-workflow.md`: salida de los fantasmas, fantasmas comidos y velocidad en el túnel
-- [ ] Revisar la decisión 22 (cargas y costo de muro de Pacman) con mapas de muros finos: casi todos los muros son de una celda, así que romperlos es mucho más barato en recorrido
+- [x] Definir el resto de los puntos de la base y el túnel: decisiones 44 a 50 de `v3-workflow.md`
+- [x] Revisar la decisión 22 con mapas de muros finos: se mantienen las 5 cargas y se vuelve a medir después del incremento 19 (decisión 51)

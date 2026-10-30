@@ -41,6 +41,14 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 | 41 | *(Propuesta.)* Detalle de la 38: el semiplano es **estricto**; la fila o la columna actual del fantasma no cuenta. Si está quieto, se usa su última dirección de avance. Sin destino válido, el salto no se ejecuta y el poder no entra en cooldown | HU-29 |
 | 42 | *(Propuesta.)* Detalle de la 37: Pacman registra la fruta **en el instante de la colocación**, si está a 8 celdas de recorrido o menos en ese momento. Una fruta colocada lejos no se registra después, aunque Pacman se acerque | HU-30 |
 | 43 | *(Propuesta.)* La música y los efectos de sonido son **originales**, sintetizados con la Web Audio API "al estilo" del Pac-Man original. No se usan los archivos de Bandai Namco porque el juego está desplegado públicamente | HU-48 |
+| 44 | Puerta de la base: los fantasmas vivos solo la cruzan para salir, y los comidos (sus ojos) solo para entrar. Pacman no la cruza nunca. Vale también para el fantasma del jugador, para que no pueda refugiarse en la base | HU-44 |
+| 45 | Salida de la base. **Modo Pacman:** un fantasma arranca afuera, sobre la puerta (fila 11), y los otros tres salen de a uno, cada 3 s contados desde el "¡ya!" de la cuenta regresiva. **Modo GhostMan:** el fantasma del jugador arranca adentro y sale cuando el jugador lo mueve hacia la puerta; si no se mueve, Pacman termina el nivel (decisión 34). Los fantasmas de la IA salen con el mismo intervalo. Rige al inicio del nivel y después de perder una vida | HU-44, HU-25 |
+| 46 | Fantasma comido: quedan sus ojos, que vuelven solos a la base al doble de velocidad y sin colisionar con nada. Al entrar, el fantasma revive y vuelve a salir; en modo Pacman cambia de tipo en ese momento (niveles 2 y 3). El naval espera 3 s dentro de la base antes de salir, para conservar su penalidad (sección 4.5 de la Entrega 02). El fantasma del jugador vuelve en piloto automático y el jugador recupera el control al revivir. Reemplaza los temporizadores fijos de 5 s y 8 s | HU-44, HU-43, sección 4.5 |
+| 47 | El cooldown de todos los fantasmas, del jugador y de la IA, sigue corriendo mientras están comidos. Resuelve el pendiente 6 de la V2 y alinea la IA con la decisión 35 b | HU-18, HU-43 |
+| 48 | Túnel. Los fantasmas van al 50 % de su velocidad en las celdas del túnel (fila 13, columnas 0 a 3 y 24 a 27). Pacman y los ojos de los fantasmas comidos mantienen su velocidad, y el dash del acelerado ignora la reducción. Las distancias por recorrido cuentan el paso por el túnel; la distancia Manhattan del saltarín no | HU-45 |
+| 49 | Celdas restringidas. Las frutas reales y las falsas del naval no aparecen dentro de la base ni en las celdas del túnel. El saltarín nunca cae dentro de la base. La destrucción de muros de Pacman (decisión 22) nunca rompe los muros de la base ni el borde del mapa | HU-44, HU-45, HU-29, HU-30, HU-33 |
+| 50 | Un personaje a mitad del túnel se dibuja recortado en el borde del mapa y aparece del otro lado, sin quedar dibujado sobre el HUD | HU-45 |
+| 51 | Decisión 22 con los mapas nuevos: se mantienen las 5 cargas por esfera grande y se vuelve a medir el balance con el bot después del incremento 19, para ajustar con datos. Las 6 esferas grandes fijas del nivel 3 del modo GhostMan son las 4 del boceto, en (1,1), (1,26), (29,1) y (29,26), más (15,1) y (15,26) | HU-33, HU-34 |
 
 ---
 
@@ -53,7 +61,7 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 - [x] Decidir la decisión 38 (saltarín: opción A)
 - [ ] Aprobar las decisiones 41 y 42 (detalles de la 37 y la 38)
 - [ ] Revisar las decisiones 17 a 36 y pasarlas a Aprobada o Modificada
-- [ ] Decidir si el cooldown de los fantasmas de la IA sigue corriendo mientras están comidos (pendiente 6; hoy se congela)
+- [x] Decidir si el cooldown de los fantasmas de la IA sigue corriendo mientras están comidos (pendiente 6): sí, decisión 47
 - [ ] Validar la explosión de la fruta falsa como derrota en modo GhostMan (pendiente 8)
 - [ ] Decidir qué hacer con CP-032 (HU-08): marcarlo *No aplica* o reformular el criterio
 - [ ] Confirmar y verificar DEF-002 con otro integrante, y repetir una muestra de casos sobre el despliegue de Vercel
@@ -62,19 +70,19 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 ### Base de los fantasmas, túneles y mapas (HU-44, HU-45)
 - [x] Decidir las dimensiones de los mapas nuevos: 28 × 31, como el original. Si los niveles resultan lentos, se ajustan las velocidades después de un playtest
 - [x] Definir la ubicación de la base y de la puerta: la misma en los tres niveles (`v3-mapas.md`). La base es infranqueable salvo por la puerta, también para los poderes
-- [ ] Definir quién cruza la puerta (fantasmas sí, Pacman no) y en qué sentido
-- [ ] Definir la salida de los fantasmas en modo Pacman: orden y tiempos
-- [ ] Definir dónde aparece el fantasma del jugador en modo GhostMan (dentro de la base) y cuándo puede salir
-- [ ] Definir qué hace un fantasma comido. **Opción clásica:** los ojos vuelven a la base y reaparece ahí. **Alternativa:** mantener el temporizador actual de 5 s (8 s para el naval) y reaparecer dentro de la base
-- [ ] Definir la interacción de los poderes con la base: si el espectro puede cruzar sus muros, si el saltarín puede caer adentro, si el acelerado puede atravesar la puerta
-- [ ] Definir qué pasa con la esfera grande y las esferas comunes que hoy están en las esquinas donde aparecían los fantasmas
+- [x] Definir quién cruza la puerta y en qué sentido (decisión 44)
+- [x] Definir la salida de los fantasmas en modo Pacman: orden y tiempos (decisión 45)
+- [x] Definir dónde aparece el fantasma del jugador en modo GhostMan y cuándo puede salir (decisión 45)
+- [x] Definir qué hace un fantasma comido: los ojos vuelven a la base (decisión 46)
+- [x] Definir la interacción de los poderes con la base: es infranqueable salvo por la puerta (decisiones 44 y 49)
+- [x] Definir qué pasa con las esferas de las esquinas donde aparecían los fantasmas: se resuelve con los mapas nuevos, porque los fantasmas aparecen en la base
 - [x] Rediseñar los tres mapas: bocetos aprobados en `Workflow/v3-mapas.md`, con muros finos para el espectro
 - [x] Túneles: uno por nivel, en la fila 13, en la misma posición en los tres niveles (`v3-mapas.md`)
-- [ ] Túneles: definir si los fantasmas van más lentos dentro del túnel, como en el original (propuesta: sí, al 50 % de su velocidad, solo en las celdas del túnel) y si Pacman mantiene su velocidad
-- [ ] Túneles: definir cómo se cuentan las distancias que cruzan el túnel. Propuesta: las distancias **por recorrido** (IA de Pacman, persecución de los fantasmas, visión de 8 celdas de la decisión 37) cuentan el túnel. La distancia **Manhattan** del radio del saltarín (decisión 31) no lo cuenta, porque el ejecutor la verifica contando celdas en pantalla
-- [ ] Túneles: interacción con los poderes. El espectro no puede cruzar el borde (decisión 26), pero el túnel no es un muro. El dash del acelerado puede atravesarlo. Definir si el naval puede colocar una fruta falsa dentro del túnel y si la destrucción de muros de Pacman puede abrir un túnel nuevo en el borde (propuesta: no, el borde es indestructible)
-- [ ] Túneles: dibujado. Definir qué se ve mientras un personaje está a medio cruzar (propuesta: el sprite se recorta en el borde y aparece del otro lado, sin quedar dibujado sobre el HUD)
-- [ ] Revisar el impacto en la decisión 22 (cargas y costo de muro de Pacman) y en la cuenta de esferas de cada nivel
+- [x] Túneles: definir si los fantasmas van más lentos dentro del túnel, como en el original: sí, al 50 % en las celdas del túnel; Pacman mantiene su velocidad (decisión 48)
+- [x] Túneles: definir cómo se cuentan las distancias que cruzan el túnel. Propuesta: las distancias **por recorrido** (IA de Pacman, persecución de los fantasmas, visión de 8 celdas de la decisión 37) cuentan el túnel. La distancia **Manhattan** del radio del saltarín (decisión 31) no lo cuenta, porque el ejecutor la verifica contando celdas en pantalla
+- [x] Túneles: interacción con los poderes (decisiones 48 y 49). El espectro no puede cruzar el borde (decisión 26), pero el túnel no es un muro. El dash del acelerado puede atravesarlo. Definir si el naval puede colocar una fruta falsa dentro del túnel y si la destrucción de muros de Pacman puede abrir un túnel nuevo en el borde (propuesta: no, el borde es indestructible)
+- [x] Túneles: dibujado (decisión 50). Definir qué se ve mientras un personaje está a medio cruzar (propuesta: el sprite se recorta en el borde y aparece del otro lado, sin quedar dibujado sobre el HUD)
+- [x] Revisar el impacto en la decisión 22 (decisión 51). Las cargas se vuelven a medir después del incremento 19
 
 ### Look & feel (HU-46 a HU-50)
 - [ ] Cuenta regresiva: duración (propuesta: 1 s por número más 0,5 s para el "¡ya!"). Definir si se repite, más corta, al reaparecer tras perder una vida, como el "READY!" del original. Durante la cuenta se congelan el reloj del bonus por tiempo, los cooldowns, los temporizadores y la IA
@@ -121,11 +129,11 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 ### Incremento 19 — Mapas nuevos, base de los fantasmas y túneles (HU-44, HU-45; decisiones 26 y 34)
 - [ ] Redactar y ejecutar el Prompt 18
 - [ ] Verificar: Pacman no entra a la base, en ningún modo ni con cargas para destruir muros
-- [ ] Verificar: los fantasmas salen de la base según lo definido, y los comidos vuelven o reaparecen según lo definido
+- [ ] Verificar: los fantasmas salen de la base cada 3 s (decisión 45), los ojos de los comidos vuelven a la base y el naval espera 3 s adentro (decisión 46)
 - [ ] Verificar: el espectro tiene al menos un cruce válido en cada nivel y nunca atraviesa el borde
 - [ ] Verificar: Pacman, los fantasmas de la IA y el fantasma del jugador cruzan el túnel en los dos sentidos. La IA de Pacman lo usa para huir y los fantasmas lo usan para perseguir. La velocidad dentro del túnel es la definida
 - [ ] Verificar: en una simulación con el jugador quieto, en modo GhostMan gana Pacman y en modo Pacman lo comen
-- [ ] Volver a medir el balance
+- [ ] Volver a medir el balance y decidir si se ajustan las 5 cargas de la decisión 22 (decisión 51)
 - [ ] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento
 
