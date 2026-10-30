@@ -91,10 +91,13 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
   for (let r = 0; r < s.map.rows; r++) for (let c = 0; c < s.map.cols; c++) if (s.map.cells[r][c] === "path") cells.push([r, c]);
   const { tryJumperTeleport } = require(path.join(B, "powers.js"));
   const rnd = seeded(123);
+  // Desde el incremento 18 el salto es hacia adelante (decisión 38): se rota la dirección de
+  // avance. La regla del semiplano la verifica core/inc18.js.
+  const facings = ["up", "left", "down", "right"];
   for (let i = 0; i < 200; i++) {
     const [r, c] = cells[i % cells.length];
-    place(g, r, c); g.powerCooldown = 0;
-    tryJumperTeleport(g, s.map, rnd);
+    place(g, r, c); g.powerCooldown = 0; g.facing = facings[i % 4];
+    if (!tryJumperTeleport(g, s.map, rnd)) { i--; cells.push(cells.shift()); continue; }
     const d = Math.abs(g.row - r) + Math.abs(g.col - c);
     if (g.row < 0 || g.row >= s.map.rows || g.col < 0 || g.col >= s.map.cols || s.map.cells[g.row][g.col] !== "path") bad++;
     if (d === 0) same++;
@@ -105,16 +108,17 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
   place(g, 7, 8);
   // Azar con semilla fija: la prueba es determinista y no puede fallar por mala suerte.
   const counts = {}; const N = 60000; const rnd3 = seeded(12345);
-  for (let i = 0; i < N; i++) { place(g, 7, 8); tryJumperTeleport(g, s.map, rnd3); const k = g.row + "," + g.col; counts[k] = (counts[k] || 0) + 1; }
+  for (let i = 0; i < N; i++) { place(g, 7, 8); g.facing = "right"; tryJumperTeleport(g, s.map, rnd3); const k = g.row + "," + g.col; counts[k] = (counts[k] || 0) + 1; }
   const vals = Object.values(counts); const e = N / vals.length; const df = vals.length - 1;
   const chi = vals.reduce((a, o) => a + (o - e) ** 2 / e, 0); const limit = df + 2.33 * Math.sqrt(2 * df);
   check(chi < limit, `distribución uniforme (chi² ${chi.toFixed(1)} < ${limit.toFixed(0)}, ${vals.length} destinos, ${N} saltos)`);
 }
 {
   const [s, g] = setup("jumper", 1);
-  place(g, 1, 1);
+  place(g, 1, 1); g.facing = "right";
   step(s, 1, null, true);
   check(g.powerCooldown > 9.9 && !(g.row === 1 && g.col === 1), "saltarín: espacio teletransporta y arranca el cooldown de 10 s");
+  g.direction = null; g.progress = 0; // queda quieto: el salto conserva la dirección de avance
   const pos = `${g.row},${g.col}`;
   step(s, 60, null, true);
   check(`${g.row},${g.col}` === pos, "saltarín: espacio durante el cooldown sin efecto");

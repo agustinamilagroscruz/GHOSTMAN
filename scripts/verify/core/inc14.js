@@ -89,7 +89,10 @@ const secs = t => Math.round(t / DT);
   const [s, g] = setup();
   s.pacman.speed = 5; s.pacman.row = 13; s.pacman.col = 8;
   for (const row of s.map.pellets) row.fill("none"); s.map.pellets[1][15] = "pellet"; s.pelletsRemaining = 1;
-  place(g, 13, 10); step(s, 1, null, true); place(g, 1, 1); // fruta en (13,10), a 2 celdas: la IA va por ella
+  // Desde el incremento 18 Pacman recuerda las frutas que ve colocar (decisión 37): se coloca
+  // con Pacman lejos y después se lo acerca, así la fruta no queda registrada.
+  s.pacman.row = 1; s.pacman.col = 1;
+  place(g, 13, 10); step(s, 1, null, true); place(g, 1, 1); s.pacman.row = 13; s.pacman.col = 8; // fruta en (13,10), a 2 celdas: la IA va por ella
   let t = 0; while (s.fakeFruits.length && t < 3) { step(s, 1); t += DT; }
   check(s.lives === 2 && s.score === 500, `Pacman (IA) va por la fruta falsa y pierde una vida (a los ${t.toFixed(2)} s)`);
 }
@@ -98,7 +101,8 @@ const secs = t => Math.round(t / DT);
   s.pacman.speed = 5; s.pacman.row = 13; s.pacman.col = 8;
   s.powerUpActive = true; s.powerUpTimer = 8;
   for (const row of s.map.pellets) row.fill("none"); s.map.pellets[1][15] = "pellet"; s.pelletsRemaining = 1;
-  place(g, 13, 10); step(s, 1, null, true); place(g, 1, 1);
+  s.pacman.row = 1; s.pacman.col = 1;
+  place(g, 13, 10); step(s, 1, null, true); place(g, 1, 1); s.pacman.row = 13; s.pacman.col = 8;
   let t = 0; while (s.fakeFruits.length && t < 3) { step(s, 1); t += DT; }
   check(s.fakeFruits.length === 0 && s.lives === 3 && s.score === 0, "con PowerUp la consume sin efecto y sin puntos");
 }

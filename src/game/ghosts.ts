@@ -247,7 +247,7 @@ export function updateGhost(
   allowPhase = false
 ): void {
   // Cooldown y penalidad del acelerado (incremento 16: el acelerado de la IA también la tiene).
-  tickPlayerPowerTimers(ghost, deltaSeconds);
+  tickPowerTimers(ghost, deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
 
   if (ghost.progress === 0) {
@@ -284,7 +284,7 @@ export function updateGhost(
  * en línea recta sin leer el teclado, como el espectro de la IA.
  */
 export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: number, desiredDirection: Direction | null): void {
-  tickPlayerPowerTimers(ghost, deltaSeconds);
+  tickPowerTimers(ghost, deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
 
   if (ghost.phasePending || isPhasing(ghost)) {
@@ -299,9 +299,10 @@ export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: numb
 
 /**
  * Temporizadores del poder: cooldown y penalidad de velocidad del acelerado (al terminar,
- * recupera su velocidad base). Los del fantasma del jugador corren también mientras está comido.
+ * recupera su velocidad base). Corren también mientras el fantasma está comido, sea del jugador
+ * o de la IA (decisión 47).
  */
-export function tickPlayerPowerTimers(ghost: Ghost, deltaSeconds: number): void {
+export function tickPowerTimers(ghost: Ghost, deltaSeconds: number): void {
   if (ghost.powerCooldown > 0) ghost.powerCooldown = tickTimer(ghost.powerCooldown, deltaSeconds);
   if (ghost.slowTimer > 0) {
     ghost.slowTimer = tickTimer(ghost.slowTimer, deltaSeconds);

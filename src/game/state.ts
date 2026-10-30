@@ -4,7 +4,7 @@ import {
   createGhost,
   reverseGhostDirection,
   setGhostKind,
-  tickPlayerPowerTimers,
+  tickPowerTimers,
   updateGhost,
   updatePlayerGhost,
   type Ghost,
@@ -17,6 +17,8 @@ import {
   explosionCells,
   type Explosion,
   type FakeFruit,
+  PACMAN_FORGET_CHANCE_PER_SECOND,
+  PACMAN_SIGHT_DISTANCE,
 } from "./fakeFruits";
 import {
   destroyWall,
@@ -41,7 +43,7 @@ import {
   type Direction,
   type Mover,
 } from "./movement";
-import { decidePacmanDirection } from "./pacmanAi";
+import { decidePacmanDirection, pathDistanceWithin } from "./pacmanAi";
 import { tryAcceleratedDash, tryActivateGhostPower, tryJumperTeleport, tryNavalPlaceFruit } from "./powers";
 import { tickTimer } from "./timers";
 import {
@@ -680,6 +682,35 @@ function pacmanLosesLife(state: GameState): void {
   }
 }
 
+/**
+ * Modo GhostMan: Pacman registra las frutas falsas colocadas desde `firstNew` si, en ese
+ * instante, está a 8 celdas de recorrido o menos (decisiones 37 y 42). Una fruta colocada más
+ * lejos no se registra después.
+ */
+function noticePlacedFakeFruits(state: GameState, firstNew: number): void {
+  if (state.config.mode !== "ghostman") return;
+  const position = getMoverPosition(state.pacman);
+  const pacmanCell = { row: Math.round(position.row), col: Math.round(position.col) };
+  for (const fruit of state.fakeFruits.slice(firstNew)) {
+    if (pathDistanceWithin(state.map, pacmanCell, fruit, PACMAN_SIGHT_DISTANCE) <= PACMAN_SIGHT_DISTANCE) {
+      fruit.knownByPacman = true;
+      fruit.memorySeconds = 0;
+    }
+  }
+}
+
+/** Olvido de las frutas registradas: una tirada por cada segundo cumplido, con 5 % de olvidar. */
+function updatePacmanFruitMemory(state: GameState, deltaSeconds: number): void {
+  for (const fruit of state.fakeFruits) {
+    if (!fruit.knownByPacman) continue;
+    fruit.memorySeconds += deltaSeconds;
+    while (fruit.knownByPacman && fruit.memorySeconds >= 1) {
+      fruit.memorySeconds -= 1;
+      if (state.random() < PACMAN_FORGET_CHANCE_PER_SECOND) fruit.knownByPacman = false;
+    }
+  }
+}
+
 /** Pacman llega a una celda con fruta falsa: sin PowerUp pierde una vida; con PowerUp desaparece sin efecto. */
 function consumeFakeFruitAt(state: GameState, row: number, col: number): void {
   const index = state.fakeFruits.findIndex((fruit) => fruit.row === row && fruit.col === col);
@@ -690,6 +721,7 @@ function consumeFakeFruitAt(state: GameState, row: number, col: number): void {
 
 /** Cuenta regresiva de las frutas falsas: a los 10 s explotan; la explosión solo afecta a Pacman sin PowerUp. */
 function updateFakeFruits(state: GameState, deltaSeconds: number): void {
+  updatePacmanFruitMemory(state, deltaSeconds);
   for (const explosion of state.explosions) explosion.timeLeft -= deltaSeconds;
   state.explosions = state.explosions.filter((explosion) => explosion.timeLeft > 0);
 
@@ -730,9 +762,9 @@ function updateGhostMode(state: GameState, deltaSeconds: number): void {
 function updateGhosts(state: GameState, deltaSeconds: number, playerDirection: Direction | null): void {
   for (const ghost of state.ghosts) {
     if (ghost.eaten) {
-      // El cooldown del poder del jugador sigue corriendo mientras espera reaparecer (decisión 35).
-      // El espectro de la IA conserva el comportamiento de la V1: su cooldown se detiene.
-      if (ghost.controlledByPlayer) tickPlayerPowerTimers(ghost, deltaSeconds);
+      // El cooldown del poder sigue corriendo mientras espera reaparecer, para el fantasma del
+      // jugador y para los de la IA (decisiones 35 y 47).
+      tickPowerTimers(ghost, deltaSeconds);
       continue;
     }
 
@@ -834,12 +866,16 @@ export function updateGameState(
         pacman,
         ghosts: state.ghosts,
         powerUpActive: state.powerUpActive,
-        // La IA no distingue la fruta falsa de la real (decisión 17).
-        fruits: [...state.fruits, ...state.fakeFruits],
+        // Una fruta falsa que no recuerda la trata como real; las que recuerda, como muros (decisión 37).
+        fruits: [...state.fruits, ...state.fakeFruits.filter((fruit) => !fruit.knownByPacman)],
+        knownFakeFruits: state.fakeFruits.filter((fruit) => fruit.knownByPacman),
         wallCharges: state.wallCharges,
       });
       // Con cargas, si la dirección elegida da contra un muro interior, Pacman lo destruye.
       breakWallAhead(state, pacman, direction);
+      // Sin destino alcanzable (por ejemplo, una fruta falsa que recuerda bloquea la única ruta)
+      // se queda quieto: sin esto, el movimiento seguiría en la dirección anterior (decisión 37).
+      if (!direction) pacman.direction = null;
       return direction;
     });
   }
@@ -865,12 +901,14 @@ export function updateGameState(
     const playerGhost = getPlayerGhost(state);
     if (playerGhost) {
       const from = getMoverPosition(playerGhost);
+      const fakeFruitsBefore = state.fakeFruits.length;
       const used = tryActivateGhostPower(playerGhost, {
         map: state.map,
         random: state.random,
         fakeFruits: state.fakeFruits,
       });
       if (used && playerGhost.kind === "accelerated") checkDashContact(state, playerGhost, from);
+      if (used && playerGhost.kind === "naval") noticePlacedFakeFruits(state, fakeFruitsBefore);
     }
   }
   updateFakeFruits(state, deltaSeconds);

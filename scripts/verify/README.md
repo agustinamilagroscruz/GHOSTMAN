@@ -1,6 +1,6 @@
-# Scripts de verificación de la V2
+# Scripts de verificación de la V2 y la V3
 
-Scripts que se usaron durante la sesión de generación de la V2 para verificar el criterio de avance de cada incremento antes de cerrar su commit (sección 7 de `TP/entrega-02.md`). Quedan en el repositorio como base para la regresión automatizada que prevé la sección 9.1 de la Entrega 01.
+Scripts que se usaron durante las sesiones de generación de la V2 y la V3 para verificar el criterio de avance de cada incremento antes de cerrar su commit (sección 7 de `TP/entrega-02.md` y de `TP/entrega-03.md`). Quedan en el repositorio como base para la regresión automatizada que prevé la sección 9.1 de la Entrega 01.
 
 **No reemplazan a los casos de prueba.** Los casos de prueba de la V2 son manuales, de caja negra, y se ejecutan sobre la aplicación desplegada (sección 9 de la Entrega 01). Estos scripts son de caja blanca: leen y manipulan el estado interno del juego, colocan personajes donde haga falta y fijan el azar. Sirven para detectar regresiones rápido. No sirven como evidencia de ejecución de un caso de prueba.
 
@@ -18,11 +18,12 @@ npm run verify -- 13 14   # solo las de los incrementos 13 y 14
 | `core/inc10.js` | 10 | Modo y fantasma del jugador, velocidades por tipo, control con teclado, muros, composición de los fantasmas de la IA, "Volver a jugar" |
 | `core/inc11.js` | 11 | IA de Pacman: completa los tres niveles, huye, persigue vulnerables, va por frutas cercanas, es determinista |
 | `core/inc12.js` | 12 | Derrotas de Pacman, reinicio del nivel (tabla 4.3), toque de los fantasmas de la IA, vulnerabilidad y reaparición, puntaje y desglose |
-| `core/inc13.js` | 13 | Espectro (cruce, cooldown, casos sin destino válido, nivel 1), saltarín (200 saltos, uniformidad chi-cuadrado), indicador, barra espaciadora en modo Pacman |
+| `core/inc13.js` | 13 | Espectro (cruce, cooldown, casos sin destino válido, nivel 1), saltarín (200 saltos con dirección de avance, uniformidad chi-cuadrado), indicador, barra espaciadora en modo Pacman |
 | `core/inc14.js` | 14 | Fruta falsa: línea de tiempo del prompt, forma de la explosión, consumo con y sin PowerUp, reinicio del nivel, pausa |
 | `core/inc15.js` | 15 | Dash de 3, 2, 1 y 0 celdas, contacto en todo el trayecto, penalidad de velocidad, cooldown |
 | `core/inc16.js` | 16 | Modo Pacman: composición de los niveles 1 a 3, 1000 reapariciones por nivel (50 % con poderes en el nivel 2, tipo uniforme por chi-cuadrado), uso de los poderes por la IA, ninguno vulnerable lo usa, fruta falsa con y sin PowerUp, nivel 1 sin cambios |
 | `core/inc17.js` | 17 | Modo GhostMan: cargas de destrucción (5, se reponen, se pierden con el PowerUp), atajo a través de un muro, restablecimiento al reiniciarse el nivel, nunca un borde ni más de 5 por esfera grande, esferas grandes fijas y dinámicas del nivel 3, Game Over con dinámicas pendientes, pausa |
+| `core/inc18.js` | 18 | Memoria de frutas falsas de la IA de Pacman (registro a 8 celdas o menos solo al colocarla, olvido del 5 % por segundo con el azar fijado, no consume la que recuerda, espera si bloquea la única ruta), salto del saltarín estrictamente adelante (todas las celdas y direcciones, destinos exactos del semiplano, uniformidad, sin dirección, sin destino, IA del modo Pacman) y cooldown que corre con el fantasma de la IA comido |
 
 Las suites de un incremento tienen en cuenta los incrementos posteriores: cuando un incremento cambia a propósito una regla, se actualizan las comprobaciones anteriores que dependían de ella (tabla 7.5, filas 7, 9 y 18).
 

@@ -8,7 +8,7 @@ import type { GameMap } from "./types";
 // no arranca el cooldown (decisión 25). Son independientes de quién controla al fantasma,
 // para que en el incremento 16 la IA del modo Pacman las reutilice.
 
-/** Saltarín: radio del teletransporte, en distancia Manhattan (decisión 31). */
+/** Saltarín: radio del salto, en distancia Manhattan (decisión 31). */
 export const JUMPER_RADIUS_CELLS = 10;
 export const JUMPER_COOLDOWN_SECONDS = 10;
 
@@ -59,11 +59,16 @@ export function trySpecterPhase(ghost: Ghost, map: GameMap): boolean {
 }
 
 /**
- * Saltarín: teletransporte instantáneo a una celda transitable al azar, a distancia Manhattan
- * de 10 o menos de la celda que ocupa, distinta de ella, con distribución uniforme. Puede caer
- * sobre Pacman: ese contacto lo resuelve la detección de colisiones del mismo paso.
+ * Saltarín: salto instantáneo a una celda transitable al azar, con distribución uniforme, a
+ * distancia Manhattan de 10 o menos de la celda que ocupa y estrictamente adelante en su
+ * dirección de avance: la fila o la columna actual no cuenta (decisiones 38 y 41). Sin
+ * dirección de avance o sin destino válido no salta y el poder no se consume (decisión 25).
+ * Puede caer sobre Pacman: ese contacto lo resuelve la detección de colisiones del mismo paso.
  */
 export function tryJumperTeleport(ghost: Ghost, map: GameMap, random: RandomSource): boolean {
+  const facing = ghost.facing;
+  if (!facing) return false;
+  const [aheadRow, aheadCol] = DIRECTION_VECTORS[facing];
   const position = getMoverPosition(ghost);
   const originRow = Math.round(position.row);
   const originCol = Math.round(position.col);
@@ -72,7 +77,9 @@ export function tryJumperTeleport(ghost: Ghost, map: GameMap, random: RandomSour
   for (let row = originRow - JUMPER_RADIUS_CELLS; row <= originRow + JUMPER_RADIUS_CELLS; row++) {
     const span = JUMPER_RADIUS_CELLS - Math.abs(row - originRow);
     for (let col = originCol - span; col <= originCol + span; col++) {
-      if (row === originRow && col === originCol) continue;
+      // Adelante: el avance sobre el eje de la dirección tiene que ser positivo.
+      const ahead = (row - originRow) * aheadRow + (col - originCol) * aheadCol;
+      if (ahead <= 0) continue;
       if (canEnterCell(map, row, col)) candidates.push({ row, col });
     }
   }

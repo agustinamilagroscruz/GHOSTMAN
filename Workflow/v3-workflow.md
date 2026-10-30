@@ -6,7 +6,7 @@ Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo 
 
 La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 17, decisiones desde la 41, historias desde la HU-44 y casos de prueba desde el CP-164.
 
-> **Estado al 30/10/2026:** V2 cerrada. Decisiones 26, 34, 37 y 38 resueltas (ver Etapa 0). Sin incrementos de la V3 ejecutados.
+> **Estado al 30/10/2026:** V2 cerrada. Especificación de la V3 cerrada por D. Savoia (decisiones 26, 34, 37, 38 y 41 a 66). Incremento 18 ejecutado.
 
 ---
 
@@ -135,13 +135,13 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main`, con `npm run build`, `npm run lint` y `npm run verify` sin errores. Primero van los incrementos que cambian las mecánicas, después el aspecto y el sonido, y al final las cuentas, para que los sprites y el audio se hagan sobre el juego definitivo.
 
 ### Incremento 18 — Memoria de frutas falsas y salto hacia adelante (HU-24, HU-29, HU-30, HU-43; decisiones 37, 38, 41 y 42)
-- [ ] Redactar y ejecutar el Prompt 17
-- [ ] Verificar: con el azar fijado, Pacman no consume una fruta falsa que vio colocar mientras la recuerda, y consume una colocada fuera de su vista
-- [ ] Verificar: el saltarín, del jugador y de la IA, cae siempre en el semiplano de avance
-- [ ] Actualizar las suites de `scripts/verify/` de los incrementos 13, 14 y 16
-- [ ] Volver a medir el balance (`npm run verify:balance`)
-- [ ] Registrar problemas en la tabla de la sesión
-- [ ] Commit del incremento
+- [x] Redactar y ejecutar el Prompt 17
+- [x] Verificar: con el azar fijado, Pacman no consume una fruta falsa que vio colocar mientras la recuerda, y consume una colocada fuera de su vista
+- [x] Verificar: el saltarín, del jugador y de la IA, cae siempre en el semiplano de avance
+- [x] Actualizar las suites de `scripts/verify/` de los incrementos 13, 14 y 16 (la 16 no necesitó cambios) y agregar `core/inc18.js`
+- [x] Volver a medir el balance (`npm run verify:balance`): sección 7.6 de `entrega-03.md`
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
 
 ### Incremento 19 — Mapas nuevos, base de los fantasmas y túneles (HU-44, HU-45; decisiones 26 y 34)
 - [ ] Redactar y ejecutar el Prompt 18

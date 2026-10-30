@@ -14,12 +14,20 @@ export const EXPLOSION_RADIUS_STEPS = 3;
 export const FAKE_FRUIT_WARNING_SECONDS = 3;
 /** Duración del dibujo de la explosión (solo visual). */
 export const EXPLOSION_DISPLAY_SECONDS = 0.6;
+/** Pacman registra una fruta falsa si la ve colocar a esta distancia de recorrido o menos (decisión 42). */
+export const PACMAN_SIGHT_DISTANCE = 8;
+/** Probabilidad de olvidar una fruta registrada por cada segundo cumplido (decisión 37). */
+export const PACMAN_FORGET_CHANCE_PER_SECOND = 0.05;
 
 export interface FakeFruit {
   row: number;
   col: number;
   /** Segundos hasta explotar. */
   timeLeft: number;
+  /** La IA de Pacman la vio colocar y todavía la recuerda (modo GhostMan, decisión 37). */
+  knownByPacman: boolean;
+  /** Segundos desde la última tirada de olvido. */
+  memorySeconds: number;
 }
 
 export interface Explosion {
@@ -29,7 +37,7 @@ export interface Explosion {
 }
 
 export function createFakeFruit(row: number, col: number): FakeFruit {
-  return { row, col, timeLeft: FAKE_FRUIT_FUSE_SECONDS };
+  return { row, col, timeLeft: FAKE_FRUIT_FUSE_SECONDS, knownByPacman: false, memorySeconds: 0 };
 }
 
 /** Se puede colocar una fruta en la celda si hay menos de 2 en el mapa y la celda no tiene una. */

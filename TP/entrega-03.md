@@ -545,7 +545,58 @@ Se mantiene la **decisión metodológica** de las entregas anteriores: el códig
 
 ### 7.4 Prompts
 
-*A redactar antes de cada incremento, desde el Prompt 17.*
+> **Estado.** Cada prompt se redacta antes de su incremento y se ejecuta con el contexto fijo de la sección 7.3 ya entregado.
+
+#### Prompt 17 — Memoria de frutas falsas y salto hacia adelante (HU-29, HU-30, HU-43; decisiones 37, 38, 41, 42 y 47)
+
+```
+Arrancamos la V3 con el incremento 18. Antes de tocar nada, leé el código actual
+de la IA de Pacman (pacmanAi.ts), de los poderes (powers.ts), de las frutas
+falsas (fakeFruits.ts) y del estado (state.ts). Los mapas, la base de los
+fantasmas, el túnel y las animaciones son de incrementos posteriores: no los
+toques ahora.
+
+1. Memoria de frutas falsas de la IA de Pacman (modo GhostMan, sección 4.5).
+   - Cuando un naval coloca una fruta falsa, si en ese instante Pacman está a
+     8 celdas de recorrido o menos de la fruta, Pacman la registra. Una fruta
+     colocada más lejos no se registra nunca, aunque Pacman se acerque después.
+   - Cada fruta registrada se olvida con una probabilidad del 5 % por cada
+     segundo de juego que pasa desde que se registró (una tirada por segundo
+     cumplido). Usá state.random, la fuente de azar inyectable, para que los
+     scripts puedan fijarla.
+   - Prioridad 3 de la IA: va hacia las frutas reales y hacia las falsas que
+     NO recuerda, a 5 celdas o menos, como hasta ahora.
+   - Una fruta falsa que recuerda la trata como un muro en todos sus cálculos de
+     recorrido (también con cargas de destrucción y al huir). No se aleja del
+     radio de la explosión. Si la única ruta a las esferas pasa por esa celda,
+     se queda quieto hasta que la fruta explote.
+   - El conocimiento es de cada fruta: cuando la fruta explota, Pacman la
+     consume o el nivel se reinicia, desaparece con ella.
+
+2. Salto del saltarín hacia adelante (sección 4.4, decisiones 38 y 41).
+   - El destino es una celda transitable al azar, uniforme, a distancia
+     Manhattan de 10 o menos, estrictamente adelante en su dirección de avance:
+     si avanza hacia arriba, solo filas menores que la suya; hacia la derecha,
+     solo columnas mayores, etc. La fila o columna actual no cuenta.
+   - La dirección de avance es la de la decisión 24 (la última en que se
+     movió). Si no tiene, o si no hay ninguna celda válida, el salto no se
+     ejecuta y el poder no entra en cooldown (decisión 25).
+   - El salto sigue siendo instantáneo: la duración de 0,6 s, la sombra y la
+     regla de no colisionar en el aire son del incremento 23.
+   - El saltarín de la IA del modo Pacman usa la misma función.
+
+3. Cooldown durante el tiempo comido (decisión 47): el cooldown del poder de
+   los fantasmas de la IA sigue corriendo mientras están comidos, igual que el
+   del fantasma del jugador.
+
+Actualizá las suites de scripts/verify/ que dependen de estas reglas (13, 14 y
+16) y agregá core/inc18.js con: registro dentro y fuera de las 8 celdas, que
+Pacman no consume una fruta que recuerda, que sí consume una que no registró,
+el olvido con el azar fijado, la espera cuando la fruta bloquea la única ruta,
+y los saltos (todos adelante, uniformidad, sin dirección, sin destino). Después
+corré npm run verify:balance con y sin --power y anotá el resultado. Si algo es
+ambiguo, preguntame antes de generar código.
+```
 
 ### 7.5 Registro de problemas de la sesión de generación
 
@@ -553,10 +604,27 @@ Se mantiene la **decisión metodológica** de las entregas anteriores: el códig
 
 | # | Incremento | Prompt | Problema observado | Cómo se resolvió | ¿Requirió edición manual? |
 |---|---|---|---|---|---|
+| 1 | 18 — Memoria de frutas falsas y salto hacia adelante | Prompt 17 | **Hueco de especificación heredado de la V2:** cuando la IA de Pacman no tiene ningún destino alcanzable, devuelve "sin dirección", pero el movimiento lo interpreta como "seguir en la dirección anterior". En la V2 no se notaba, porque solo pasaba sin esferas. Con la decisión 37, un Pacman que venía caminando hacia una fruta falsa que recuerda y que bloquea la única ruta habría seguido de largo y se la habría comido | Sin destino, la IA ahora detiene a Pacman. Lo detectó la prueba "espera cuando la fruta bloquea la única ruta" de `core/inc18.js`, que se reforzó para arrancar con Pacman en movimiento | No |
+| 2 | 18 | Prompt 17 | **Cambio esperado en las suites anteriores:** dos comprobaciones de `core/inc14.js` colocaban la fruta falsa a 2 celdas de Pacman y esperaban que la consumiera. Con la memoria, esa fruta queda registrada y Pacman la evita | Se colocan con Pacman lejos y después se lo acerca, para probar el caso de una fruta que no vio colocar. El caso de la fruta registrada pasa a `core/inc18.js` | No |
+| 3 | 18 | Prompt 17 | **Cambio esperado en las suites anteriores:** las comprobaciones del saltarín de `core/inc13.js` usaban un fantasma recién aparecido, sin dirección de avance. Con la decisión 41 ese salto no se ejecuta | Se les asigna una dirección de avance. La regla del semiplano se verifica en `core/inc18.js` | No |
+| 4 | 18 | Prompt 17 | **Artefacto de la prueba:** en la prueba de la espera, el naval colocaba la fruta al lado de Pacman y Pacman huía de él (prioridad 1 de la IA) en el mismo paso, antes de que el script sacara al naval del juego | Pacman queda quieto (velocidad 0) mientras el naval coloca la fruta. No es un defecto del juego: con el naval a 3 celdas, huir es el comportamiento especificado | No |
+| 5 | 18 | Prompt 17 | **Alcance:** el prompt incluyó la decisión 47 (cooldown que corre mientras el fantasma de la IA está comido), que el workflow no asignaba a ningún incremento | Se implementó en este incremento por ser un cambio de una línea en el mismo código. Se verifica en `core/inc18.js` | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 
-*A completar al cierre de la etapa de generación.*
+**Balance después del incremento 18.** Se usó el bot de la Entrega 02 (`npm run verify:balance`), en 10 partidas por tipo, antes y después del incremento y sobre el mismo código de base. La medición de la Entrega 02 no sirve como referencia porque después cambiaron las velocidades (decisiones 39 y 40). Victorias:
+
+| Tipo | Sin usar el poder | Usando el poder, antes del incremento 18 | Usando el poder, después del incremento 18 |
+|---|---|---|---|
+| Clásico | 7 | 7 (no tiene poder) | 7 (no tiene poder) |
+| Espectro | 9 | 9 | 9 |
+| Saltarín | 7 | 6 | **8** |
+| Naval | 8 | 9 | **6** |
+| Acelerado | 7 | 9 | 9 |
+
+Sin usar el poder, los resultados no cambian, porque el incremento solo afecta al saltarín que salta y al naval que coloca frutas. El **saltarín** pasa de empeorar al usar su poder (6 frente a 7) a mejorar (8): el salto hacia adelante dejó de jugar en contra. El **naval** baja de 9 a 6: la trampa ya no funciona sola. El bot coloca la fruta cuando persigue a Pacman de cerca, que es justo cuando Pacman la ve colocar, y le alcanza con recordarla 10 s para esquivarla. Un jugador que la coloque fuera de la vista de Pacman debería sacarle más provecho. Las dos correcciones van en la dirección que buscaban las decisiones 37 y 38. El bot no es un jugador real, así que la medición sirve para comparar el efecto del cambio, no para afirmar que el juego está balanceado.
+
+*El resto, a completar al cierre de la etapa de generación.*
 
 ---
 
