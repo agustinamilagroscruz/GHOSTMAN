@@ -75,6 +75,7 @@ import {
   type ScoreBreakdown,
   type ScoreCategory,
 } from "./scoring";
+import { NO_WAIT_TIMINGS, type Countdown, type CountdownKind, type GameTimings } from "./timings";
 import type { GameMap } from "./types";
 
 /**
@@ -118,6 +119,8 @@ export interface GameConfig {
   mode: GameMode;
   /** Solo en modo GhostMan: tipo del fantasma del jugador. */
   playerGhostKind?: GhostKind;
+  /** Duración de la cuenta y del "¡Listo!" (decisión 59); sin indicar, 0 (núcleo y pruebas). */
+  timings?: GameTimings;
 }
 
 export const PACMAN_MODE_CONFIG: GameConfig = { mode: "pacman" };
@@ -176,6 +179,8 @@ export interface GameState {
   random: RandomSource;
   /** En pausa no se mueve nada y todos los temporizadores quedan detenidos. */
   paused: boolean;
+  /** Cuenta "3, 2, 1, ¡ya!" o "¡Listo!" en curso (HU-46); mientras dura, nada avanza. */
+  countdown: Countdown | null;
 }
 
 function levelDefinition(state: GameState): LevelDefinition {
@@ -314,6 +319,14 @@ function loadLevel(state: GameState, level: number): void {
   state.powerUpActive = false;
   state.powerUpTimer = 0;
   state.ghostsEatenInPowerUp = 0;
+  startCountdown(state, "start");
+}
+
+/** Arranca la cuenta del inicio del nivel o el "¡Listo!"; con duración 0 no hay cuenta. */
+function startCountdown(state: GameState, kind: CountdownKind): void {
+  const timings = state.config.timings ?? NO_WAIT_TIMINGS;
+  const seconds = kind === "start" ? timings.countdownSeconds : timings.readySeconds;
+  state.countdown = seconds > 0 ? { kind, timeLeft: seconds } : null;
 }
 
 export function createInitialGameState(
@@ -674,6 +687,7 @@ function restartLevelPositions(state: GameState): void {
     state.destroyedWalls = [];
     state.wallFlashes = [];
   }
+  startCountdown(state, "ready");
 }
 
 /**
@@ -899,6 +913,13 @@ export function updateGameState(
 
   if (state.levelComplete) {
     updateLevelTransition(state, deltaSeconds);
+    return;
+  }
+
+  // Durante la cuenta no avanza nada, y las teclas y la barra espaciadora se descartan (HU-46).
+  if (state.countdown) {
+    state.countdown.timeLeft -= deltaSeconds;
+    if (state.countdown.timeLeft <= 0) state.countdown = null;
     return;
   }
 

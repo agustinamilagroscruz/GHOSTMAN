@@ -1,12 +1,12 @@
 // Incremento 10 — pantalla de Game Over con "Volver a jugar" y "Menú principal". Espera a que los fantasmas atrapen a Pacman quieto (hasta 4 min por partida con los mapas de 28 × 31 del incremento 19).
 // Suite de navegador: se corre con `npm run verify:ui` (ver scripts/verify/README.md).
-const { BASE_URL, SHOTS_DIR, launchBrowser } = require("./helpers");
+const { APP_URL, SHOTS_DIR, launchBrowser } = require("./helpers");
 let fails = 0;
 const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fails++; };
 (async () => {
   const browser = await launchBrowser();
   const page = await browser.newPage({ viewport: { width: 700, height: 600 } });
-  await page.goto(BASE_URL);
+  await page.goto(APP_URL);
   await page.waitForSelector("[data-testid=main-menu]");
   await page.waitForLoadState("networkidle");
   await page.keyboard.press("Enter");

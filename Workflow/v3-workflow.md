@@ -179,11 +179,11 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Commit del incremento
 
 ### Incremento 22 — Cuenta regresiva y modo de prueba (HU-46)
-- [ ] Redactar y ejecutar el Prompt 21
-- [ ] Verificar: la cuenta aparece al inicio de cada nivel, en los dos modos, y nada se mueve ni descuenta tiempo durante la cuenta
-- [ ] Verificar: con el modo de prueba activo, las suites de `scripts/verify/` pasan sin cambios en sus tiempos
-- [ ] Registrar problemas en la tabla de la sesión
-- [ ] Commit del incremento
+- [x] Redactar y ejecutar el Prompt 21
+- [x] Verificar: la cuenta aparece al inicio de cada nivel, en los dos modos, y nada se mueve ni descuenta tiempo durante la cuenta
+- [x] Verificar: con el modo de prueba activo, las suites de `scripts/verify/` pasan sin cambios en sus tiempos
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
 
 ### Incremento 23 — Sprites de pixel art (HU-50)
 - [ ] Dibujar con la skill `pxl-pixel-art`, desde cero: Pacman (boca, cuatro direcciones), un fantasma por tipo, el estado vulnerable y su parpadeo, los ojos (si los comidos vuelven a la base), las frutas real y falsa, y las esferas
@@ -202,6 +202,7 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 
 ### Incremento 25 — Música y efectos de sonido (HU-48)
 - [ ] Redactar y ejecutar el Prompt 24: motor de audio con la Web Audio API, con dos canales (música y efectos) preparados para la HU-41
+- [ ] Silenciar el audio en el modo de prueba con `isTestMode` de `src/game/timings.ts` (decisión 59; tabla 7.5, fila 22)
 - [ ] Verificar: el audio arranca después de la primera interacción del usuario (política de reproducción automática de los navegadores), suena cada evento de la lista y nada suena con la pestaña oculta o la partida en pausa
 - [ ] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento

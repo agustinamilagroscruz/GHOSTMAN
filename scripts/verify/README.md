@@ -25,6 +25,8 @@ npm run verify -- 13 14   # solo las de los incrementos 13 y 14
 | `core/inc17.js` | 17 | Modo GhostMan: cargas de destrucción (5, se reponen, se pierden con el PowerUp), atajo a través de un muro, restablecimiento al reiniciarse el nivel, nunca un borde ni más de 5 por esfera grande, esferas grandes fijas y dinámicas del nivel 3, Game Over con dinámicas pendientes, pausa |
 | `core/inc18.js` | 18 | Memoria de frutas falsas de la IA de Pacman (registro a 8 celdas o menos solo al colocarla, olvido del 5 % por segundo con el azar fijado, no consume la que recuerda, espera si bloquea la única ruta), salto del saltarín estrictamente adelante (todas las celdas y direcciones, destinos exactos del semiplano, uniformidad, sin dirección, sin destino, IA del modo Pacman) y cooldown que corre con el fantasma de la IA comido |
 | `core/inc19.js` | 19 | Mapas de 28 × 31 (simetría, base, puerta, túnel, aparición de Pacman), salida de la base cada 3 s en los dos modos, puerta de un solo sentido, Pacman nunca entra a la base, ojos que vuelven por el camino más corto al doble de velocidad y espera del naval, túnel en los dos sentidos con los fantasmas al 50 %, contacto a través del borde, celdas restringidas (saltarín, frutas, esferas dinámicas, naval), poderes sin efecto dentro de la base y partida con el jugador quieto |
+| `core/inc21.js` | 21 | Mapas compactos (esferas, esferas grandes, simetría, marco fijo, conexión, sin callejones ni espacios de 2 × 2, cruces del espectro), velocidades de la decisión 70 y Pacman al −15 % en modo GhostMan (decisión 71), regla del contorno de los muros y copia del sprite en el túnel |
+| `core/inc22.js` | 22 | Cuenta "3, 2, 1, ¡ya!" en los dos modos, en cada nivel y al volver a jugar; "¡Listo!" después de perder una vida y de una derrota de Pacman, y no con la última vida; nada avanza durante la cuenta (personajes, bonus por tiempo, salida de la base, cooldowns, PowerUp, frutas); teclas descartadas; pausa; duraciones 0 por defecto; lectura de `?modoPrueba=1` con y sin la variable de build |
 | `core/inc20.js` | 20 | Impulso del acelerado: 3 celdas en 15 cuadros a 12 celdas/s, sin obedecer al teclado, penalidad al terminar, contacto en el trayecto (también de frente), corte al ser comido o por el reinicio del nivel con la penalidad igual, cruce del túnel sin reducción, sin impulso contra un muro e IA del modo Pacman |
 
 Las suites de un incremento tienen en cuenta los incrementos posteriores: cuando un incremento cambia a propósito una regla, se actualizan las comprobaciones anteriores que dependían de ella (tabla 7.5 de la Entrega 02, filas 7, 9 y 18). Desde el incremento 19 todas las coordenadas son de los mapas de 28 × 31 de la V3 (`Workflow/v3-mapas.md`).
@@ -32,12 +34,12 @@ Las suites de un incremento tienen en cuenta los incrementos posteriores: cuando
 ## Suites de navegador
 
 ```bash
-npm run build && npm start                         # en otra terminal: la aplicación en http://localhost:3000
+NEXT_PUBLIC_MODO_PRUEBA=1 npm run build && npm start  # en otra terminal: build de prueba en http://localhost:3000
 CHROMIUM_PATH=/usr/bin/chromium npm run verify:ui  # todas las suites
 npm run verify:ui -- 13                            # solo la del incremento 13
 ```
 
-Manejan la aplicación con Chromium sin interfaz (`playwright-core`) a través de la interfaz real: teclado, clics y los atributos `data-testid` de los componentes. Variables de entorno:
+Manejan la aplicación con Chromium sin interfaz (`playwright-core`) a través de la interfaz real: teclado, clics y los atributos `data-testid` de los componentes. Desde el incremento 22 abren el juego con `?modoPrueba=1` (sección 4.9 de la Entrega 03), que elimina la cuenta regresiva y el "¡Listo!" para que sus tiempos no cambien. El parámetro solo funciona en un build hecho con `NEXT_PUBLIC_MODO_PRUEBA=1`; en el despliegue de Vercel se ignora. `inc22-cuenta.js` abre el juego también sin el parámetro, para ver la cuenta. Variables de entorno:
 
 | Variable | Uso | Por defecto |
 |---|---|---|

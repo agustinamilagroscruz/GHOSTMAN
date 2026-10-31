@@ -731,6 +731,41 @@ jugador quieto que no gana. Si algo es ambiguo, preguntame antes de generar
 código.
 ```
 
+#### Prompt 21 — Cuenta regresiva y modo de prueba (HU-46; decisiones 52 y 59)
+
+```
+Incremento 22. Hoy la partida arranca apenas se elige el modo o el fantasma,
+y después de perder una vida sigue de inmediato. Agregá la cuenta regresiva y
+el modo de prueba (secciones 4.6 y 4.9, decisiones 52 y 59):
+
+- Al cargar cada nivel (también al empezar y al volver a jugar) se muestra
+  "3", "2", "1" (1 s cada uno) y "¡ya!" (0,5 s). Después de perder una vida en
+  modo Pacman, o de una derrota de Pacman en modo GhostMan, se muestra
+  "¡Listo!" durante 2 s. El texto va sobre el mapa, debajo de la base, como el
+  "READY!" del original.
+- Mientras dura no avanza nada: ni los personajes, ni el reloj del bonus por
+  tiempo, ni los cooldowns, ni el PowerUp, ni las frutas y frutas falsas, ni la
+  IA, ni la salida de la base. Así los 3 s de la decisión 45 cuentan desde el
+  "¡ya!". La pausa detiene la cuenta.
+- Las teclas y la barra espaciadora presionadas durante la cuenta se
+  descartan: no mueven a nadie ni al terminar la cuenta.
+- Las duraciones son parámetros de la configuración de la partida. El núcleo
+  usa 0 por defecto, así que las suites del núcleo no cambian. El navegador usa
+  3,5 s y 2 s.
+- Modo de prueba: con ?modoPrueba=1 en la URL las duraciones son 0 (y, cuando
+  haya audio, se silencia). El parámetro solo se acepta si el build se hizo con
+  la variable NEXT_PUBLIC_MODO_PRUEBA=1; en el despliegue de Vercel, que no la
+  tiene, se ignora.
+
+Las suites de navegador abren el juego con ?modoPrueba=1, contra un build de
+prueba, sin cambiar sus tiempos. Agregá core/inc22.js (cuenta al inicio de
+cada nivel y después de perder una vida, nada avanza durante la cuenta, la
+pausa la detiene, teclas descartadas, duraciones 0 por defecto y la lectura
+del parámetro con y sin la variable de build) y una suite de navegador que vea
+la cuenta sin el modo de prueba y que no esté con él. Si algo es ambiguo,
+preguntame antes de generar código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -757,6 +792,11 @@ código.
 | 18 | 21 | Prompt 20 | **Cambio esperado en las suites anteriores:** 9 de las 11 suites del núcleo fallaron por coordenadas que en los mapas nuevos son muro (las filas 1 y 5 del nivel 1 ya no son pasillos completos) y por velocidades escritas como literales (3,75) | Las coordenadas pasaron a posiciones equivalentes, sobre todo a la fila 3 del nivel 1, y las velocidades se calculan con las constantes o se actualizaron. Ninguna falla resultó ser un defecto del juego. Con la IA sola, Pacman completa los niveles en 79, 84 y 88 s, y en modo GhostMan con el jugador quieto completa el nivel 1 a los 170 s (antes, 255 s; 126 s sin la decisión 71) | No |
 | 19 | 21 | Prompt 20 | **Verificación del dibujo:** el contorno de los muros se dibuja con `Path2D`, que no existe en Node, así que las suites del núcleo no podían comprobar la regla | La regla quedó en una función pura (`wallOutlineSides`) que usa el dibujo y que verifica `core/inc21.js`: interior de un bloque, esquinas, bordes, pilares sueltos y el borde del mapa | No |
 | 20 | 21 | Corrección no planificada | **Balance:** con los mapas compactos, el bot de balance perdió las 50 partidas sin usar el poder y 49 de 50 usándolo, casi todas en el nivel 1. Pacman limpiaba el nivel en unos 130 s y el bot llegaba a derrotarlo 2 de las 3 veces necesarias | Se probó en una copia temporal Pacman al −15 % en modo GhostMan y se aprobó como decisión 71. La comprobación de huida de `core/inc11.js` aceptaba solo la huida hacia la derecha; con la velocidad nueva Pacman huye hacia arriba por la columna 8, que también es una huida válida, y se amplió | No |
+| 21 | 22 — Cuenta regresiva y modo de prueba | Prompt 21 | **Hueco de especificación:** la HU-46 dice que las teclas presionadas durante la cuenta no mueven a ningún personaje, pero no si la última dirección presionada se aplica al "¡ya!", como en el original | Se interpretó en el prompt de la forma más estricta: lo presionado durante la cuenta se descarta, también la barra espaciadora. Para moverse al "¡ya!" hay que presionar (o mantener, con la repetición del teclado) después de la cuenta | No |
+| 22 | 22 | Prompt 21 | **Alcance:** la decisión 59 dice que el modo de prueba también silencia el audio, pero el audio llega en el incremento 25 | El modo de prueba se resolvió con una sola función (`isTestMode`), que el incremento 25 tiene que usar para silenciar el audio. Queda anotado en el checklist de ese incremento | No |
+| 23 | 22 | Prompt 21 | **Cambio esperado en las suites de navegador:** con la cuenta, todas las suites tardarían 3,5 s más al empezar y 2 s más después de cada vida perdida, y varias miden tiempos | Las suites abren el juego con `?modoPrueba=1` y corren contra un build de prueba (`NEXT_PUBLIC_MODO_PRUEBA=1`). La suite nueva `inc22-cuenta.js` es la única que abre el juego sin el parámetro | No |
+| 24 | 22 | Prompt 21 | **Artefacto de la prueba:** las primeras comprobaciones de los tiempos de la cuenta caían justo en el borde entre dos números, y la suma de cuadros de 1/60 s daba un número o el otro según el redondeo | Se mide lejos de los bordes (por ejemplo, a 0,92 y a 1,08 s). No es un defecto del juego: el cambio de número ocurre en el cuadro en que se cumple el segundo | No |
+| 25 | 22 | Prompt 21 | **Prueba inestable:** en una de las corridas completas falló "en pausa Pacman (IA) también se detiene" de `inc11-ia-pacman.js`. Al repetirla pasó 3 de 3 veces | La comprobación leía el contador de esferas apenas presionaba ESC, y el HUD se actualiza en el cuadro siguiente: si Pacman comía una esfera en ese cuadro, el conteo cambiaba "durante la pausa". Ahora espera a que aparezca la pantalla de pausa. No es un defecto del juego | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 

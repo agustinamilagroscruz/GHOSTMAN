@@ -32,6 +32,7 @@ import {
   type GameState,
 } from "../game/state";
 import { LEVEL_THEMES } from "../game/theme";
+import { countdownLabel } from "../game/timings";
 import { Hud } from "./Hud";
 import { ScoreBreakdownView } from "./ScoreBreakdownView";
 import styles from "./GameCanvas.module.css";
@@ -62,6 +63,8 @@ interface UiSnapshot {
   powerUpActive: boolean;
   powerUpTimer: number;
   paused: boolean;
+  /** "3", "2", "1", "¡ya!" o "¡Listo!" (HU-46); null fuera de la cuenta. */
+  countdown: string | null;
 }
 
 function takeSnapshot(state: GameState): UiSnapshot {
@@ -81,6 +84,7 @@ function takeSnapshot(state: GameState): UiSnapshot {
     powerUpActive: state.powerUpActive,
     powerUpTimer: Math.ceil(state.powerUpTimer * 10) / 10,
     paused: state.paused,
+    countdown: countdownLabel(state.countdown),
   };
 }
 
@@ -141,7 +145,8 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
       if (!sameSnapshot(snapshot, lastSnapshot)) {
         // Nueva vida o nuevo nivel (en modo GhostMan, derrota de Pacman): el personaje del
         // jugador arranca quieto hasta que se indique una dirección.
-        if (snapshot.lives !== lastSnapshot.lives || snapshot.level !== lastSnapshot.level) {
+        // Al terminar la cuenta también: lo presionado durante la cuenta se descarta (HU-46).
+        if (snapshot.lives !== lastSnapshot.lives || snapshot.level !== lastSnapshot.level || (lastSnapshot.countdown && !snapshot.countdown)) {
           input.reset();
         }
         lastSnapshot = snapshot;
@@ -262,6 +267,11 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
               )}
               <small>Puntaje: {ui.score}</small>
             </div>
+          </div>
+        )}
+        {ui.countdown && (
+          <div className={styles.countdown} data-testid="countdown" data-label={ui.countdown}>
+            {ui.countdown}
           </div>
         )}
         {(ui.playerEyesReturning || ui.playerRespawnSeconds > 0) && !ui.paused && (

@@ -206,6 +206,24 @@
   white-space: nowrap;
 }
 
+/* Cuenta regresiva y "¡Listo!" (HU-46): sobre el anillo de debajo de la base, como el "READY!" del original. */
+.countdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% * 17 / 31);
+  height: calc(100% / 31);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-size: 22px;
+  font-weight: bold;
+  color: #f8e34d;
+  text-shadow: 0 0 6px #000000, 0 0 2px #000000;
+  pointer-events: none;
+}
+
 .respawn {
   position: absolute;
   left: 50%;

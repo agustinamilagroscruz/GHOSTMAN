@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { GhostKind } from "../game/ghosts";
 import type { GameConfig } from "../game/state";
+import { resolveTimings } from "../game/timings";
 import { GameCanvas } from "./GameCanvas";
 import { GhostCarousel } from "./GhostCarousel";
 import { MainMenu } from "./MainMenu";
@@ -13,7 +14,11 @@ type Screen = { name: "menu" } | { name: "carousel" } | { name: "game"; config: 
 export function GameApp() {
   const [screen, setScreen] = useState<Screen>({ name: "menu" });
 
-  const startGame = (config: GameConfig) => setScreen({ name: "game", config, id: Date.now() });
+  // Modo de prueba (decisión 59): `?modoPrueba=1` solo vale en un build con NEXT_PUBLIC_MODO_PRUEBA=1.
+  const startGame = (config: GameConfig) => {
+    const timings = resolveTimings(window.location.search, process.env.NEXT_PUBLIC_MODO_PRUEBA === "1");
+    setScreen({ name: "game", config: { ...config, timings }, id: Date.now() });
+  };
   const goToMenu = () => setScreen({ name: "menu" });
 
   switch (screen.name) {

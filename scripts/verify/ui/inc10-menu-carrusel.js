@@ -1,6 +1,6 @@
 // Incremento 10 — menú principal, carrusel y modo GhostMan en el navegador.
 // Suite de navegador: se corre con `npm run verify:ui` (ver scripts/verify/README.md).
-const { BASE_URL, SHOTS_DIR, launchBrowser } = require("./helpers");
+const { APP_URL, SHOTS_DIR, launchBrowser } = require("./helpers");
 let fails = 0;
 const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fails++; };
 (async () => {
@@ -9,7 +9,7 @@ const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fail
   const errors = [];
   page.on("pageerror", e => errors.push(e.message));
   page.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
-  await page.goto(BASE_URL);
+  await page.goto(APP_URL);
   await page.waitForSelector("[data-testid=main-menu]");
   check(await page.isVisible("[data-testid=menu-pacman]") && await page.isVisible("[data-testid=menu-ghostman]"), "menú con las dos opciones");
   await page.screenshot({ path: SHOTS_DIR + "/01-menu.png" });
@@ -59,7 +59,7 @@ const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fail
   await page.keyboard.press("Escape");
 
   // Modo Pacman desde el menú (recarga: no hay salida del juego en curso salvo el cierre)
-  await page.goto(BASE_URL);
+  await page.goto(APP_URL);
   await page.waitForSelector("[data-testid=main-menu]");
   await page.keyboard.press("Enter");
   await page.waitForSelector("canvas");
