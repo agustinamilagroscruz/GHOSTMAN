@@ -42,7 +42,12 @@ class AudioEngine {
    * contexto de audio (política de reproducción automática).
    */
   unlock(): void {
-    if (this.ctx) return;
+    if (this.ctx) {
+      // Si el navegador lo dejó suspendido (por ejemplo, porque esa interacción no contó como gesto
+      // del usuario), se reintenta en cada interacción, salvo que lo hayamos suspendido nosotros.
+      if (!this.suspended && this.ctx.state === "suspended") void this.ctx.resume();
+      return;
+    }
     const Context = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Context) return;
     this.ctx = new Context();
@@ -55,6 +60,7 @@ class AudioEngine {
     }
     this.applyVolumes();
     if (this.suspended) void this.ctx.suspend();
+    else if (this.ctx.state === "suspended") void this.ctx.resume();
     this.note("unlock");
   }
 

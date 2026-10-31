@@ -6,7 +6,7 @@ Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo 
 
 La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 17, decisiones desde la 41, historias desde la HU-44 y casos de prueba desde el CP-164.
 
-> **Estado al 31/10/2026:** V2 cerrada. Especificación de la V3 cerrada por D. Savoia (decisiones 26, 34, 37, 38 y 41 a 71). Incrementos 18 a 20 ejecutados; el 21 (escala del original y mapas compactos) surgió de la prueba manual y corre la numeración de los siguientes.
+> **Estado al 31/10/2026:** V2 cerrada. Especificación de la V3 cerrada por D. Savoia (decisiones 26, 34, 37, 38 y 41 a 73). Incrementos 18 a 20 ejecutados; el 21 (escala del original y mapas compactos) surgió de la prueba manual y corre la numeración de los siguientes.
 
 ---
 
@@ -69,6 +69,8 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 | 69 | Mapas compactos. Los tres mapas se rediseñan con bloques de 2 o más celdas, como el original, y unas 260 esferas por nivel (antes, 344 a 388). Se mantienen algunos muros de 1 celda para el espectro (decisión 26) y el marco fijo (base, puerta, anillo, túnel, aparición de Pacman, esquinas y las esferas extra (15,1) y (15,26) del nivel 3 del modo GhostMan). Reemplaza los bocetos de `v3-mapas.md` | HU-44, HU-45, decisiones 26 y 51 |
 | 70 | Velocidad: Pacman y el fantasma clásico pasan de 3,75 a 4,5 celdas/s (+20 %). Los demás tipos y los ojos conservan su proporción, el modo Pacman mantiene el −15 % de los fantasmas (decisión 40) y el impulso del acelerado sigue en 12 celdas/s. No cambian los temporizadores | Decisiones 39, 40 y 51, HU-16 |
 | 71 | Modo GhostMan: Pacman (IA) va un 15 % más lento (3,825 celdas/s), espejo de la decisión 40. Con los mapas compactos, el bot de balance perdía todas las partidas porque Pacman terminaba el nivel antes de que lo derrotara 3 veces; con el ajuste vuelve a valores parecidos a los del incremento 20 | Decisiones 34, 40 y 51 |
+| 72 | El espectro atraviesa muros de una **o dos** celdas de espesor (antes, exactamente una), nunca el borde ni los muros de la base. El cruce recorre las celdas del muro y la de salida a su velocidad; el cooldown (10 s) y los 3 s sin comer no cambian. Modifica la decisión 26. Pedido en la prueba manual de los incrementos 21 a 25: con los mapas compactos, los muros de una celda eran pocos | HU-28, decisión 26 |
+| 73 | Las líneas de velocidad del acelerado van siempre del lado del que viene: a un costado si va de lado, debajo si sube y arriba si baja. Pedido en la misma prueba manual | HU-50, decisión 58 |
 
 ---
 
@@ -207,22 +209,33 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Registrar problemas en la tabla de la sesión
 - [x] Commit del incremento
 
-### Incremento 26 — Registro, inicio de sesión y menú principal (HU-35, HU-36, HU-37)
-- [ ] Redactar y ejecutar el Prompt 25
+### Incremento 26 — Ajustes de la prueba manual de los incrementos 21 a 25 (decisiones 72 y 73)
+- [x] Registrar los hallazgos de la prueba manual (tabla 7.5) y las decisiones 72 y 73
+- [x] Redactar y ejecutar el Prompt 25
+- [x] Corregir: el audio no sonaba en algunos navegadores si la primera interacción no lo habilitaba
+- [x] Corregir: el fantasma del jugador que salía de la base sin frenar seguía "en la base" y no podía usar su poder
+- [x] Verificar: el espectro cruza muros de una y de dos celdas, nunca de tres, ni el borde ni la base, también el de la IA
+- [x] Verificar: las líneas del acelerado quedan del lado del que viene en las cuatro direcciones
+- [x] Agregar `core/inc26.js` y volver a medir el balance
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
+
+### Incremento 27 — Registro, inicio de sesión y menú principal (HU-35, HU-36, HU-37)
+- [ ] Redactar y ejecutar el Prompt 26
 - [ ] Verificar: las validaciones de la sección 4.9 de la Entrega 01, el mensaje de error único en el login, la sesión que persiste al recargar y el menú inaccesible sin sesión
 - [ ] Verificar: un registro rechazado no deja la cuenta en estado parcial
 - [ ] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento
 
-### Incremento 27 — Tableros de puntaje (HU-38, HU-39)
-- [ ] Redactar y ejecutar el Prompt 26
+### Incremento 28 — Tableros de puntaje (HU-38, HU-39)
+- [ ] Redactar y ejecutar el Prompt 27
 - [ ] Cargar los datos de prueba: usuarios y puntajes para verificar el orden, el top 10 y los modos sin puntajes
 - [ ] Verificar: el top 10 por modo, la alternancia con ←/→ y A/D, el tablero personal y la actualización inmediata al terminar una partida
 - [ ] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento
 
-### Incremento 28 — Opciones: skins, volumen, cerrar sesión y salir (HU-40, HU-41, HU-42)
-- [ ] Redactar y ejecutar el Prompt 27
+### Incremento 29 — Opciones: skins, volumen, cerrar sesión y salir (HU-40, HU-41, HU-42)
+- [ ] Redactar y ejecutar el Prompt 28
 - [ ] Verificar: los carruseles de skins, la persistencia de las skins y del volumen entre sesiones, los volúmenes independientes con efecto inmediato, el cierre de sesión y la pantalla de salida
 - [ ] Verificar: ninguna skin altera las mecánicas
 - [ ] Registrar problemas en la tabla de la sesión
@@ -232,7 +245,7 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [ ] Completar la tabla de problemas con todas las filas de la sesión
 - [ ] Redactar las observaciones sobre la implementación con AI
 - [ ] Transcribir en el anexo los prompts de corrección no planificados
-- [ ] Extender `scripts/verify/` con las suites de los incrementos 18 a 28
+- [ ] Extender `scripts/verify/` con las suites de los incrementos 18 a 29
 
 ---
 

@@ -84,7 +84,7 @@ export interface Ghost extends Mover {
   phasePending: boolean;
   /** Acelerado: segundos que le quedan a la penalidad de velocidad posterior al dash. */
   slowTimer: number;
-  /** Espectro: celdas que le faltan recorrer para completar el cruce (2 = muro + salida). */
+  /** Espectro: celdas que le faltan recorrer para completar el cruce (muro de 1 o 2 celdas + salida). */
   phaseCellsLeft: number;
   /** Espectro: segundos durante los que no puede comer a Pacman tras atravesar un muro. */
   noEatTimer: number;
@@ -194,13 +194,14 @@ function squaredDistance(aRow: number, aCol: number, bRow: number, bCol: number)
 
 interface DirectionChoice {
   direction: Direction | null;
-  phase: boolean;
+  /** Celdas del cruce (muro + salida) si atraviesa un muro; 0 si no. */
+  phaseCells: number;
 }
 
 /**
  * Elige, parado en (row, col), la dirección válida que más acerca al objetivo, sin invertir la marcha.
- * Si `canPhase`, además evalúa atravesar UNA pared: solo si la celda del otro lado está dentro del
- * mapa, es transitable, y acerca al objetivo al menos SPECTER_MIN_GAIN_CELLS más que el mejor camino.
+ * Si `canPhase`, además evalúa atravesar UN muro de una o dos celdas (decisión 72): solo si la celda
+ * del otro lado es transitable y acerca al objetivo al menos SPECTER_MIN_GAIN_CELLS más que el mejor camino.
  */
 function chooseDirection(
   map: GameMap,
@@ -241,27 +242,51 @@ function chooseDirection(
   if (canPhase) {
     let phaseDirection: Direction | null = null;
     let phaseDistance = Infinity;
+    let phaseCells = 0;
     for (const direction of ALL_DIRECTIONS) {
       if (direction === forbidden) continue;
-      const wall = neighborCell(map, row, col, direction);
-      const exit = neighborCell(map, wall.row, wall.col, direction);
-      // Un muro de una celda dentro del mapa y fuera de la base: ni el borde ni la base (decisiones 26 y 49).
-      if (!isPhaseableWall(map, wall.row, wall.col) || !canEnterCell(map, exit.row, exit.col)) continue;
-      const distance = squaredDistance(exit.row, exit.col, targetRow, targetCol);
+      const crossing = phaseCrossing(map, { row, col }, direction);
+      if (!crossing) continue;
+      const distance = squaredDistance(crossing.exit.row, crossing.exit.col, targetRow, targetCol);
       if (distance < phaseDistance) {
         phaseDistance = distance;
         phaseDirection = direction;
+        phaseCells = crossing.cells;
       }
     }
     if (phaseDirection && Math.sqrt(phaseDistance) <= Math.sqrt(bestDistance) - SPECTER_MIN_GAIN_CELLS) {
-      return { direction: phaseDirection, phase: true };
+      return { direction: phaseDirection, phaseCells };
     }
   }
 
-  return { direction: bestDirection, phase: false };
+  return { direction: bestDirection, phaseCells: 0 };
 }
 
-/** Muro que el espectro puede atravesar: interior (no el borde) y fuera de la base (decisiones 26 y 49). */
+/** El espectro atraviesa muros de una o dos celdas de espesor (decisión 72; antes, solo de una). */
+export const SPECTER_MAX_WALL_CELLS = 2;
+
+/**
+ * Cruce del espectro desde `from` hacia `direction`: el muro contiguo, de una o dos celdas de
+ * espesor, todas interiores y fuera de la base, y la celda transitable del otro lado. Devuelve la
+ * salida y cuántas celdas recorre (muro + salida), o null si no hay cruce posible.
+ */
+export function phaseCrossing(
+  map: GameMap,
+  from: { row: number; col: number },
+  direction: Direction
+): { exit: { row: number; col: number }; cells: number } | null {
+  let cell = neighborCell(map, from.row, from.col, direction);
+  for (let thickness = 1; thickness <= SPECTER_MAX_WALL_CELLS; thickness++) {
+    // Ni el borde del mapa ni los muros de la base (decisiones 26 y 49).
+    if (!isPhaseableWall(map, cell.row, cell.col)) return null;
+    const next = neighborCell(map, cell.row, cell.col, direction);
+    if (canEnterCell(map, next.row, next.col)) return { exit: next, cells: thickness + 1 };
+    cell = next;
+  }
+  return null;
+}
+
+/** Celda de muro que el espectro puede atravesar: interior (no el borde) y fuera de la base (decisiones 26 y 49). */
 export function isPhaseableWall(map: GameMap, row: number, col: number): boolean {
   if (row <= 0 || row >= map.rows - 1 || col <= 0 || col >= map.cols - 1) return false;
   return map.cells[row][col] === "wall" && !isHouseCell(map, row, col);
@@ -273,14 +298,14 @@ function tunnelFactor(map: GameMap, ghost: Ghost): number {
 }
 
 function decide(ghost: Ghost, map: GameMap, targetRow: number, targetCol: number, allowPhase: boolean): void {
-  // Durante el cruce la dirección está fijada: una sola pared, sin encadenar muros contiguos.
+  // Durante el cruce la dirección está fijada: un solo muro, sin encadenar otro al salir.
   if (isPhasing(ghost)) return;
 
   const canPhase = allowPhase && ghost.kind === "specter" && ghost.powerCooldown <= 0;
   const choice = chooseDirection(map, ghost.row, ghost.col, ghost.direction, targetRow, targetCol, canPhase);
   ghost.direction = choice.direction;
-  if (choice.phase) {
-    ghost.phaseCellsLeft = 2;
+  if (choice.phaseCells > 0) {
+    ghost.phaseCellsLeft = choice.phaseCells;
     ghost.powerCooldown = SPECTER_PHASE_COOLDOWN_SECONDS;
   }
 }
@@ -359,7 +384,10 @@ export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: numb
   // Dentro de la base puede cruzar la puerta para salir; afuera, la puerta es un muro (decisión 44).
   updateMover(ghost, map, deltaSeconds, undefined, ghost.inHouse ? canCrossDoor : canEnterCell, tunnelFactor(map, ghost));
   if (ghost.direction) ghost.facing = ghost.direction;
-  if (ghost.inHouse && ghost.progress === 0 && ghost.row < map.house.top) ghost.inHouse = false;
+  // Sale de la base apenas llega a la fila de arriba de la puerta, aunque siga de largo sin frenar
+  // (antes hacía falta que se detuviera, y si giraba sin parar seguía "en la base": sin poderes y
+  // con la puerta abierta para volver a entrar).
+  if (ghost.inHouse && ghost.row < map.house.top) ghost.inHouse = false;
 }
 
 /**
@@ -480,9 +508,15 @@ function advancePlayerPhase(ghost: Ghost, map: GameMap, deltaSeconds: number): v
     ghost.progress -= 1;
 
     if (ghost.phasePending) {
-      // Llegó a la celda contigua al muro: empieza el cruce (muro + salida).
+      // Llegó a la celda contigua al muro: empieza el cruce (muro + salida). El muro se vuelve a
+      // medir desde acá; si ya no hay cruce (Pacman lo rompió), sigue caminando normalmente.
       ghost.phasePending = false;
-      ghost.phaseCellsLeft = 2;
+      const crossing = phaseCrossing(map, ghost, ghost.facing);
+      if (!crossing) {
+        ghost.progress = 0;
+        return;
+      }
+      ghost.phaseCellsLeft = crossing.cells;
       continue;
     }
     ghost.phaseCellsLeft -= 1;

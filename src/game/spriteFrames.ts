@@ -16,17 +16,22 @@ export function pacmanSpriteName(direction: Direction | null, row: number, col: 
   return `pacman_${direction ?? "right"}_${frame}` as SpriteName;
 }
 
-/** La pollera cambia cada media celda recorrida. */
-export function ghostSpriteName(kind: GhostKind, vulnerable: boolean, row: number, col: number): SpriteName {
+/**
+ * La pollera cambia cada media celda recorrida. El acelerado tiene las líneas de velocidad del
+ * lado del que viene (decisión 73): debajo si sube, arriba si baja y a un costado si va de lado.
+ */
+export function ghostSpriteName(kind: GhostKind, vulnerable: boolean, row: number, col: number, direction: Direction | null = null): SpriteName {
   const frame = positiveMod(Math.floor((row + col) * 2), 2);
-  return `ghost_${vulnerable ? "vulnerable" : kind}_${frame}` as SpriteName;
+  if (vulnerable) return `ghost_vulnerable_${frame}` as SpriteName;
+  if (kind === "accelerated" && (direction === "up" || direction === "down")) return `ghost_accelerated_${direction}_${frame}` as SpriteName;
+  return `ghost_${kind}_${frame}` as SpriteName;
 }
 
 export function eyesSpriteName(direction: Direction | null): SpriteName {
   return `eyes_${direction ?? "left"}` as SpriteName;
 }
 
-/** Las líneas de velocidad del acelerado quedan detrás: se refleja cuando va hacia la izquierda. */
+/** Las líneas de velocidad del acelerado de costado quedan detrás: se refleja cuando va hacia la izquierda. */
 export function isGhostSpriteFlipped(kind: GhostKind, vulnerable: boolean, direction: Direction | null): boolean {
   return kind === "accelerated" && !vulnerable && direction === "left";
 }

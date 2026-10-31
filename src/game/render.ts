@@ -292,7 +292,7 @@ export function renderGhost(
 ): void {
   const { id, color, kind, direction, isHarmless, isVulnerable, isWarning, blinkOn } = appearance;
   const skin = appearance.skin ?? DEFAULT_GHOST_SKIN;
-  const body = ghostSpriteName(kind, isVulnerable, row, col);
+  const body = ghostSpriteName(kind, isVulnerable, row, col, direction);
   const effects: SpriteEffects = { stretch: appearance.stretch, wave: appearance.isPhasing ? (row + col) * 6 : null };
   ctx.save();
   // El espectro es translúcido (su rasgo, junto con el borde ondulado); más todavía si no puede comer.

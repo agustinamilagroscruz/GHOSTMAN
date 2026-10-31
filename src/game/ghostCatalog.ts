@@ -19,7 +19,7 @@ export const GHOST_CATALOG: readonly GhostKindInfo[] = [
     kind: "specter",
     name: "Espectro",
     power:
-      "Atraviesa una pared (solo muros de una celda de espesor). Cooldown de 10 s. Es un 30 % más lento y no puede comer a Pacman durante los 3 s posteriores a atravesarla.",
+      "Atraviesa una pared (muros de una o dos celdas de espesor). Cooldown de 10 s. Es un 30 % más lento y no puede comer a Pacman durante los 3 s posteriores a atravesarla.",
   },
   {
     kind: "jumper",

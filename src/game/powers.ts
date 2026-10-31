@@ -1,5 +1,5 @@
 import { canPlaceFakeFruit, createFakeFruit, NAVAL_PLACE_COOLDOWN_SECONDS, type FakeFruit } from "./fakeFruits";
-import { isJumping, isPhaseableWall, SPECTER_PHASE_COOLDOWN_SECONDS, startJump, type Ghost } from "./ghosts";
+import { isJumping, phaseCrossing, SPECTER_PHASE_COOLDOWN_SECONDS, startJump, type Ghost } from "./ghosts";
 import { canEnterCell, cellAt, DIRECTION_VECTORS, getMoverPosition, isHouseCell, isTunnelCell, neighborCell } from "./movement";
 import type { GameMap } from "./types";
 
@@ -27,8 +27,8 @@ export interface PowerContext {
 }
 
 /**
- * Espectro: atraviesa el muro de una celda contiguo en la dirección de avance, si del otro
- * lado hay una celda transitable (nunca sale del mapa: el borde no tiene "otro lado").
+ * Espectro: atraviesa el muro de una o dos celdas contiguo en la dirección de avance (decisión
+ * 72), si del otro lado hay una celda transitable (nunca sale del mapa: el borde no tiene "otro lado").
  * Parado (o detenido contra el muro), el muro es el contiguo a su celda. En movimiento, es el
  * contiguo a la celda a la que está llegando: termina de llegar y entra al muro.
  */
@@ -37,19 +37,15 @@ export function trySpecterPhase(ghost: Ghost, map: GameMap): boolean {
   if (!facing) return false;
   const moving = ghost.progress > 0;
   const from = moving ? neighborCell(map, ghost.row, ghost.col, facing) : { row: ghost.row, col: ghost.col };
-  const wall = neighborCell(map, from.row, from.col, facing);
-  const exit = neighborCell(map, wall.row, wall.col, facing);
-
-  // Ni el borde del mapa ni los muros de la base (decisiones 26 y 49).
-  if (!isPhaseableWall(map, wall.row, wall.col)) return false;
-  if (!canEnterCell(map, exit.row, exit.col)) return false;
+  const crossing = phaseCrossing(map, from, facing);
+  if (!crossing) return false;
 
   ghost.powerCooldown = SPECTER_PHASE_COOLDOWN_SECONDS;
   ghost.direction = facing;
   if (moving) {
     ghost.phasePending = true;
   } else {
-    ghost.phaseCellsLeft = 2; // muro + salida
+    ghost.phaseCellsLeft = crossing.cells; // muro + salida
   }
   return true;
 }

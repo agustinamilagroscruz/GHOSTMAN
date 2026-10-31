@@ -6,7 +6,7 @@ Mapas de los tres niveles de la V3, aprobados por D. Savoia el 31/10/2026 (decis
 
 - **Tamaño:** 28 columnas × 31 filas, como el Pac-Man original. Se dibujan a la escala del original: personajes de unas 2 celdas y muros como contorno (decisión 68).
 - **Diseño:** cada laberinto es propio, no una copia del original. Conserva lo reconocible: simetría horizontal, la base en el centro, el túnel a la altura de la base, cuatro esferas grandes y Pacman apareciendo debajo de la base.
-- **Bloques:** como en el original, la mayoría de los muros son bloques de 2 o más celdas, y hay unas 260 esferas por nivel (decisión 69). Quedan algunos muros de una celda para que el espectro tenga dónde usar su poder (decisión 26); en pantalla se ven como una sola línea. El espectro nunca cruza el borde del mapa.
+- **Bloques:** como en el original, la mayoría de los muros son bloques de 2 o más celdas, y hay unas 260 esferas por nivel (decisión 69). Quedan algunos muros de una celda, que en pantalla se ven como una sola línea. Desde el incremento 26 el espectro cruza también los de dos celdas (decisión 72), así que tiene cruces en todo el mapa. El espectro nunca cruza el borde del mapa.
 - **Validación:** los tres mapas no tienen celdas aisladas, callejones sin salida ni espacios abiertos de 2 × 2 fuera de la base.
 
 ### Marco fijo (igual en los tres niveles)
@@ -37,7 +37,7 @@ Mapas de los tres niveles de la V3, aprobados por D. Savoia el 31/10/2026 (decis
 | Esferas comunes | 258 | 268 | 258 |
 | Esferas grandes | (1,1) (1,26) (23,1) (23,26) | (3,1) (3,26) (22,1) (22,26) | (1,1) (1,26) (29,1) (29,26); en modo GhostMan, además (15,1) y (15,26) |
 
-Los conteos de muros excluyen el borde y la base; un muro se puede cruzar si tiene pasillo a los dos lados, en vertical o en horizontal. Las posiciones de las esferas grandes van como (fila, columna). En el nivel 3 del modo GhostMan las esferas grandes son dinámicas (incremento 17 de la V2), así que esas posiciones son solo las iniciales.
+Los conteos de muros excluyen el borde y la base; un muro se puede cruzar si tiene pasillo a los dos lados, en vertical o en horizontal. Son los muros de una celda: desde la decisión 72 también se cruzan los de dos (`core/inc26.js` cuenta los cruces de cada tipo). Las posiciones de las esferas grandes van como (fila, columna). En el nivel 3 del modo GhostMan las esferas grandes son dinámicas (incremento 17 de la V2), así que esas posiciones son solo las iniciales.
 
 ---
 

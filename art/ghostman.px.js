@@ -98,12 +98,25 @@ SKIRTS.forEach((skirt, i) => sprite(`ghost_naval_${i}`, { mx: true, outline: "k"
   ..aaaaa
   ` + DOME.trim() + "\n" + TRUNK + skirt))
 
-// Acelerado: líneas de velocidad detrás (a la izquierda; el juego lo refleja si va a la izquierda).
+// Acelerado: líneas de velocidad detrás, del lado del que viene (decisión 73). Este es el de los
+// costados: líneas a la izquierda cuando va a la derecha; el juego lo refleja si va a la izquierda.
 SKIRTS.forEach((skirt, i) => {
   const body = (DOME + "\n" + TRUNK + skirt).trim().split("\n").map((row) => row.trim())
   const full = body.map((half) => half + [...half].reverse().join(""))
   const lines = { 5: "ddd.", 8: [".dd.", "ddd."][i], 11: ["ddd.", ".dd."][i] }
   sprite(`ghost_accelerated_${i}`, { outline: "k" }, full.map((row, y) => (lines[y] ?? "....") + row).join("\n"))
+})
+
+// Acelerado yendo hacia arriba o hacia abajo: las líneas quedan del lado del que viene (decisión 73),
+// debajo cuando sube y arriba cuando baja. El cuerpo es el mismo; el sprite es 5 filas más alto.
+const VERTICAL_LINES = [
+  ["...d..d", "...d..d", "......d"],
+  ["...d..d", "...d...", "...d..."],
+]
+SKIRTS.forEach((skirt, i) => {
+  const body = DOME + "\n" + TRUNK + skirt
+  sprite(`ghost_accelerated_up_${i}`, { mx: true, outline: "k" }, body + "\n.......\n.......\n" + VERTICAL_LINES[i].join("\n"))
+  sprite(`ghost_accelerated_down_${i}`, { mx: true, outline: "k" }, [...VERTICAL_LINES[i]].reverse().join("\n") + "\n.......\n.......\n" + body.trim())
 })
 
 // Vulnerable: el mismo para todos los tipos (tiene prioridad sobre cualquier skin), con cara.
@@ -230,12 +243,14 @@ for (let i = 0; i < 4; i++) {
 // Vista previa con los ojos puestos (no la usa el juego): el juego alinea los ojos con la parte de
 // arriba del cuerpo, como acá.
 const KINDS = ["classic", "specter", "jumper", "naval", "accelerated"]
-scene("vista", { w: 24 * 6, h: 50, bg: "#000000" },
+scene("vista", { w: 24 * 7, h: 56, bg: "#000000" },
   ...KINDS.flatMap((kind, i) => {
     const dx = kind === "accelerated" ? 4 : 0, dy = kind === "naval" ? 3 : 0
     return [stamp(`ghost_${kind}_0`, 2 + i * 24, 2), stamp("eyes_right", 2 + i * 24 + dx, 2 + dy),
       stamp(`ghost_${kind}_1`, 2 + i * 24, 26), stamp("eyes_down", 2 + i * 24 + dx, 26 + dy)]
   }),
+  stamp("ghost_accelerated_up_0", 2 + 6 * 24, 2), stamp("eyes_up", 2 + 6 * 24, 2),
+  stamp("ghost_accelerated_down_0", 2 + 6 * 24, 26), stamp("eyes_down", 2 + 6 * 24, 31),
   stamp("ghost_vulnerable_0", 2 + 5 * 24, 2), stamp("ghost_vulnerable_1", 2 + 5 * 24, 26, { swap: { b: "w", v: "r" } }))
 
 // Hoja de contacto para revisar todo junto.

@@ -15,7 +15,8 @@ type Screen = { name: "menu" } | { name: "carousel" } | { name: "game"; config: 
 export function GameApp() {
   const [screen, setScreen] = useState<Screen>({ name: "menu" });
 
-  // El audio recién puede arrancar con la primera interacción (política de reproducción automática).
+  // El audio recién puede arrancar con una interacción (política de reproducción automática); cada
+  // interacción lo reintenta, por si el navegador lo dejó suspendido.
   useEffect(() => {
     const unlock = () => getAudioEngine().unlock();
     window.addEventListener("keydown", unlock);

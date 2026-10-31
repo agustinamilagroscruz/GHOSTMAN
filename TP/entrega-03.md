@@ -186,7 +186,7 @@ Esta regla **reemplaza** los temporizadores fijos de reaparición de la sección
 
 Cambios sobre la sección 4.6 de la Entrega 02:
 
-**Espectro.** Atraviesa muros de exactamente una celda de espesor. No atraviesa el borde del mapa ni los muros de la base.
+**Espectro.** Atraviesa muros de una o dos celdas de espesor *(D-72; hasta el incremento 25, exactamente una)*. No atraviesa el borde del mapa ni los muros de la base.
 
 **Saltarín.**
 
@@ -351,6 +351,8 @@ La numeración continúa la de la Entrega 02 (decisiones 17 a 40). Se aplica el 
 | 69 | *(Misma prueba manual.)* Los niveles se hacen largos: los muros de una celda dejan entrar muchos pasillos y hay entre 344 y 388 esferas por nivel, contra 240 del original | Mapas rediseñados con bloques de 2 o más celdas: 258, 268 y 258 esferas. Algunos muros de una celda quedan para el espectro (30, 22 y 46 cruces). Se mantiene el marco fijo de los tres niveles | Menos pasillos acortan el nivel sin tocar las reglas. El marco fijo conserva las decisiones 44 a 51 y las posiciones que usan las pruebas de la base y el túnel | Aprobada por D. Savoia (31/10) · implementada |
 | 70 | *(Misma prueba manual.)* Aun con menos esferas, a 3,75 celdas/s el recorrido mínimo de un nivel es largo | Pacman y el fantasma clásico pasan a 4,5 celdas/s (+20 %); todo lo demás conserva su proporción | Subir todas las velocidades en la misma proporción mantiene las relaciones de las HU y de las decisiones 39 y 40. Con mapas de unas 260 esferas, el recorrido mínimo de un nivel baja de unos 103 s a unos 57 s | Aprobada por D. Savoia (31/10) · implementada |
 | 71 | *(Detectada durante la generación, tabla 7.5, fila 20.)* Con los mapas compactos, en modo GhostMan Pacman termina el nivel 1 en unos 130 s en lugar de 255 s, y el bot de balance pierde las 50 partidas sin usar el poder | En modo GhostMan, Pacman (IA) va un 15 % más lento: 3,825 celdas/s contra 4,5 del clásico | Es el espejo de la decisión 40, que le dio ventaja de velocidad a Pacman en el modo Pacman. Con el ajuste, el bot gana 5 de 10 partidas con el clásico, el saltarín y el acelerado, cerca de las 6 de 10 del incremento 20 | Aprobada por D. Savoia (31/10) · implementada |
+| 72 | *(Prueba manual de los incrementos 21 a 25, tabla 7.5, fila 40.)* Con los mapas compactos (decisión 69), la mayoría de los muros son bloques de dos o más celdas y el espectro tiene pocos lugares donde usar su poder | El espectro atraviesa muros de una **o dos** celdas, nunca de tres, ni el borde ni los muros de la base. El cooldown y los 3 s sin comer no cambian | Con el dibujo de la escala del original, un bloque de dos celdas se ve como un muro fino más, y el jugador espera poder cruzarlo. Modifica la decisión 26 | Aprobada por D. Savoia (31/10) · implementada |
+| 73 | *(Misma prueba manual, tabla 7.5, fila 41.)* Las líneas de velocidad del acelerado quedaban siempre a un costado, también cuando subía o bajaba | Las líneas van del lado del que viene: a un costado si va de lado, debajo si sube y arriba si baja | Las líneas indican el movimiento; a un costado, en un movimiento vertical, se leen como si fuera de lado | Aprobada por D. Savoia (31/10) · implementada |
 
 ---
 
@@ -531,9 +533,10 @@ Se mantiene la estrategia de las entregas anteriores: **incrementos verificables
 | 23 | Sprites de pixel art | HU-50 | Tipos y estado vulnerable distinguibles, al menos una skin alternativa funcionando |
 | 24 | Animaciones | HU-47, HU-49 | Derrota de Pacman con el juego pausado; las animaciones no alteran tiempos ni colisiones |
 | 25 | Música y efectos de sonido | HU-48 | Dos canales; cada evento de la sección 4.7 suena |
-| 26 | Registro, inicio de sesión y menú principal | HU-35, HU-36, HU-37 | Validaciones de la sección 4.10, sesión persistente y menú inaccesible sin sesión |
-| 27 | Tableros de puntaje | HU-38, HU-39 | Top 10 por modo, tablero personal y actualización inmediata |
-| 28 | Opciones: skins, volumen, cerrar sesión y salir | HU-40, HU-41, HU-42 | Persistencia entre sesiones y ninguna skin altera las mecánicas |
+| 26 | Ajustes de la prueba manual | HU-28, HU-48, HU-50 | El naval y el acelerado usan su poder al salir de la base sin frenar, el audio arranca en cualquier navegador, el espectro cruza muros de dos celdas y las líneas del acelerado quedan detrás |
+| 27 | Registro, inicio de sesión y menú principal | HU-35, HU-36, HU-37 | Validaciones de la sección 4.10, sesión persistente y menú inaccesible sin sesión |
+| 28 | Tableros de puntaje | HU-38, HU-39 | Top 10 por modo, tablero personal y actualización inmediata |
+| 29 | Opciones: skins, volumen, cerrar sesión y salir | HU-40, HU-41, HU-42 | Persistencia entre sesiones y ninguna skin altera las mecánicas |
 
 **Orden.** Primero van los incrementos que cambian las mecánicas (18 a 22; el 21 se agregó después de la prueba manual de los incrementos 18 a 20), para que los sprites, las animaciones y el audio se hagan sobre el juego definitivo. Las cuentas van al final porque son independientes del juego y requieren los proyectos de Supabase.
 
@@ -541,7 +544,7 @@ Se mantiene la estrategia de las entregas anteriores: **incrementos verificables
 
 | Agente / LLM | Interfaz | Uso previsto |
 |---|---|---|
-| Claude Opus 5.5 | Claude Code (CLI) con acceso al repositorio local: puede compilar, correr lint, ejecutar scripts de verificación, manejar un navegador sin interfaz (Chromium) y dibujar pixel art con pxl | Generación de los incrementos 18 a 28, sprites y verificación de sus criterios de avance |
+| Claude Opus 5.5 | Claude Code (CLI) con acceso al repositorio local: puede compilar, correr lint, ejecutar scripts de verificación, manejar un navegador sin interfaz (Chromium) y dibujar pixel art con pxl | Generación de los incrementos 18 a 29, sprites y verificación de sus criterios de avance |
 
 Se mantiene la **decisión metodológica** de las entregas anteriores: el código no se corrige a mano durante la generación. Los ajustes se piden mediante prompts que quedan registrados, y toda edición manual se anota en la tabla 7.5.
 
@@ -549,7 +552,7 @@ Se mantiene la **decisión metodológica** de las entregas anteriores: el códig
 
 1. La sección **4** de la Entrega 01, la sección **4** de la Entrega 02 y la sección **4** de este documento.
 2. Las historias de usuario de la V3 (sección 7.5 de la Entrega 01 y sección 6.2 de este documento), con los ajustes de la sección 6.1.
-3. Las decisiones 41 a 71 de la sección 5.
+3. Las decisiones 41 a 73 de la sección 5.
 4. Los mapas de `Workflow/v3-mapas.md`.
 
 ### 7.4 Prompts
@@ -866,6 +869,31 @@ primera interacción, waka y sirena al jugar, sirena del PowerUp, pausa y
 pestaña oculta). Si algo es ambiguo, preguntame antes de generar código.
 ```
 
+#### Prompt 25 — Ajustes de la prueba manual (HU-28, HU-48, HU-50; decisiones 72 y 73)
+
+```
+Incremento 26. En la prueba manual de los incrementos 21 a 25 aparecieron dos
+defectos y dos pedidos:
+
+- Defecto: en algunos navegadores el audio no suena. Si el navegador deja el
+  contexto de audio suspendido en la primera interacción, no se vuelve a
+  intentar. Reintentá en cada tecla o clic, salvo que lo hayamos suspendido
+  nosotros (pausa o pestaña oculta).
+- Defecto: no se puede usar el poder del naval ni del acelerado. Revisá
+  cuándo el fantasma del jugador deja de estar "en la base".
+- El espectro atraviesa muros de una o dos celdas (decisión 72): nunca de
+  tres, ni el borde ni la base; vale para el jugador y para la IA, con el
+  mismo cooldown y los mismos 3 s sin comer.
+- Las líneas de velocidad del acelerado van del lado del que viene
+  (decisión 73): debajo si sube, arriba si baja, a un costado si va de lado.
+  Dibujá las variantes con pxl.
+
+Agregá core/inc26.js con los dos defectos, los cruces de una y dos celdas en
+los tres niveles (y que no hay de tres), el cruce completo del jugador y de la
+IA, y las líneas del acelerado. Si algo es ambiguo, preguntame antes de
+generar código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -910,6 +938,9 @@ pestaña oculta). Si algo es ambiguo, preguntame antes de generar código.
 | 36 | 25 | Prompt 24 | **Hueco de especificación:** la sección 4.7 pone el "ojos que vuelven a la base" entre los efectos, pero dura todo el viaje de vuelta y no es un evento puntual | Es un bucle del canal de efectos que suena mientras haya ojos volviendo, salvo en pausa o durante la derrota de Pacman | No |
 | 37 | 25 | Prompt 24 | **Hueco de especificación:** el jingle de inicio es de "la partida" (HU-48) o del "primer nivel" (decisión 52); ¿suena también al volver a jugar? | Suena al iniciar cada partida, también con "Volver a jugar", y no al pasar a los niveles 2 y 3. Dura 3,2 s, dentro de la cuenta regresiva | No |
 | 38 | 25 | Prompt 24 | **Verificación:** las suites de navegador no pueden escuchar el audio, y en el modo de prueba está silenciado | En los builds de prueba el motor registra en `window.__ghostmanAudio` lo que hace sonar, aunque esté silenciado. `inc25-audio.js` verifica ese registro: nada antes de la primera interacción, jingle, sirena, waka, sirena del PowerUp, pausa y pestaña oculta. Que los sonidos se escuchen bien queda para la prueba manual | No |
+| 39 | 26 — Ajustes de la prueba manual | Prompt 25 | **Defecto de la prueba manual (D. Savoia): no se escuchaban la música ni los efectos.** No se pudo reproducir en Chromium (con la política de reproducción automática real, el audio arrancaba y llegaba señal a la salida), pero el motor tenía un punto frágil: si el navegador dejaba el contexto suspendido en la primera interacción, nunca se reintentaba | Se reintenta en cada tecla o clic, salvo que el motor lo haya suspendido por la pausa o la pestaña oculta. Con el cambio, el audio sonó en la prueba manual. No se pudo confirmar cuál fue la causa exacta en el navegador del equipo | No |
+| 40 | 26 | Prompt 25 | **Defecto de la prueba manual: no se podía usar el poder del naval ni del acelerado.** El fantasma del jugador dejaba de estar "en la base" solo si estaba detenido al llegar a la fila de arriba de la puerta. Si salía y giraba sin frenar, seguía "en la base": la decisión 67 le bloqueaba el poder (a cualquier tipo, no solo a esos dos) y la puerta le quedaba abierta para volver a entrar, contra la decisión 44. La prueba del incremento 19 salía hacia arriba y frenaba contra el muro, así que no lo detectó | Deja de estar en la base apenas llega a esa fila. `core/inc26.js` lo verifica con los cuatro tipos con poder. Además se registró el pedido de que el espectro cruce muros de dos celdas (decisión 72) | No |
+| 41 | 26 | Prompt 25 | **Pedido de la prueba manual:** las líneas de velocidad del acelerado quedaban a un costado también al subir o bajar | Se dibujaron con pxl dos variantes, con las líneas debajo (sube) y arriba (baja); el sprite de costado se sigue reflejando según el lado. Decisión 73 | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 
@@ -960,6 +991,18 @@ Los valores a revisar después de jugar son las velocidades (decisiones 39 y 40)
 - **Usar el poder empeora al saltarín y al acelerado** cuando el bot lo usa apenas puede. Una explicación posible es que el salto al azar y el impulso en línea recta lo alejan de Pacman en los mapas con bloques más grandes; el bot no elige cuándo conviene usarlo.
 
 Las velocidades del naval y del espectro y las cargas de la decisión 22 siguen como pendientes del playtest (decisión 51).
+
+**Balance después del incremento 26.** Mismo bot y mismas semillas. Sin usar el poder, los resultados son los mismos que con la decisión 71 (5, 2, 5, 0 y 5 victorias). Usando el poder:
+
+| Tipo | Después del incremento 21 | Después del incremento 26 |
+|---|---|---|
+| Clásico | 5 | 5 (no tiene poder) |
+| Espectro | 2 | **0** |
+| Saltarín | 3 | **0** |
+| Naval | 0 | 0 |
+| Acelerado | 1 | 1 |
+
+El bot usa el poder apenas puede si Pacman está a 6 celdas o menos, sin elegir el momento. El **espectro**, con muchos más muros para cruzar (decisión 72), cruza más seguido y pasa más tiempo sin poder comer (3 s después de cada cruce). El **saltarín** probablemente cambió en el incremento 24, que no se midió: con el salto de 0,6 s (decisión 55) el bot salta al azar y queda en el aire mientras Pacman se aleja. Ninguno de los dos empeora sin usar el poder. Queda para la prueba manual ver si un jugador que elige cuándo usarlo los aprovecha.
 
 *El resto, a completar al cierre de la etapa de generación.*
 
