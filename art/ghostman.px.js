@@ -16,6 +16,11 @@ pal({
   f: "#ffd8b0", // esferas
   r: "#e0102f", R: "#8a0a1e", h: "#ffc8c8", g: "#3fbf3f", G: "#2a7a2a", // fruta real (colores fijos)
   x: "#8a2be2", X: "#4b1580", c: "#fefefe", // fruta falsa del naval (colores fijos)
+  o: "#38f0e8", // escombros de un muro roto (el juego usa el contorno del nivel)
+  s: "#5a5a82", // sombra del destino del saltarín (gris azulado: sobre el fondo negro tiene que verse)
+  u: "#c8c0b0", U: "#8a8478", // polvo del aterrizaje
+  y: "#fff36b", // destellos (aparición de la fruta falsa)
+  e: "#ffe14d", E: "#ff8c1a", F: "#e0301e", // explosión de la fruta falsa
 })
 
 // ---------- Pacman: 3 cuadros por dirección (cerrado, entreabierto y abierto)
@@ -148,6 +153,80 @@ sprite("fruit", { w: 12, h: 12 }, `
 sprite("fake_fruit", { base: "fruit", swap: { r: "x", R: "X", h: "x", g: "X", G: "X" } },
   grid(1, 7, "c.c"), grid(2, 8, "c"), grid(1, 9, "c.c"), grid(7, 7, "c.c"), grid(8, 8, "c"), grid(7, 9, "c.c"))
 
+
+// ---------- Animaciones (incremento 24, decisiones 53, 55 y 56)
+
+// Derrota de Pacman: mira hacia arriba y la boca se abre hasta desaparecer; al final, un destello.
+for (let i = 0; i < 9; i++) {
+  const half = Math.PI * (0.2 + (0.8 * i) / 8) // mitad del ángulo de la boca: de 36° a 180°
+  sprite(`pacman_death_${i}`, { w: 15, h: 15 }, circ(7, 7, 7, "b"), (c) => {
+    for (let y = 0; y < 15; y++) for (let x = 0; x < 15; x++) {
+      if (Math.abs(Math.atan2(x - 7, 7 - y)) < half || i === 8) c.px(x, y, "_")
+    }
+    if (i === 8) c.px(7, 7, "b")
+  })
+}
+sprite("pacman_death_9", { w: 15, h: 15 }, (c) => {
+  for (const [dx, dy] of [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]]) c.line(7 + dx * 3, 7 + dy * 3, 7 + dx * 5, 7 + dy * 5, "b")
+})
+sprite("pacman_death_10", { w: 15, h: 15 }, (c) => {
+  for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) c.line(7 + dx * 5, 7 + dy * 5, 7 + dx * 6, 7 + dy * 6, "b")
+})
+
+// Saltarín: sombra en el destino (el juego la agranda hasta el aterrizaje) y polvo al caer.
+sprite("jump_shadow", { w: 14, h: 4 }, ellipse(6, 1, 6, 1, "s"), rect(1, 1, 12, 2, "s"))
+sprite("dust_0", { w: 16, h: 6 }, `
+  ................
+  ................
+  ................
+  .....uu..uu.....
+  ....uUUu.uUUu...
+  .....uu...uu....`)
+sprite("dust_1", { w: 16, h: 6 }, `
+  ................
+  ................
+  ..uu........uu..
+  .uUUu......uUUu.
+  ..uu........uu..
+  ................`)
+sprite("dust_2", { w: 16, h: 6 }, `
+  ................
+  u..............u
+  .U............U.
+  u..............u
+  ................
+  ................`)
+
+// Naval: destellos al aparecer la fruta falsa y explosión en cada celda alcanzada.
+sprite("sparkle_0", { w: 16, h: 16 }, px(7, 3, "y"), px(12, 7, "y"), px(8, 12, "y"), px(3, 8, "y"))
+sprite("sparkle_1", { w: 16, h: 16 }, (c) => {
+  for (const [x, y] of [[7, 1], [14, 7], [8, 14], [1, 8]]) { c.px(x, y, "y"); c.px(x - 1, y, "y"); c.px(x + 1, y, "y"); c.px(x, y - 1, "y"); c.px(x, y + 1, "y") }
+})
+sprite("sparkle_2", { w: 16, h: 16 }, px(4, 2, "y"), px(13, 4, "y"), px(11, 13, "y"), px(2, 11, "y"))
+sprite("blast_0", { w: 8, h: 8 }, circ(3, 3, 2, "E"), circ(3, 3, 1, "e"))
+sprite("blast_1", { w: 8, h: 8 }, rect(0, 0, 8, 8, "E"), circ(3, 3, 3, "e"), px(0, 0, "_"), px(7, 0, "_"), px(0, 7, "_"), px(7, 7, "_"))
+sprite("blast_2", { w: 8, h: 8 }, rect(0, 0, 8, 8, "F"), circ(3, 3, 3, "E"), px(3, 3, "e"), px(4, 4, "e"))
+sprite("blast_3", { w: 8, h: 8 }, `
+  F......F
+  ..F..F..
+  .F....F.
+  ...FF...
+  ...FF...
+  .F....F.
+  ..F..F..
+  F......F`)
+
+// Muro roto: escombros que se separan del centro de la celda y caen.
+for (let i = 0; i < 4; i++) {
+  sprite(`debris_${i}`, { w: 16, h: 16 }, (c) => {
+    const spread = i, fall = i > 1 ? i - 1 : 0
+    for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const x = 7 + dx * (2 + spread), y = 7 + dy * (2 + spread) + fall
+      c.rect(x, y, 2, 2, "o"); c.px(x + (dx > 0 ? 1 : 0), y + 1, "U")
+    }
+  })
+}
+
 // Vista previa con los ojos puestos (no la usa el juego): el juego alinea los ojos con la parte de
 // arriba del cuerpo, como acá.
 const KINDS = ["classic", "specter", "jumper", "naval", "accelerated"]
@@ -161,3 +240,4 @@ scene("vista", { w: 24 * 6, h: 50, bg: "#000000" },
 
 // Hoja de contacto para revisar todo junto.
 sheet("todo", ["pacman_*", "ghost_*", "eyes_*", "pellet", "power_pellet", "fruit", "fake_fruit"], { pad: 2 })
+sheet("animaciones", ["pacman_death_*", "jump_shadow", "dust_*", "sparkle_*", "blast_*", "debris_*"], { pad: 2 })

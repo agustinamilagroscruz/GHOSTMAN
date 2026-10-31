@@ -194,11 +194,11 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Commit del incremento
 
 ### Incremento 24 — Animaciones (HU-47, HU-49)
-- [ ] Dibujar con `pxl-pixel-art`: la derrota de Pacman (pierde partes hasta desaparecer), el salto del saltarín (arco, sombra, marca de destino, polvo al aterrizar), la estela del acelerado y los efectos del espectro y del naval
-- [ ] Redactar y ejecutar el Prompt 23
-- [ ] Verificar: durante la animación de derrota el juego queda pausado, y las animaciones no alteran tiempos ni colisiones fuera de lo definido
-- [ ] Registrar problemas en la tabla de la sesión
-- [ ] Commit del incremento
+- [x] Dibujar con `pxl-pixel-art`: la derrota de Pacman (pierde partes hasta desaparecer), el salto del saltarín (arco, sombra, marca de destino, polvo al aterrizar), la estela del acelerado y los efectos del espectro y del naval
+- [x] Redactar y ejecutar el Prompt 23
+- [x] Verificar: durante la animación de derrota el juego queda pausado, y las animaciones no alteran tiempos ni colisiones fuera de lo definido
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
 
 ### Incremento 25 — Música y efectos de sonido (HU-48)
 - [ ] Redactar y ejecutar el Prompt 24: motor de audio con la Web Audio API, con dos canales (música y efectos) preparados para la HU-41

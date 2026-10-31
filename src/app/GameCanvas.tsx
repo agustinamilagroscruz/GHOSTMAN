@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createFireworksState, renderFireworks, spawnFireworkBurst, updateFireworks } from "../game/fireworks";
-import { isDashing, isPhasing } from "../game/ghosts";
+import { isDashing, isPhasing, jumpPosition, LANDING_DUST_SECONDS } from "../game/ghosts";
 import { createKeyboardDirectionInput } from "../game/input";
 import { DIRECTION_VECTORS, getMoverPosition } from "../game/movement";
 import { isPowerReady } from "../game/powers";
-import { EXPLOSION_DISPLAY_SECONDS, FAKE_FRUIT_WARNING_SECONDS } from "../game/fakeFruits";
+import { EXPLOSION_DISPLAY_SECONDS, FAKE_FRUIT_FUSE_SECONDS, FAKE_FRUIT_WARNING_SECONDS } from "../game/fakeFruits";
 import { WALL_FLASH_SECONDS } from "../game/difficulty";
 import {
   drawWrapped,
@@ -17,7 +17,11 @@ import {
   renderGhost,
   renderGhostEyes,
   renderMap,
+  PACMAN_DEATH_FRAMES,
+  renderJumpShadow,
+  renderLandingDust,
   renderPacman,
+  renderPacmanDeath,
   renderWallFlash,
 } from "../game/render";
 import { startGameLoop } from "../game/loop";
@@ -33,12 +37,14 @@ import {
 } from "../game/state";
 import { findGhostSkin, findPacmanSkin } from "../game/skins";
 import { LEVEL_THEMES } from "../game/theme";
-import { countdownLabel } from "../game/timings";
+import { countdownLabel, pacmanDeathFrame } from "../game/timings";
 import { Hud } from "./Hud";
 import { ScoreBreakdownView } from "./ScoreBreakdownView";
 import styles from "./GameCanvas.module.css";
 
 const CELL_SIZE = 24;
+/** Fracción del salto, al principio y al final, en la que el saltarín se ve estirado. */
+const JUMP_STRETCH_T = 0.15;
 /** Siluetas de la estela del impulso: distancia detrás del acelerado, en celdas, y opacidad. */
 const DASH_TRAIL = [
   { offset: 0.8, alpha: 0.2 },
@@ -177,16 +183,31 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
         renderFruit(ctx, fruit.row, fruit.col, CELL_SIZE);
       }
       for (const fruit of state.fakeFruits) {
-        renderFakeFruit(ctx, fruit.row, fruit.col, CELL_SIZE, fruit.timeLeft, FAKE_FRUIT_WARNING_SECONDS);
+        renderFakeFruit(ctx, fruit.row, fruit.col, CELL_SIZE, fruit.timeLeft, FAKE_FRUIT_WARNING_SECONDS, FAKE_FRUIT_FUSE_SECONDS - fruit.timeLeft);
       }
       for (const explosion of state.explosions) {
         renderExplosion(ctx, explosion.cells, CELL_SIZE, explosion.timeLeft / EXPLOSION_DISPLAY_SECONDS);
       }
       for (const flash of state.wallFlashes) {
-        renderWallFlash(ctx, flash.row, flash.col, CELL_SIZE, flash.timeLeft / WALL_FLASH_SECONDS);
+        renderWallFlash(ctx, flash.row, flash.col, CELL_SIZE, flash.timeLeft / WALL_FLASH_SECONDS, LEVEL_THEMES[state.level].wallOutline);
+      }
+      for (const dust of state.landingDust) {
+        renderLandingDust(ctx, dust.row, dust.col, CELL_SIZE, 1 - dust.timeLeft / LANDING_DUST_SECONDS);
+      }
+      // Derrota de Pacman (decisión 53): después del congelamiento, sin fantasmas y Pacman se desarma.
+      const deathFrame = state.pacmanDeath ? pacmanDeathFrame(state.pacmanDeath, PACMAN_DEATH_FRAMES) : null;
+      if (deathFrame !== null) {
+        const position = getMoverPosition(state.pacman);
+        drawWrapped(state.map.cols, position.col, (col) => renderPacmanDeath(ctx, position.row, col, CELL_SIZE, deathFrame, pacmanSkin));
+        renderFireworks(ctx, fireworks, CELL_SIZE);
+        return;
       }
       const isWarning = isPowerUpWarning(state);
       const blinkOn = isBlinkOn(state.powerUpTimer);
+      // Sombras de los saltarines en el aire, debajo de todos los personajes (decisión 55).
+      for (const ghost of state.ghosts) {
+        if (ghost.jump) renderJumpShadow(ctx, ghost.jump.to.row, ghost.jump.to.col, CELL_SIZE, jumpPosition(ghost.jump).t);
+      }
       for (const ghost of state.ghosts) {
         const ghostPosition = getMoverPosition(ghost);
         // Comido: sus ojos vuelven a la base (decisión 46); ya adentro, espera sin dibujarse.
@@ -208,7 +229,16 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
           isVulnerable: ghost.vulnerable,
           isWarning,
           blinkOn,
+          isPhasing: isPhasing(ghost),
         };
+        // Saltarín en el aire: en arco hacia el destino, estirado al despegar y al caer (decisión 55).
+        if (ghost.jump) {
+          const flight = jumpPosition(ghost.jump);
+          const stretched = flight.t < JUMP_STRETCH_T || flight.t > 1 - JUMP_STRETCH_T;
+          const jumping = { ...appearance, stretch: stretched ? { x: 0.85, y: 1.2 } : undefined };
+          renderGhost(ctx, flight.row - flight.height, flight.col, CELL_SIZE, jumping);
+          continue;
+        }
         // Estela del impulso del acelerado: dos siluetas que se desvanecen detrás (decisión 54).
         if (isDashing(ghost) && ghost.facing) {
           const [dRow, dCol] = DIRECTION_VECTORS[ghost.facing];

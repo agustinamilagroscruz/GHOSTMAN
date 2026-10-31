@@ -196,7 +196,7 @@ Cambios sobre la sección 4.6 de la Entrega 02:
 | Fantasma quieto | Se usa su última dirección de avance |
 | Celdas excluidas | El interior de la base y la celda actual |
 | Sin destino válido | El salto no se ejecuta y el poder no entra en cooldown |
-| Duración del salto | 0,6 s, en arco. El destino se marca con una sombra que crece hasta el aterrizaje |
+| Duración del salto | 0,6 s, en arco, con estiramiento al despegar y al caer y polvo al aterrizar. El destino se marca con una sombra que crece hasta el aterrizaje |
 | Durante el salto | No colisiona con nada y el jugador no lo controla |
 | Al aterrizar | Colisión normal. Si Pacman está en la celda, se resuelve como cualquier contacto |
 | IA del modo Pacman | Usa la misma regla |
@@ -798,6 +798,41 @@ todos, boca hacia la dirección de avance, ciclo de cuadros y paletas de las
 skins. Si algo es ambiguo, preguntame antes de generar código.
 ```
 
+#### Prompt 23 — Animaciones (HU-47, HU-49; decisiones 53, 55 y 56)
+
+```
+Incremento 24. Agregá las animaciones de la sección 4.6 y los efectos de los
+poderes de la sección 4.4, con sprites dibujados con pxl en
+art/ghostman.px.js (decisiones 53, 55 y 56):
+
+- Derrota de Pacman, en los dos modos (también cuando el jugador lo
+  derrota): 0,5 s con todo congelado y los fantasmas visibles; después los
+  fantasmas desaparecen y Pacman se desarma en 1,5 s (unos 10 cuadros); al
+  terminar, "¡Listo!", Game Over o, en modo GhostMan con la tercera derrota,
+  el nivel completado. Mientras dura no se suman puntos ni avanza ningún
+  temporizador. Las duraciones son parámetros de la partida, como la cuenta:
+  0 en el núcleo y 0 con el modo de prueba.
+- Salto del saltarín (cambia la regla): el destino se elige al activar el
+  poder, como hoy, pero el fantasma tarda 0,6 s en llegar, en arco. En el aire
+  no colisiona con nada, el jugador no lo controla y no puede usar otro poder;
+  al aterrizar, la colisión es la normal. El destino se marca con una sombra
+  que crece hasta el aterrizaje; hay estiramiento al despegar y al caer y
+  polvo al aterrizar. Un reinicio del nivel corta el salto.
+- Espectro: además de translúcido, se ve ondulado mientras atraviesa un muro.
+- Naval: la fruta falsa aparece con un destello y creciendo, parpadea en rojo
+  en sus últimos 2 s (la cuenta regresiva sigue en los últimos 3 s) y la
+  explosión dura 0,5 s, con un sprite en cada celda alcanzada.
+- Muro roto: escombros dibujados con pxl, en el color del contorno del nivel.
+- El acelerado ya tiene su estela (incremento 20).
+
+Las animaciones de dibujo no cambian tiempos ni colisiones. Actualizá las
+suites que esperan el salto instantáneo y agregá core/inc24.js (derrota con
+sus fases y lo que pasa al terminar en cada caso, nada avanza durante la
+derrota, salto de 0,6 s sin colisión en el aire y con colisión al aterrizar,
+salto cortado por el reinicio, polvo, duraciones 0 por defecto). Si algo es
+ambiguo, preguntame antes de generar código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -833,6 +868,11 @@ skins. Si algo es ambiguo, preguntame antes de generar código.
 | 27 | 23 | Prompt 22 | **Primer borrador de los sprites:** el gorro del naval era la cabeza pintada de blanco y no se leía como gorro, y la esfera grande quedó irregular | Se revisaron con la vista previa de pxl y con capturas del mapa: el gorro pasó a ir encima de la cabeza (el sprite es 3 filas más alto) y la esfera grande se redibujó con la forma de 8 × 8 del original | No |
 | 28 | 23 | Prompt 22 | **Alcance:** la decisión 58 lista unos 10 cuadros para la derrota de Pacman | Quedan para el incremento 24 (animaciones), que también dibuja el salto, la estela y los efectos | No |
 | 29 | 23 | Prompt 22 | **Herramienta:** pxl no está en las dependencias del proyecto (es una skill del agente) | Los sprites generados (`src/game/sprites.ts`) se versionan, así que el juego y el build no necesitan pxl. Solo hace falta para cambiar el arte: `PXL_DIR=<carpeta de pxl> node scripts/sprites/generate.mjs` | No |
+| 30 | 24 — Animaciones | Prompt 23 | **Cambio de una regla anterior:** la decisión 55 convierte el salto instantáneo de la V2 en un salto de 0,6 s sin colisión en el aire | El destino se sigue eligiendo al activar el poder; el fantasma queda en su celda de origen hasta aterrizar, y en el aire no colisiona, no se controla, no usa otro poder ni se le invierte la marcha. Las comprobaciones de `core/inc13.js`, `inc16.js` e `inc18.js` que leían el destino en el mismo cuadro pasaron a leerlo del salto en curso, y la de "salto sobre Pacman" espera el aterrizaje | No |
+| 31 | 24 | Prompt 23 | **Hueco de especificación:** las decisiones 53 y 59 no dicen si la duración de la derrota se puede poner en 0 como la de la cuenta | Se interpretó que sí: son duraciones de animación (decisión 59). En el núcleo y con el modo de prueba la derrota es inmediata, así que las suites anteriores no cambiaron. `core/inc22.js` aísla la cuenta poniendo la derrota en 0 | No |
+| 32 | 24 | Prompt 23 | **Hueco de especificación:** la decisión 56 pide que la fruta falsa parpadee en sus últimos 2 s, pero la V2 muestra la cuenta regresiva en los últimos 3 s | Se mantienen las dos: el número aparece a los 3 s y el parpadeo en rojo empieza a los 2 s | No |
+| 33 | 24 | Prompt 23 | **Artefacto de la prueba:** las primeras versiones de dos comprobaciones de `core/inc24.js` no producían el contacto: Pacman estaba a mitad de celda, y en modo GhostMan el toque de un fantasma de la IA no reinicia el nivel (decisión 19) | Se centra a Pacman antes del contacto, y la prueba del salto cortado por el reinicio pasó al modo Pacman. No son defectos del juego | No |
+| 34 | 24 | Prompt 23 | **Revisión visual:** la sombra del destino del saltarín, en un gris casi negro, no se veía sobre el fondo negro | Se aclaró a un gris azulado. Se revisaron con capturas los 11 cuadros de la derrota, el salto, el polvo, la ondulación del espectro, la aparición y la alarma de la fruta falsa, la explosión y los escombros | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 

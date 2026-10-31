@@ -84,8 +84,10 @@ function solo(kind, { pacman = [19, 8], ghost = [19, 4], dir = "right", mode = "
   check(g.powerCooldown === 0 && g.row === before.row && g.col === before.col, "saltarín: Pacman a 35 celdas → no salta");
   g.powerCooldown = 0; s.pacman.row = 19; s.pacman.col = 9; g.row = 19; g.col = 1; g.progress = 0;
   step(s, 1);
-  const jumped = Math.abs(g.row - 19) + Math.abs(g.col - 1);
-  check(g.powerCooldown > 9.9 && jumped >= 1 && jumped <= 11 && s.map.cells[g.row][g.col] === "path",
+  // Desde el incremento 24 despega y aterriza a los 0,6 s (decisión 55): el destino está en jump.to.
+  const to = g.jump ? g.jump.to : g;
+  const jumped = Math.abs(to.row - 19) + Math.abs(to.col - 1);
+  check(g.powerCooldown > 9.9 && jumped >= 1 && jumped <= 11 && s.map.cells[to.row][to.col] === "path",
     `saltarín: Pacman a 8 celdas → salta a una celda transitable a distancia ${jumped} y arranca el cooldown de 10 s`);
 }
 {

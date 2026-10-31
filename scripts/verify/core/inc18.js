@@ -21,7 +21,10 @@ function setup(kind, level = 1, random = seeded()) {
 }
 const step = (s, n, dir = null, power = false) => { for (let i = 0; i < n; i++) st.updateGameState(s, DT, dir, power && i === 0); };
 // Fuera de la base desde el incremento 19: dentro, el poder no se puede usar.
-const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; g.inHouse = false; };
+const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; g.inHouse = false; g.jump = null; };
+// Desde el incremento 24 el saltarín no aparece en el destino: despega y aterriza a los 0,6 s
+// (decisión 55). El destino elegido queda en `jump.to` desde el despegue.
+const dest = g => (g.jump ? g.jump.to : g);
 const secs = t => Math.round(t / DT);
 const never = () => 0.99; // con este azar Pacman nunca olvida (0,99 ≥ 5 %)
 /** El naval coloca una fruta en (r,c) y queda fuera del juego, para que Pacman no huya de él. */
@@ -155,8 +158,9 @@ function placeFruit(s, g, r, c) {
       if (!used) { withoutTarget++; if (g.powerCooldown !== 0 || g.row !== r || g.col !== c) cooldownWithout++; continue; }
       jumps++;
       const [dr, dc] = ahead[facing];
-      if ((g.row - r) * dr + (g.col - c) * dc <= 0) behind++;
-      if (Math.abs(g.row - r) + Math.abs(g.col - c) > JUMPER_RADIUS_CELLS) far++;
+      const to = dest(g);
+      if ((to.row - r) * dr + (to.col - c) * dc <= 0) behind++;
+      if (Math.abs(to.row - r) + Math.abs(to.col - c) > JUMPER_RADIUS_CELLS) far++;
     }
   }
   check(jumps > 0 && behind === 0 && far === 0, `${jumps} saltos desde todas las celdas y direcciones: todos estrictamente adelante y a ≤ 10`);
@@ -171,7 +175,7 @@ function placeFruit(s, g, r, c) {
     if (s.map.cells[r][c] === "path" && !isHouseCell(s.map, r, c) && c > 8 && Math.abs(r - 8) + Math.abs(c - 8) <= 10) expected.add(r + "," + c);
   }
   const counts = {}; const N = 40000; const rnd = seeded(4242);
-  for (let i = 0; i < N; i++) { place(g, 8, 8); g.facing = "right"; tryJumperTeleport(g, s.map, rnd); const k = g.row + "," + g.col; counts[k] = (counts[k] || 0) + 1; }
+  for (let i = 0; i < N; i++) { place(g, 8, 8); g.facing = "right"; tryJumperTeleport(g, s.map, rnd); const k = dest(g).row + "," + dest(g).col; counts[k] = (counts[k] || 0) + 1; }
   const seen = Object.keys(counts);
   check(seen.length === expected.size && seen.every(k => expected.has(k)), `desde (8,8) hacia la derecha: ${seen.length} destinos, los ${expected.size} del semiplano (columna > 8)`);
   const vals = Object.values(counts); const e = N / vals.length; const df = vals.length - 1;
@@ -188,7 +192,7 @@ function placeFruit(s, g, r, c) {
   check(g.powerCooldown === 0 && g.row === 1 && g.col === 1, "mirando al borde, sin celdas adelante: no salta ni arranca el cooldown");
   place(g, 1, 1); g.facing = "down";
   step(s, 1, null, true);
-  check(g.powerCooldown > 9.9 && g.row > 1, "mirando hacia abajo desde (1,1): salta a una fila mayor y arranca el cooldown");
+  check(g.powerCooldown > 9.9 && dest(g).row > 1, "mirando hacia abajo desde (1,1): salta a una fila mayor y arranca el cooldown");
 }
 {
   // Modo Pacman: el saltarín de la IA usa la misma regla.
@@ -203,7 +207,8 @@ function placeFruit(s, g, r, c) {
     if (before.cd === 0 && jumper.powerCooldown > 9.9 && !jumper.eaten) {
       checked++;
       const v = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] }[jumper.facing]; // el salto no cambia la dirección de avance
-      if (!v || (jumper.row - before.row) * v[0] + (jumper.col - before.col) * v[1] <= 0) wrong++;
+      const to = dest(jumper);
+      if (!v || (to.row - before.row) * v[0] + (to.col - before.col) * v[1] <= 0) wrong++;
     }
   }
   check(checked > 0 && wrong === 0, `modo Pacman: ${checked} saltos de la IA, todos hacia adelante`);

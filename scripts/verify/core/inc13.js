@@ -16,9 +16,13 @@ function setup(kind, level = 1, seed) {
   s.pacman.speed = 0; s.pacman.row = 13; s.pacman.col = 8; s.pacman.progress = 0; s.pacman.direction = null;
   return [s, st.getPlayerGhost(s)];
 }
+const secs = t => Math.round(t / DT);
 const step = (s, n, dir = null, power = false) => { for (let i = 0; i < n; i++) st.updateGameState(s, DT, dir, power && i === 0); };
 // Fuera de la base desde el incremento 19: dentro, el poder no se puede usar.
-const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; g.inHouse = false; };
+const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; g.inHouse = false; g.jump = null; };
+// Desde el incremento 24 el saltarín no aparece en el destino: despega y aterriza a los 0,6 s
+// (decisión 55). El destino elegido queda en `jump.to` desde el despegue.
+const dest = g => (g.jump ? g.jump.to : g);
 
 // ---------- Espectro (nivel 2: muro de una celda en (3,6), entre los pasillos (3,5) y (3,7))
 // Hasta el incremento 20 se usaba el muro (1,8) del nivel 2, que no existe en los mapas del 21.
@@ -109,8 +113,9 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
     const [r, c] = cells[i % cells.length];
     place(g, r, c); g.powerCooldown = 0; g.facing = facings[i % 4];
     if (!tryJumperTeleport(g, s.map, rnd)) { i--; cells.push(cells.shift()); continue; }
-    const d = Math.abs(g.row - r) + Math.abs(g.col - c);
-    if (g.row < 0 || g.row >= s.map.rows || g.col < 0 || g.col >= s.map.cols || s.map.cells[g.row][g.col] !== "path") bad++;
+    const { row, col } = dest(g);
+    const d = Math.abs(row - r) + Math.abs(col - c);
+    if (row < 0 || row >= s.map.rows || col < 0 || col >= s.map.cols || s.map.cells[row][col] !== "path") bad++;
     if (d === 0) same++;
     maxD = Math.max(maxD, d);
   }
@@ -119,7 +124,7 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
   place(g, 7, 8);
   // Azar con semilla fija: la prueba es determinista y no puede fallar por mala suerte.
   const counts = {}; const N = 60000; const rnd3 = seeded(12345);
-  for (let i = 0; i < N; i++) { place(g, 7, 8); g.facing = "right"; tryJumperTeleport(g, s.map, rnd3); const k = g.row + "," + g.col; counts[k] = (counts[k] || 0) + 1; }
+  for (let i = 0; i < N; i++) { place(g, 7, 8); g.facing = "right"; tryJumperTeleport(g, s.map, rnd3); const k = dest(g).row + "," + dest(g).col; counts[k] = (counts[k] || 0) + 1; }
   const vals = Object.values(counts); const e = N / vals.length; const df = vals.length - 1;
   const chi = vals.reduce((a, o) => a + (o - e) ** 2 / e, 0); const limit = df + 2.33 * Math.sqrt(2 * df);
   check(chi < limit, `distribución uniforme (chi² ${chi.toFixed(1)} < ${limit.toFixed(0)}, ${vals.length} destinos, ${N} saltos)`);
@@ -128,7 +133,9 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
   const [s, g] = setup("jumper", 1);
   place(g, 1, 1); g.facing = "right";
   step(s, 1, null, true);
-  check(g.powerCooldown > 9.9 && !(g.row === 1 && g.col === 1), "saltarín: espacio teletransporta y arranca el cooldown de 10 s");
+  check(g.powerCooldown > 9.9 && g.jump && !(g.jump.to.row === 1 && g.jump.to.col === 1), "saltarín: espacio salta y arranca el cooldown de 10 s");
+  step(s, secs(0.6));
+  check(!g.jump && !(g.row === 1 && g.col === 1), "a los 0,6 s aterriza fuera de (1,1)");
   g.direction = null; g.progress = 0; // queda quieto: el salto conserva la dirección de avance
   const pos = `${g.row},${g.col}`;
   step(s, 60, null, true);
@@ -147,9 +154,11 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
   const { tryJumperTeleport } = require(path.join(B, "powers.js"));
   // buscar un valor de azar que elija (3,3)
   let hit = null;
-  for (let k = 0; k < 400 && !hit; k++) { const v = (k + 0.5) / 400; place(g, 3, 1); tryJumperTeleport(g, s.map, () => v); if (g.row === 3 && g.col === 3) hit = v; }
+  for (let k = 0; k < 400 && !hit; k++) { const v = (k + 0.5) / 400; place(g, 3, 1); tryJumperTeleport(g, s.map, () => v); if (dest(g).row === 3 && dest(g).col === 3) hit = v; }
   place(g, 3, 1); g.facing = "right"; g.powerCooldown = 0; s.random = () => hit;
+  s.pacman.speed = 0; // Pacman quieto en (3,3) mientras el saltarín está en el aire
   step(s, 1, null, true);
+  step(s, secs(0.6)); // aterriza: el contacto se resuelve al caer
   check(s.lives === 2 && s.score === 500, "salto sobre Pacman sin PowerUp: Pacman pierde una vida");
 }
 

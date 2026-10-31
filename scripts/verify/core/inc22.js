@@ -10,8 +10,10 @@ const DT = 1 / 60;
 const seeded = (x = 7) => () => (x = (x * 16807) % 2147483647) / 2147483647;
 const step = (s, n, dir = null, power = false) => { for (let i = 0; i < n; i++) st.updateGameState(s, DT, dir, power); };
 const secs = t => Math.round(t / DT);
-const PACMAN = { mode: "pacman", timings: tm.STANDARD_TIMINGS };
-const GHOSTMAN = kind => ({ mode: "ghostman", playerGhostKind: kind, timings: tm.STANDARD_TIMINGS });
+// Sin la animación de derrota (incremento 24, la verifica core/inc24.js): el "¡Listo!" llega enseguida.
+const TIMINGS = { ...tm.STANDARD_TIMINGS, deathFreezeSeconds: 0, deathSeconds: 0 };
+const PACMAN = { mode: "pacman", timings: TIMINGS };
+const GHOSTMAN = kind => ({ mode: "ghostman", playerGhostKind: kind, timings: TIMINGS });
 const label = s => tm.countdownLabel(s.countdown);
 const key = c => `${c.row},${c.col},${c.progress}`;
 

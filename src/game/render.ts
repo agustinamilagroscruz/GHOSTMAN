@@ -176,6 +176,14 @@ function spriteCanvas(name: SpriteName, palette: RolePalette): HTMLCanvasElement
   return canvas;
 }
 
+/** Deformaciones de un sprite: ondulación por filas (espectro) y estiramiento (salto). */
+export interface SpriteEffects {
+  /** Fase de la ondulación: cada fila se corre de costado siguiendo un seno; null = sin ondular. */
+  wave?: number | null;
+  /** Escala horizontal y vertical alrededor del pie del sprite. */
+  stretch?: { x: number; y: number };
+}
+
 /** Dibuja un sprite con su píxel (px, py) sobre el punto (x, y) de la pantalla. */
 function drawSprite(
   ctx: CanvasRenderingContext2D,
@@ -186,21 +194,36 @@ function drawSprite(
   px: number,
   py: number,
   scale: number,
-  flipX = false
+  flipX = false,
+  effects: SpriteEffects = {}
 ): void {
   const sprite = SPRITES[name];
+  const source = spriteCanvas(name, palette);
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   ctx.translate(x, y);
+  if (effects.stretch) {
+    const foot = (sprite.h - py) * scale;
+    ctx.translate(0, foot);
+    ctx.scale(effects.stretch.x, effects.stretch.y);
+    ctx.translate(0, -foot);
+  }
   if (flipX) ctx.scale(-1, 1);
-  ctx.drawImage(spriteCanvas(name, palette), -px * scale, -py * scale, sprite.w * scale, sprite.h * scale);
+  if (effects.wave == null) {
+    ctx.drawImage(source, -px * scale, -py * scale, sprite.w * scale, sprite.h * scale);
+  } else {
+    for (let row = 0; row < sprite.h; row++) {
+      const shift = Math.round(Math.sin(effects.wave + row * 0.9)) * scale;
+      ctx.drawImage(source, 0, row, sprite.w, 1, -px * scale + shift, (row - py) * scale, sprite.w * scale, scale);
+    }
+  }
   ctx.restore();
 }
 
-/** Centrado en la celda (Pacman, frutas, esferas). */
-function drawCentered(ctx: CanvasRenderingContext2D, name: SpriteName, palette: RolePalette, row: number, col: number, cellSize: number): void {
+/** Centrado en la celda (Pacman, frutas, esferas, efectos); `size` agranda o achica el sprite. */
+function drawCentered(ctx: CanvasRenderingContext2D, name: SpriteName, palette: RolePalette, row: number, col: number, cellSize: number, size = 1): void {
   const sprite = SPRITES[name];
-  drawSprite(ctx, name, palette, (col + 0.5) * cellSize, (row + 0.5) * cellSize, sprite.w / 2, sprite.h / 2, pixelScale(cellSize));
+  drawSprite(ctx, name, palette, (col + 0.5) * cellSize, (row + 0.5) * cellSize, sprite.w / 2, sprite.h / 2, pixelScale(cellSize) * size);
 }
 
 /**
@@ -214,12 +237,13 @@ function drawGhostPart(
   row: number,
   col: number,
   cellSize: number,
-  flipX = false
+  flipX = false,
+  effects: SpriteEffects = {}
 ): void {
   const sprite = SPRITES[name];
   const scale = pixelScale(cellSize);
   // Reflejado, el píxel del ancla sigue cayendo en el mismo punto de la pantalla.
-  drawSprite(ctx, name, palette, (col + 0.5) * cellSize, (row + 0.5) * cellSize - GHOST_BODY_HALF_PX * scale, sprite.ax, sprite.ay, scale, flipX);
+  drawSprite(ctx, name, palette, (col + 0.5) * cellSize, (row + 0.5) * cellSize - GHOST_BODY_HALF_PX * scale, sprite.ax, sprite.ay, scale, flipX, effects);
 }
 
 export function renderPacman(
@@ -253,6 +277,10 @@ export interface GhostAppearance {
   isWarning: boolean;
   blinkOn: boolean;
   skin?: GhostSkin;
+  /** Espectro atravesando un muro: se ondula (decisión 56). */
+  isPhasing?: boolean;
+  /** Saltarín despegando o aterrizando: estiramiento (decisión 55). */
+  stretch?: { x: number; y: number };
 }
 
 export function renderGhost(
@@ -265,15 +293,16 @@ export function renderGhost(
   const { id, color, kind, direction, isHarmless, isVulnerable, isWarning, blinkOn } = appearance;
   const skin = appearance.skin ?? DEFAULT_GHOST_SKIN;
   const body = ghostSpriteName(kind, isVulnerable, row, col);
+  const effects: SpriteEffects = { stretch: appearance.stretch, wave: appearance.isPhasing ? (row + col) * 6 : null };
   ctx.save();
   // El espectro es translúcido (su rasgo, junto con el borde ondulado); más todavía si no puede comer.
   if (!isVulnerable && kind === "specter") ctx.globalAlpha *= isHarmless ? 0.3 : 0.65;
   if (isVulnerable) {
     // El parpadeo alterna blanco / azul vulnerable; tiene prioridad sobre la skin (decisión 58).
-    drawGhostPart(ctx, body, vulnerablePalette(isWarning && blinkOn), row, col, cellSize);
+    drawGhostPart(ctx, body, vulnerablePalette(isWarning && blinkOn), row, col, cellSize, false, effects);
   } else {
-    drawGhostPart(ctx, body, ghostPalette(skin, id, color), row, col, cellSize, isGhostSpriteFlipped(kind, false, direction));
-    drawGhostPart(ctx, eyesSpriteName(direction), eyesPalette(skin), row, col, cellSize);
+    drawGhostPart(ctx, body, ghostPalette(skin, id, color), row, col, cellSize, isGhostSpriteFlipped(kind, false, direction), effects);
+    drawGhostPart(ctx, eyesSpriteName(direction), eyesPalette(skin), row, col, cellSize, false, effects);
   }
   ctx.restore();
 }
@@ -286,10 +315,15 @@ export function renderFruit(ctx: CanvasRenderingContext2D, row: number, col: num
 /** Alarma de la fruta falsa: el violeta pasa a rojo. */
 const FAKE_FRUIT_ALARM: RolePalette = { x: "#ff2a2a", X: "#a00000" };
 
+/** La fruta falsa aparece creciendo, con destellos (decisión 56). */
+const FAKE_FRUIT_APPEAR_SECONDS = 0.3;
+/** Parpadea en rojo en sus últimos 2 s (decisión 56); la cuenta regresiva empieza antes (V2). */
+const FAKE_FRUIT_BLINK_SECONDS = 2;
+
 /**
  * Fruta falsa del Naval: misma silueta de cereza que la real pero violeta y con una cruz, para
- * que se distinga a simple vista (HU-30). En los últimos segundos antes de explotar parpadea en
- * rojo y muestra la cuenta regresiva.
+ * que se distinga a simple vista (HU-30). Aparece con un destello, muestra la cuenta regresiva
+ * en sus últimos `warningSeconds` y parpadea en rojo en los últimos 2.
  */
 export function renderFakeFruit(
   ctx: CanvasRenderingContext2D,
@@ -297,11 +331,18 @@ export function renderFakeFruit(
   col: number,
   cellSize: number,
   timeLeft: number,
-  warningSeconds: number
+  warningSeconds: number,
+  age = FAKE_FRUIT_APPEAR_SECONDS
 ): void {
   const warning = timeLeft <= warningSeconds;
-  const alarmOn = warning && Math.floor(timeLeft / 0.25) % 2 === 0;
-  drawCentered(ctx, "fake_fruit", alarmOn ? FAKE_FRUIT_ALARM : {}, row, col, cellSize);
+  const alarmOn = timeLeft <= FAKE_FRUIT_BLINK_SECONDS && Math.floor(timeLeft / 0.25) % 2 === 0;
+  const appearing = age < FAKE_FRUIT_APPEAR_SECONDS;
+  const growth = appearing ? 0.3 + (0.7 * age) / FAKE_FRUIT_APPEAR_SECONDS : 1;
+  drawCentered(ctx, "fake_fruit", alarmOn ? FAKE_FRUIT_ALARM : {}, row, col, cellSize, growth);
+  if (appearing) {
+    const frame = Math.min(2, Math.floor((3 * age) / FAKE_FRUIT_APPEAR_SECONDS));
+    drawCentered(ctx, `sparkle_${frame}` as SpriteName, {}, row, col, cellSize);
+  }
 
   if (warning) {
     ctx.fillStyle = "#f8e34d";
@@ -312,42 +353,48 @@ export function renderFakeFruit(
   }
 }
 
-/** Explosión de una fruta falsa: las celdas alcanzadas se tiñen de naranja y se desvanecen. */
+/** Explosión de una fruta falsa (decisión 56): cada celda alcanzada estalla, así se ve el radio. */
 export function renderExplosion(
   ctx: CanvasRenderingContext2D,
   cells: ReadonlyArray<{ row: number; col: number }>,
   cellSize: number,
   fade: number
 ): void {
-  ctx.save();
-  ctx.globalAlpha = Math.max(0, Math.min(1, fade)) * 0.75;
-  ctx.fillStyle = "#ff8c1a";
-  for (const cell of cells) {
-    ctx.fillRect(cell.col * cellSize + 1, cell.row * cellSize + 1, cellSize - 2, cellSize - 2);
-  }
-  ctx.restore();
+  const frame = Math.min(3, Math.floor((1 - Math.max(0, Math.min(1, fade))) * 4));
+  for (const cell of cells) drawCentered(ctx, `blast_${frame}` as SpriteName, {}, cell.row, cell.col, cellSize);
 }
 
 /**
- * Pared destruida por Pacman (modo GhostMan, HU-33): destello blanco que se apaga con
- * escombros en las esquinas de la celda durante 0,5 s. `fade` va de 1 (recién destruida) a 0.
+ * Pared destruida por Pacman (modo GhostMan, HU-33): escombros en el color del contorno del nivel
+ * que se separan y caen durante 0,5 s. `fade` va de 1 (recién destruida) a 0.
  */
-export function renderWallFlash(ctx: CanvasRenderingContext2D, row: number, col: number, cellSize: number, fade: number): void {
-  const f = Math.max(0, Math.min(1, fade));
-  const x = col * cellSize;
-  const y = row * cellSize;
+export function renderWallFlash(ctx: CanvasRenderingContext2D, row: number, col: number, cellSize: number, fade: number, wallColor: string): void {
+  const frame = Math.min(3, Math.floor((1 - Math.max(0, Math.min(1, fade))) * 4));
+  drawCentered(ctx, `debris_${frame}` as SpriteName, { o: wallColor }, row, col, cellSize);
+}
+
+/** Cuadros de la derrota de Pacman (decisión 53): se desarma y termina en un destello. */
+export const PACMAN_DEATH_FRAMES = 11;
+
+export function renderPacmanDeath(ctx: CanvasRenderingContext2D, row: number, col: number, cellSize: number, frame: number, skin: PacmanSkin = DEFAULT_PACMAN_SKIN): void {
+  drawCentered(ctx, `pacman_death_${frame}` as SpriteName, pacmanPalette(skin), row, col, cellSize);
+}
+
+/** Sombra en el destino del saltarín: crece a medida que se acerca el aterrizaje (`t` de 0 a 1). */
+export function renderJumpShadow(ctx: CanvasRenderingContext2D, row: number, col: number, cellSize: number, t: number): void {
+  const sprite = SPRITES.jump_shadow;
   ctx.save();
-  ctx.globalAlpha = f * 0.85;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
-  ctx.globalAlpha = f;
-  ctx.fillStyle = "#c8c8c8";
-  const piece = cellSize * 0.18;
-  const spread = (1 - f) * cellSize * 0.35;
-  for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
-    ctx.fillRect(x + cellSize / 2 + dx * (cellSize * 0.2 + spread) - piece / 2, y + cellSize / 2 + dy * (cellSize * 0.2 + spread) - piece / 2, piece, piece);
-  }
+  ctx.globalAlpha *= 0.4 + 0.5 * t;
+  // Al pie del cuerpo del fantasma, que llega 7 px debajo del centro de la celda.
+  drawSprite(ctx, "jump_shadow", {}, (col + 0.5) * cellSize, (row + 0.5) * cellSize + 6 * pixelScale(cellSize), sprite.w / 2, sprite.h / 2, pixelScale(cellSize) * (0.3 + 0.7 * t));
   ctx.restore();
+}
+
+/** Polvo al aterrizar: `progress` va de 0 (recién caído) a 1. */
+export function renderLandingDust(ctx: CanvasRenderingContext2D, row: number, col: number, cellSize: number, progress: number): void {
+  const frame = Math.min(2, Math.floor(progress * 3));
+  const sprite = SPRITES.dust_0;
+  drawSprite(ctx, `dust_${frame}` as SpriteName, {}, (col + 0.5) * cellSize, (row + 0.5) * cellSize + 5 * pixelScale(cellSize), sprite.w / 2, sprite.h / 2, pixelScale(cellSize));
 }
 
 /** Ojos de un fantasma comido que vuelve a la base (decisión 46): sin cuerpo, mirando hacia donde va. */

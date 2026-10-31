@@ -1,5 +1,5 @@
 import { canPlaceFakeFruit, createFakeFruit, NAVAL_PLACE_COOLDOWN_SECONDS, type FakeFruit } from "./fakeFruits";
-import { isPhaseableWall, SPECTER_PHASE_COOLDOWN_SECONDS, type Ghost } from "./ghosts";
+import { isJumping, isPhaseableWall, SPECTER_PHASE_COOLDOWN_SECONDS, startJump, type Ghost } from "./ghosts";
 import { canEnterCell, cellAt, DIRECTION_VECTORS, getMoverPosition, isHouseCell, isTunnelCell, neighborCell } from "./movement";
 import type { GameMap } from "./types";
 
@@ -55,11 +55,12 @@ export function trySpecterPhase(ghost: Ghost, map: GameMap): boolean {
 }
 
 /**
- * Saltarín: salto instantáneo a una celda transitable al azar, con distribución uniforme, a
+ * Saltarín: salto de 0,6 s (decisión 55) a una celda transitable al azar, con distribución uniforme, a
  * distancia Manhattan de 10 o menos de la celda que ocupa y estrictamente adelante en su
  * dirección de avance: la fila o la columna actual no cuenta (decisiones 38 y 41). Sin
  * dirección de avance o sin destino válido no salta y el poder no se consume (decisión 25).
- * Puede caer sobre Pacman: ese contacto lo resuelve la detección de colisiones del mismo paso.
+ * En el aire no colisiona; si aterriza sobre Pacman, el contacto lo resuelve la detección de
+ * colisiones de ese cuadro.
  */
 export function tryJumperTeleport(ghost: Ghost, map: GameMap, random: RandomSource): boolean {
   const facing = ghost.facing;
@@ -82,15 +83,11 @@ export function tryJumperTeleport(ghost: Ghost, map: GameMap, random: RandomSour
   if (candidates.length === 0) return false;
 
   const target = candidates[Math.min(candidates.length - 1, Math.floor(random() * candidates.length))];
-  ghost.row = target.row;
-  ghost.col = target.col;
-  ghost.progress = 0;
+  // Desde el incremento 24 no aparece en el destino: salta y aterriza a los 0,6 s (decisión 55).
+  ghost.row = originRow;
+  ghost.col = originCol;
+  startJump(ghost, target);
   ghost.powerCooldown = JUMPER_COOLDOWN_SECONDS;
-  // Conserva la dirección de avance si puede seguir; si no, queda detenido.
-  if (ghost.facing) {
-    const ahead = neighborCell(map, target.row, target.col, ghost.facing);
-    ghost.direction = canEnterCell(map, ahead.row, ahead.col) ? ghost.facing : null;
-  }
   return true;
 }
 
@@ -144,7 +141,7 @@ export function tryAcceleratedDash(ghost: Ghost, map: GameMap): boolean {
  */
 export function tryActivateGhostPower(ghost: Ghost, context: PowerContext): boolean {
   // Dentro de la base no se usa el poder: el saltarín no puede salir sin pasar por la puerta.
-  if (ghost.eaten || ghost.inHouse || ghost.powerCooldown > 0 || ghost.phaseCellsLeft > 0 || ghost.phasePending || ghost.dashCellsLeft > 0) return false;
+  if (ghost.eaten || ghost.inHouse || ghost.powerCooldown > 0 || ghost.phaseCellsLeft > 0 || ghost.phasePending || ghost.dashCellsLeft > 0 || isJumping(ghost)) return false;
   switch (ghost.kind) {
     case "specter":
       return trySpecterPhase(ghost, context.map);

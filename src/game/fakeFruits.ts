@@ -12,8 +12,8 @@ export const NAVAL_PLACE_COOLDOWN_SECONDS = 5;
 export const EXPLOSION_RADIUS_STEPS = 3;
 /** Últimos segundos antes de explotar en los que se muestra la cuenta regresiva. */
 export const FAKE_FRUIT_WARNING_SECONDS = 3;
-/** Duración del dibujo de la explosión (solo visual). */
-export const EXPLOSION_DISPLAY_SECONDS = 0.6;
+/** Duración del dibujo de la explosión (solo visual): 0,5 s (decisión 56). */
+export const EXPLOSION_DISPLAY_SECONDS = 0.5;
 /** Pacman registra una fruta falsa si la ve colocar a esta distancia de recorrido o menos (decisión 42). */
 export const PACMAN_SIGHT_DISTANCE = 8;
 /** Probabilidad de olvidar una fruta registrada por cada segundo cumplido (decisión 37). */

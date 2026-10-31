@@ -1,5 +1,7 @@
 import {
   cancelDash,
+  isJumping,
+  LANDING_DUST_SECONDS,
   canGhostHarm,
   clearSpecterState,
   createGhost,
@@ -75,7 +77,7 @@ import {
   type ScoreBreakdown,
   type ScoreCategory,
 } from "./scoring";
-import { NO_WAIT_TIMINGS, type Countdown, type CountdownKind, type GameTimings } from "./timings";
+import { NO_WAIT_TIMINGS, type AfterPacmanDeath, type Countdown, type CountdownKind, type GameTimings, type PacmanDeath } from "./timings";
 import type { GameMap } from "./types";
 
 /**
@@ -184,6 +186,10 @@ export interface GameState {
   paused: boolean;
   /** Cuenta "3, 2, 1, ¡ya!" o "¡Listo!" en curso (HU-46); mientras dura, nada avanza. */
   countdown: Countdown | null;
+  /** Animación de la derrota de Pacman en curso (HU-47); mientras dura, nada avanza. */
+  pacmanDeath: PacmanDeath | null;
+  /** Polvo de los saltarines que acaban de aterrizar (solo visual). */
+  landingDust: WallFlash[];
 }
 
 function levelDefinition(state: GameState): LevelDefinition {
@@ -248,8 +254,10 @@ export function getPlayerGhost(state: GameState): Ghost | undefined {
 
 /** Posición inicial del nivel o después de perder una vida: afuera o dentro de la base, esperando salir. */
 function placeGhostAtSpawn(ghost: Ghost, map: GameMap): void {
-  // Un impulso cortado por el reinicio del nivel deja la penalidad en curso (decisión 54).
+  // Un impulso cortado por el reinicio del nivel deja la penalidad en curso (decisión 54); un
+  // salto cortado, simplemente no termina (decisión 55).
   cancelDash(ghost);
+  ghost.jump = null;
   ghost.row = ghost.spawn.row;
   ghost.col = ghost.spawn.col;
   ghost.inHouse = isHouseCell(map, ghost.row, ghost.col);
@@ -322,6 +330,8 @@ function loadLevel(state: GameState, level: number): void {
   state.powerUpActive = false;
   state.powerUpTimer = 0;
   state.ghostsEatenInPowerUp = 0;
+  state.pacmanDeath = null;
+  state.landingDust = [];
   startCountdown(state, "start");
 }
 
@@ -589,7 +599,8 @@ function checkGhostCollisions(state: GameState): void {
   const pacman = getMoverPosition(state.pacman);
 
   for (const ghost of state.ghosts) {
-    if (ghost.eaten) continue;
+    // Un saltarín en el aire no colisiona (decisión 55).
+    if (ghost.eaten || isJumping(ghost)) continue;
 
     const position = getMoverPosition(ghost);
     // A través del túnel, la distancia se mide por el borde (decisión 48).
@@ -636,10 +647,10 @@ function defeatPacman(state: GameState): void {
 
   if (state.lives <= 0) {
     state.lives = 0;
-    completeLevel(state);
+    startPacmanDeath(state, "levelComplete");
     return;
   }
-  restartLevelPositions(state);
+  startPacmanDeath(state, "ready");
 }
 
 function eatGhost(state: GameState, ghost: Ghost): void {
@@ -664,10 +675,31 @@ function loseLife(state: GameState): void {
 
   if (state.lives <= 0) {
     state.lives = 0;
-    finishGame(state, false);
+    startPacmanDeath(state, "gameOver");
   } else {
-    restartLevelPositions(state);
+    startPacmanDeath(state, "ready");
   }
+}
+
+/**
+ * Derrota de Pacman (decisión 53, HU-47), en los dos modos: 0,5 s congelado, 1,5 s en los que se
+ * desarma y después lo que corresponda. Con duraciones 0 (núcleo, modo de prueba) es inmediato.
+ */
+function startPacmanDeath(state: GameState, after: AfterPacmanDeath): void {
+  const timings = state.config.timings ?? NO_WAIT_TIMINGS;
+  const total = timings.deathFreezeSeconds + timings.deathSeconds;
+  if (total <= 0) {
+    finishPacmanDeath(state, after);
+    return;
+  }
+  state.pacmanDeath = { elapsed: 0, freezeSeconds: timings.deathFreezeSeconds, animationSeconds: timings.deathSeconds, after };
+}
+
+function finishPacmanDeath(state: GameState, after: AfterPacmanDeath): void {
+  state.pacmanDeath = null;
+  if (after === "gameOver") finishGame(state, false);
+  else if (after === "levelComplete") completeLevel(state);
+  else restartLevelPositions(state);
 }
 
 /**
@@ -827,38 +859,46 @@ function updateGhostMode(state: GameState, deltaSeconds: number): void {
 
 function updateGhosts(state: GameState, deltaSeconds: number, playerDirection: Direction | null): void {
   for (const ghost of state.ghosts) {
-    // Comido o esperando dentro de la base: lo mueve updateGhostHouse. El cooldown del poder
-    // sigue corriendo, para el fantasma del jugador y para los de la IA (decisiones 35 y 47).
-    if (ghost.eaten || (ghost.inHouse && !ghost.controlledByPlayer)) {
-      tickPowerTimers(ghost, deltaSeconds);
-      continue;
-    }
-
-    if (ghost.controlledByPlayer) {
-      updatePlayerGhost(ghost, state.map, deltaSeconds, playerDirection);
-      continue;
-    }
-
-    let targetRow: number;
-    let targetCol: number;
-
-    if (ghost.vulnerable) {
-      const dRow = ghost.row - state.pacman.row;
-      const dCol = ghost.col - state.pacman.col;
-      targetRow = ghost.row + dRow * 5;
-      targetCol = ghost.col + dCol * 5;
-    } else {
-      const target = state.ghostMode === "chase" ? state.pacman : ghost.scatterTarget;
-      targetRow = target.row;
-      targetCol = target.col;
-    }
-
-    // El espectro usa su habilidad solo para perseguir a Pacman.
-    const allowPhase = !ghost.vulnerable && state.ghostMode === "chase";
-    updateGhost(ghost, state.map, deltaSeconds, targetRow, targetCol, allowPhase);
-    if (state.config.mode === "pacman") triggerAiGhostPower(state, ghost);
+    const wasJumping = isJumping(ghost);
+    updateOneGhost(state, ghost, deltaSeconds, playerDirection);
+    // Aterrizó: levanta polvo (decisión 55).
+    if (wasJumping && !isJumping(ghost)) state.landingDust.push({ row: ghost.row, col: ghost.col, timeLeft: LANDING_DUST_SECONDS });
     if (state.levelComplete || state.gameOver) return;
   }
+}
+
+/** Un fantasma en un paso: lo mueve el jugador, la IA o, si está comido o en la base, nadie. */
+function updateOneGhost(state: GameState, ghost: Ghost, deltaSeconds: number, playerDirection: Direction | null): void {
+  // Comido o esperando dentro de la base: lo mueve updateGhostHouse. El cooldown del poder
+  // sigue corriendo, para el fantasma del jugador y para los de la IA (decisiones 35 y 47).
+  if (ghost.eaten || (ghost.inHouse && !ghost.controlledByPlayer)) {
+    tickPowerTimers(ghost, deltaSeconds);
+    return;
+  }
+
+  if (ghost.controlledByPlayer) {
+    updatePlayerGhost(ghost, state.map, deltaSeconds, playerDirection);
+    return;
+  }
+
+  let targetRow: number;
+  let targetCol: number;
+
+  if (ghost.vulnerable) {
+    const dRow = ghost.row - state.pacman.row;
+    const dCol = ghost.col - state.pacman.col;
+    targetRow = ghost.row + dRow * 5;
+    targetCol = ghost.col + dCol * 5;
+  } else {
+    const target = state.ghostMode === "chase" ? state.pacman : ghost.scatterTarget;
+    targetRow = target.row;
+    targetCol = target.col;
+  }
+
+  // El espectro usa su habilidad solo para perseguir a Pacman.
+  const allowPhase = !ghost.vulnerable && state.ghostMode === "chase";
+  updateGhost(ghost, state.map, deltaSeconds, targetRow, targetCol, allowPhase);
+  if (state.config.mode === "pacman") triggerAiGhostPower(state, ghost);
 }
 
 /** Distancia Manhattan entre la celda que ocupa (visualmente) un personaje y la de otro. */
@@ -919,6 +959,14 @@ export function updateGameState(
     return;
   }
 
+  // Durante la derrota de Pacman no avanza nada ni se suman puntos (HU-47).
+  if (state.pacmanDeath) {
+    const death = state.pacmanDeath;
+    death.elapsed += deltaSeconds;
+    if (death.elapsed >= death.freezeSeconds + death.animationSeconds) finishPacmanDeath(state, death.after);
+    return;
+  }
+
   // Durante la cuenta no avanza nada, y las teclas y la barra espaciadora se descartan (HU-46).
   if (state.countdown) {
     state.countdown.timeLeft -= deltaSeconds;
@@ -968,6 +1016,8 @@ export function updateGameState(
   updateDynamicPowerPellets(state, deltaSeconds);
   for (const flash of state.wallFlashes) flash.timeLeft -= deltaSeconds;
   state.wallFlashes = state.wallFlashes.filter((flash) => flash.timeLeft > 0);
+  for (const dust of state.landingDust) dust.timeLeft -= deltaSeconds;
+  state.landingDust = state.landingDust.filter((dust) => dust.timeLeft > 0);
   updatePowerUp(state, deltaSeconds);
   updateGhostHouse(state, deltaSeconds);
   updateGhostMode(state, deltaSeconds);

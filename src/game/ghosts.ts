@@ -34,6 +34,10 @@ export const SPECTER_PHASE_COOLDOWN_SECONDS = 10;
 export const SPECTER_NO_EAT_SECONDS = 3;
 /** Impulso del acelerado: recorre sus celdas a 12 celdas/s, 3 celdas en 0,25 s (decisión 54). */
 export const DASH_SPEED = 12;
+/** Salto del saltarín: tarda 0,6 s en llegar al destino, en arco (decisión 55). */
+export const JUMP_SECONDS = 0.6;
+/** Polvo al aterrizar (solo visual). */
+export const LANDING_DUST_SECONDS = 0.3;
 /** Penalidad del acelerado después del impulso: 5 s al 50 % (HU-31). */
 export const DASH_SLOW_SECONDS = 5;
 /** En las celdas del túnel los fantasmas van al 50 % de su velocidad (decisión 48). */
@@ -86,6 +90,15 @@ export interface Ghost extends Mover {
   noEatTimer: number;
   /** Multiplicador de la velocidad de su tipo: 0,85 para los fantasmas del modo Pacman (decisión 40), 1 en el modo GhostMan. */
   speedFactor: number;
+  /** Saltarín en el aire (decisión 55): sale de su celda y aterriza en el destino a los 0,6 s. */
+  jump: Jump | null;
+}
+
+export interface Jump {
+  from: { row: number; col: number };
+  to: { row: number; col: number };
+  /** Segundos desde el despegue. */
+  elapsed: number;
 }
 
 const ALL_DIRECTIONS: readonly Direction[] = ["up", "down", "left", "right"];
@@ -137,6 +150,7 @@ export function createGhost(
     phaseCellsLeft: 0,
     noEatTimer: 0,
     speedFactor,
+    jump: null,
   };
 }
 
@@ -282,6 +296,10 @@ export function updateGhost(
   // Cooldown y penalidad del acelerado (incremento 16: el acelerado de la IA también la tiene).
   tickPowerTimers(ghost, deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
+  if (isJumping(ghost)) {
+    advanceJump(ghost, map, deltaSeconds);
+    return;
+  }
   if (isDashing(ghost)) {
     advanceDash(ghost, map, deltaSeconds);
     return;
@@ -324,6 +342,10 @@ export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: numb
   tickPowerTimers(ghost, deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
 
+  if (isJumping(ghost)) {
+    advanceJump(ghost, map, deltaSeconds);
+    return;
+  }
   if (ghost.phasePending || isPhasing(ghost)) {
     advancePlayerPhase(ghost, map, deltaSeconds);
     return;
@@ -352,6 +374,52 @@ export function tickPowerTimers(ghost: Ghost, deltaSeconds: number): void {
     if (ghost.slowTimer === 0) ghost.speed = speedForKind(ghost.kind) * ghost.speedFactor;
   }
 }
+
+/** Saltarín en el aire (decisión 55): no colisiona, no se controla y no usa otro poder. */
+export function isJumping(ghost: Ghost): boolean {
+  return ghost.jump !== null;
+}
+
+/** Despega hacia el destino ya elegido; queda en su celda de origen hasta aterrizar. */
+export function startJump(ghost: Ghost, to: { row: number; col: number }): void {
+  ghost.jump = { from: { row: ghost.row, col: ghost.col }, to, elapsed: 0 };
+  ghost.progress = 0;
+  ghost.direction = null;
+}
+
+/**
+ * Al cumplirse los 0,6 s aterriza: pasa a la celda de destino y, si puede, sigue en su dirección de
+ * avance. El contacto con Pacman al aterrizar lo resuelve la detección de colisiones del cuadro.
+ */
+function advanceJump(ghost: Ghost, map: GameMap, deltaSeconds: number): void {
+  const jump = ghost.jump!;
+  jump.elapsed += deltaSeconds;
+  if (jump.elapsed < JUMP_SECONDS) return;
+  ghost.row = jump.to.row;
+  ghost.col = jump.to.col;
+  ghost.progress = 0;
+  ghost.jump = null;
+  if (ghost.facing) {
+    const ahead = neighborCell(map, ghost.row, ghost.col, ghost.facing);
+    ghost.direction = canEnterCell(map, ahead.row, ahead.col) ? ghost.facing : null;
+  }
+}
+
+/**
+ * Posición para dibujar a un saltarín en el aire: avanza en línea recta hacia el destino y `height`
+ * (en celdas) sube y baja en arco. `t` va de 0 (despegue) a 1 (aterrizaje).
+ */
+export function jumpPosition(jump: Jump): { row: number; col: number; height: number; t: number } {
+  const t = Math.min(1, jump.elapsed / JUMP_SECONDS);
+  return {
+    row: jump.from.row + (jump.to.row - jump.from.row) * t,
+    col: jump.from.col + (jump.to.col - jump.from.col) * t,
+    height: Math.sin(Math.PI * t) * JUMP_ARC_HEIGHT_CELLS,
+    t,
+  };
+}
+
+const JUMP_ARC_HEIGHT_CELLS = 1.5;
 
 /** Acelerado a mitad de un impulso (decisión 54). */
 export function isDashing(ghost: Ghost): boolean {
@@ -434,9 +502,9 @@ function advancePlayerPhase(ghost: Ghost, map: GameMap, deltaSeconds: number): v
 export function reverseGhostDirection(ghost: Ghost, map: GameMap): void {
   // La reversa forzada es de la IA: al fantasma del jugador lo sigue controlando el jugador.
   if (ghost.controlledByPlayer || !ghost.direction) return;
-  // Un espectro a mitad de un muro completa el cruce antes de poder invertir la marcha, y un
-  // acelerado, su impulso (decisión 54).
-  if (isPhasing(ghost) || isDashing(ghost)) return;
+  // Un espectro a mitad de un muro completa el cruce antes de poder invertir la marcha; un
+  // acelerado, su impulso (decisión 54), y un saltarín, su salto (decisión 55).
+  if (isPhasing(ghost) || isDashing(ghost) || isJumping(ghost)) return;
 
   if (ghost.progress > 0) {
     const next = neighborCell(map, ghost.row, ghost.col, ghost.direction);
