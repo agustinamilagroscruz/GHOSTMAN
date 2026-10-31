@@ -127,7 +127,7 @@ Esta sección **extiende** la sección 4 de la Entrega 01 y la sección 4 de la 
 
 > **Estado.** Todas las reglas de esta sección provienen de decisiones aceptadas en la sesión de planificación del 30/10/2026 (sección 5) y todavía no están implementadas. Si el equipo cambia una decisión, hay que actualizar el valor acá.
 
-### 4.1 Mapas *(D-41 a D-51)*
+### 4.1 Mapas *(D-41 a D-51, D-68 a D-71)*
 
 Los tres mapas se reemplazan por los de [`Workflow/v3-mapas.md`](../Workflow/v3-mapas.md), que es la fuente de verdad del trazado.
 
@@ -135,13 +135,15 @@ Los tres mapas se reemplazan por los de [`Workflow/v3-mapas.md`](../Workflow/v3-
 |---|---|
 | Tamaño | 28 columnas × 31 filas, como el Pac-Man original (en la V1 y la V2: 17 × 15) |
 | Diseño | Laberintos propios, simétricos. Cada nivel tiene un trazado distinto, siempre el mismo |
-| Muros interiores | Mayormente de una celda de espesor, para que el espectro tenga cruces en todo el mapa *(D-26)* |
+| Muros interiores | Bloques de 2 o más celdas, como el original, con algunos muros de una celda para que el espectro tenga cruces en los tres niveles *(D-26, D-69)*. En el incremento 19 eran mayormente de una celda |
+| Dibujo | Escala del original: celda lógica de 8 px y personajes de unas 2 celdas. Cada bloque de muro se dibuja como un tubo que recorre su contorno, con esquinas redondeadas, en los colores del nivel *(D-68)* |
 | Marco común a los tres niveles | Base de los fantasmas, anillo alrededor de la base, túnel y aparición de Pacman en las mismas posiciones |
 | Aparición de Pacman | Fila 23, entre las columnas 13 y 14 |
 | Esferas grandes, nivel 1 | (1,1), (1,26), (23,1), (23,26) |
-| Esferas grandes, nivel 2 | (5,1), (5,26), (25,1), (25,26) |
+| Esferas grandes, nivel 2 | (3,1), (3,26), (22,1), (22,26) |
 | Esferas grandes, nivel 3 | (1,1), (1,26), (29,1), (29,26). En modo GhostMan, además, las fijas (15,1) y (15,26) *(D-51)* |
-| Esferas comunes | Nivel 1: 388 · Nivel 2: 352 · Nivel 3: 344 |
+| Esferas comunes | Nivel 1: 258 · Nivel 2: 268 · Nivel 3: 258 (en el incremento 19: 388, 352 y 344) *(D-69)* |
+| Velocidad | Pacman y el fantasma clásico: 4,5 celdas/s (3,75 en la V2). Los demás tipos y el −15 % de los fantasmas del modo Pacman conservan su proporción *(D-70)*. En modo GhostMan, Pacman (IA) va un 15 % más lento: 3,825 celdas/s *(D-71)* |
 | Celdas sin esfera | Anillo de la base, celdas del túnel, aparición de Pacman e interior de la base |
 
 **Formato de texto del mapa.** Se amplía el de la V1: `#` muro, `.` pasillo con esfera común, `o` pasillo con esfera grande, espacio pasillo sin esfera y `-` puerta de la base.
@@ -256,7 +258,7 @@ Todos los sonidos son **originales**, sintetizados con la Web Audio API al estil
 
 | Parámetro | Valor |
 |---|---|
-| Tamaño | Celdas y sprites de 16 × 16 px. El mapa (448 × 496 px) se escala por un número entero para entrar en la pantalla |
+| Tamaño | Celda lógica de 8 × 8 px y sprites de 16 × 16 px (unas 2 celdas), como el original. El mapa (224 × 248 px) se escala por un número entero: ×3 en un canvas de 672 × 744 *(D-68, modifica la D-58)* |
 | Herramienta | Pixel art dibujado con pxl |
 | Roles de color | Cada sprite usa roles: cuerpo, contorno, ojos y detalle |
 | Skin | Una paleta para esos roles. Las skins con forma propia son opcionales |
@@ -345,6 +347,10 @@ La numeración continúa la de la Entrega 02 (decisiones 17 a 40). Se aplica el 
 | 65 | No se define qué pasa si no hay conexión con Supabase | Resultado visible con mensaje y reintento, sin cola local; error general en el registro y el login | Una cola local agregaría estados difíciles de probar para un caso poco frecuente | Aceptada · sin implementar |
 | 66 | La HU-37 exige sesión para llegar al menú, lo que cambia la entrada a todos los casos de la V1 y la V2 | Todos los casos manuales suman la precondición "sesión iniciada con el usuario de prueba"; los scripts de navegador inician sesión contra el proyecto de prueba | Es la misma situación que generó el menú de la V2 (sección 8.2 de la Entrega 02) | Aceptada · sin implementar |
 | 67 | *(Detectada durante la generación, tabla 7.5, fila 6.)* Ninguna decisión dice si un fantasma puede usar su poder dentro de la base. El saltarín del jugador podría salir de la base sin pasar por la puerta | Dentro de la base ningún fantasma puede usar su poder; el intento no consume el cooldown | Mantiene la decisión 44 (la base se deja solo por la puerta) y sigue el criterio de la decisión 25 para los intentos sin efecto | Aprobada por D. Savoia (30/10) · implementada |
+| 68 | *(Prueba manual de los incrementos 18 a 20, tabla 7.5, fila 16.)* Con mapas de 28 × 31 dibujados con celdas como bloques y personajes de una celda, el mapa se ve enorme y armado con bloques, y la base ocupa mucho más que en el original, aunque la grilla y la base miden lo mismo que en el original | Escala del original: celda lógica de 8 px y sprites de 16 px (unas 2 celdas), mapa ×3 en 672 × 744. Los muros se dibujan como un tubo por el contorno de cada bloque, con esquinas redondeadas. La lógica y las colisiones no cambian | La diferencia con el original no estaba en la grilla sino en el dibujo: allí los personajes miden 2 celdas y los muros son líneas finas. Al dibujarse por el centro de sus celdas, un muro de una celda se ve como una sola línea y uno grueso como un contorno, así que también se distingue a simple vista dónde puede cruzar el espectro | Aprobada por D. Savoia (31/10) · implementada |
+| 69 | *(Misma prueba manual.)* Los niveles se hacen largos: los muros de una celda dejan entrar muchos pasillos y hay entre 344 y 388 esferas por nivel, contra 240 del original | Mapas rediseñados con bloques de 2 o más celdas: 258, 268 y 258 esferas. Algunos muros de una celda quedan para el espectro (30, 22 y 46 cruces). Se mantiene el marco fijo de los tres niveles | Menos pasillos acortan el nivel sin tocar las reglas. El marco fijo conserva las decisiones 44 a 51 y las posiciones que usan las pruebas de la base y el túnel | Aprobada por D. Savoia (31/10) · implementada |
+| 70 | *(Misma prueba manual.)* Aun con menos esferas, a 3,75 celdas/s el recorrido mínimo de un nivel es largo | Pacman y el fantasma clásico pasan a 4,5 celdas/s (+20 %); todo lo demás conserva su proporción | Subir todas las velocidades en la misma proporción mantiene las relaciones de las HU y de las decisiones 39 y 40. Con mapas de unas 260 esferas, el recorrido mínimo de un nivel baja de unos 103 s a unos 57 s | Aprobada por D. Savoia (31/10) · implementada |
+| 71 | *(Detectada durante la generación, tabla 7.5, fila 20.)* Con los mapas compactos, en modo GhostMan Pacman termina el nivel 1 en unos 130 s en lugar de 255 s, y el bot de balance pierde las 50 partidas sin usar el poder | En modo GhostMan, Pacman (IA) va un 15 % más lento: 3,825 celdas/s contra 4,5 del clásico | Es el espejo de la decisión 40, que le dio ventaja de velocidad a Pacman en el modo Pacman. Con el ajuste, el bot gana 5 de 10 partidas con el clásico, el saltarín y el acelerado, cerca de las 6 de 10 del incremento 20 | Aprobada por D. Savoia (31/10) · implementada |
 
 ---
 
@@ -520,21 +526,22 @@ Se mantiene la estrategia de las entregas anteriores: **incrementos verificables
 | 18 | Memoria de frutas falsas y salto hacia adelante | HU-29, HU-30, HU-43 | Con el azar fijado, Pacman no consume una fruta falsa que vio colocar mientras la recuerda; el saltarín cae siempre adelante |
 | 19 | Mapas nuevos, base de los fantasmas y túnel | HU-44, HU-45 | Pacman no entra a la base, los fantasmas salen cada 3 s, los ojos vuelven, todos cruzan el túnel y un jugador quieto no gana |
 | 20 | Impulso del acelerado | HU-31, HU-49 | El *dash* recorre las celdas en 0,25 s con colisión en el trayecto |
-| 21 | Cuenta regresiva y modo de prueba | HU-46 | La cuenta congela todo, y con el modo de prueba las suites de `scripts/verify/` pasan sin cambios de tiempos |
-| 22 | Sprites de pixel art | HU-50 | Tipos y estado vulnerable distinguibles, al menos una skin alternativa funcionando |
-| 23 | Animaciones | HU-47, HU-49 | Derrota de Pacman con el juego pausado; las animaciones no alteran tiempos ni colisiones |
-| 24 | Música y efectos de sonido | HU-48 | Dos canales; cada evento de la sección 4.7 suena |
-| 25 | Registro, inicio de sesión y menú principal | HU-35, HU-36, HU-37 | Validaciones de la sección 4.10, sesión persistente y menú inaccesible sin sesión |
-| 26 | Tableros de puntaje | HU-38, HU-39 | Top 10 por modo, tablero personal y actualización inmediata |
-| 27 | Opciones: skins, volumen, cerrar sesión y salir | HU-40, HU-41, HU-42 | Persistencia entre sesiones y ninguna skin altera las mecánicas |
+| 21 | Escala del original y mapas compactos | HU-44, HU-45, HU-50 | Muros como contorno, personajes de unas 2 casillas, unas 260 esferas por nivel y todas las suites pasan con las velocidades nuevas |
+| 22 | Cuenta regresiva y modo de prueba | HU-46 | La cuenta congela todo, y con el modo de prueba las suites de `scripts/verify/` pasan sin cambios de tiempos |
+| 23 | Sprites de pixel art | HU-50 | Tipos y estado vulnerable distinguibles, al menos una skin alternativa funcionando |
+| 24 | Animaciones | HU-47, HU-49 | Derrota de Pacman con el juego pausado; las animaciones no alteran tiempos ni colisiones |
+| 25 | Música y efectos de sonido | HU-48 | Dos canales; cada evento de la sección 4.7 suena |
+| 26 | Registro, inicio de sesión y menú principal | HU-35, HU-36, HU-37 | Validaciones de la sección 4.10, sesión persistente y menú inaccesible sin sesión |
+| 27 | Tableros de puntaje | HU-38, HU-39 | Top 10 por modo, tablero personal y actualización inmediata |
+| 28 | Opciones: skins, volumen, cerrar sesión y salir | HU-40, HU-41, HU-42 | Persistencia entre sesiones y ninguna skin altera las mecánicas |
 
-**Orden.** Primero van los incrementos que cambian las mecánicas (18 a 21), para que los sprites, las animaciones y el audio se hagan sobre el juego definitivo. Las cuentas van al final porque son independientes del juego y requieren los proyectos de Supabase.
+**Orden.** Primero van los incrementos que cambian las mecánicas (18 a 22; el 21 se agregó después de la prueba manual de los incrementos 18 a 20), para que los sprites, las animaciones y el audio se hagan sobre el juego definitivo. Las cuentas van al final porque son independientes del juego y requieren los proyectos de Supabase.
 
 ### 7.2 Agente utilizado
 
 | Agente / LLM | Interfaz | Uso previsto |
 |---|---|---|
-| Claude Opus 5.5 | Claude Code (CLI) con acceso al repositorio local: puede compilar, correr lint, ejecutar scripts de verificación, manejar un navegador sin interfaz (Chromium) y dibujar pixel art con pxl | Generación de los incrementos 18 a 27, sprites y verificación de sus criterios de avance |
+| Claude Opus 5.5 | Claude Code (CLI) con acceso al repositorio local: puede compilar, correr lint, ejecutar scripts de verificación, manejar un navegador sin interfaz (Chromium) y dibujar pixel art con pxl | Generación de los incrementos 18 a 28, sprites y verificación de sus criterios de avance |
 
 Se mantiene la **decisión metodológica** de las entregas anteriores: el código no se corrige a mano durante la generación. Los ajustes se piden mediante prompts que quedan registrados, y toda edición manual se anota en la tabla 7.5.
 
@@ -542,7 +549,7 @@ Se mantiene la **decisión metodológica** de las entregas anteriores: el códig
 
 1. La sección **4** de la Entrega 01, la sección **4** de la Entrega 02 y la sección **4** de este documento.
 2. Las historias de usuario de la V3 (sección 7.5 de la Entrega 01 y sección 6.2 de este documento), con los ajustes de la sección 6.1.
-3. Las decisiones 41 a 66 de la sección 5.
+3. Las decisiones 41 a 71 de la sección 5.
 4. Los mapas de `Workflow/v3-mapas.md`.
 
 ### 7.4 Prompts
@@ -691,6 +698,39 @@ al final), corte por ser comido, penalidad al terminar y al cortarse, túnel y
 la IA del modo Pacman. Si algo es ambiguo, preguntame antes de generar código.
 ```
 
+#### Prompt 20 — Escala del original y mapas compactos (HU-44, HU-45, HU-50; decisiones 68 a 70)
+
+```
+Incremento 21. En la prueba manual, el mapa de 28 x 31 se ve enorme y armado
+con bloques, y los niveles se hacen largos. La grilla y la base miden lo mismo
+que en el original; lo que cambia es el dibujo y la cantidad de pasillos.
+Hacé estos cambios (sección 4.1, decisiones 68 a 70):
+
+- Dibujo a la escala del original (decisión 68). La celda lógica equivale a
+  8 px y el canvas sigue en 672 x 744 (x3). Pacman y los fantasmas se dibujan
+  con un radio de 0,8 celdas, y las frutas en la misma proporción. Los muros no
+  se rellenan por celda: cada bloque se dibuja como un tubo que recorre su
+  contorno por el centro de sus celdas, con esquinas redondeadas. Dos celdas
+  de muro vecinas se unen solo si junto al tramo hay un pasillo, así un muro de
+  una celda se ve como una línea y un bloque grueso como un contorno vacío. El
+  tubo usa el contorno del nivel por fuera y las franjas (o el relleno) por
+  dentro. Un personaje que asoma por el borde del túnel se dibuja también del
+  otro lado.
+- Mapas (decisión 69). Reemplazá los tres mapas por los de
+  Workflow/v3-mapas.md: bloques de 2 o más celdas y unas 260 esferas por
+  nivel. El marco fijo no cambia.
+- Velocidad (decisión 70). Pacman y el clásico pasan de 3,75 a 4,5 celdas/s;
+  el resto conserva su proporción.
+
+La lógica, las colisiones y los temporizadores no cambian. Actualizá las
+suites de scripts/verify/ que usan coordenadas de los mapas o velocidades,
+manteniendo lo que verifica cada comprobación, y agregá core/inc21.js con:
+los tres mapas (conexión, simetría, marco fijo, sin callejones ni espacios de
+2 x 2, cantidad de esferas y cruces del espectro), las velocidades nuevas y el
+jugador quieto que no gana. Si algo es ambiguo, preguntame antes de generar
+código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -712,6 +752,11 @@ la IA del modo Pacman. Si algo es ambiguo, preguntame antes de generar código.
 | 13 | 20 — Impulso del acelerado | Prompt 19 | **Cambio de implementación de una decisión anterior:** la decisión 32 (contacto en todo el trayecto del *dash*) estaba resuelta calculando la distancia de Pacman al segmento recorrido, porque el *dash* era instantáneo. Con el impulso, el acelerado pasa por cada celda | Se eliminó el cálculo del segmento: el contacto lo detecta la colisión de cada cuadro, como para cualquier fantasma. Lo verifica `core/inc20.js`, también con Pacman yendo de frente hacia el acelerado | No |
 | 14 | 20 | Prompt 19 | **Hueco de especificación:** la decisión 54 mantiene la penalidad de 5 s, pero no dice si arranca al activar el poder o al terminar el impulso, ni qué pasa si el impulso se corta | Se definió en el prompt: arranca al terminar el impulso, o cuando se corta (comido o reinicio del nivel), para que cortarlo no la evite | No |
 | 15 | 20 | Prompt 19 | **Observación:** el impulso arranca desde el centro de la celda que ocupa el acelerado (la misma regla de la V2), así que si estaba a mitad de camino vuelve hasta media celda antes de impulsarse. Además, el acelerado de la IA activa el poder al final del cuadro, después de moverse, y su impulso empieza a avanzar en el cuadro siguiente | Se dejó así: el retroceso es de media celda como máximo y queda tapado por la estela. Las pruebas cuentan los 15 cuadros del impulso desde que empieza a avanzar | No |
+| 16 | 21 — Escala del original y mapas compactos | Prompt 20 | **Hallazgo de la prueba manual de los incrementos 18 a 20 (D. Savoia):** la jugabilidad está bien y el nuevo diseño es más justo, pero el mapa se ve enorme, la base ocupa mucho más que en el original y los niveles se hacen largos. Los mapas parecen armados con bloques, no como los del original | Se comparó con el original: la grilla (28 × 31) y la base (8 × 5) miden lo mismo; la diferencia está en el dibujo (personajes de una celda, muros rellenos), en la cantidad de esferas (344 a 388 contra 240) y en la velocidad (3,75 celdas/s contra unas 7,5). Se registraron las decisiones 68 a 70 y se agregó este incremento | No |
+| 17 | 21 | Prompt 20 | **Diseño de los mapas:** el primer borrador del nivel 1 que propuso el agente quedó casi igual al laberinto del original, contra la regla de diseño propio de `v3-mapas.md`, y sin ningún muro de una celda para el espectro | Se descartó. Los tres mapas se rediseñaron con un validador (conexión, simetría, marco fijo, callejones, espacios de 2 × 2, esferas y cruces del espectro) y se aprobaron con capturas dibujadas por el propio `render.ts` | No |
+| 18 | 21 | Prompt 20 | **Cambio esperado en las suites anteriores:** 9 de las 11 suites del núcleo fallaron por coordenadas que en los mapas nuevos son muro (las filas 1 y 5 del nivel 1 ya no son pasillos completos) y por velocidades escritas como literales (3,75) | Las coordenadas pasaron a posiciones equivalentes, sobre todo a la fila 3 del nivel 1, y las velocidades se calculan con las constantes o se actualizaron. Ninguna falla resultó ser un defecto del juego. Con la IA sola, Pacman completa los niveles en 79, 84 y 88 s, y en modo GhostMan con el jugador quieto completa el nivel 1 a los 170 s (antes, 255 s; 126 s sin la decisión 71) | No |
+| 19 | 21 | Prompt 20 | **Verificación del dibujo:** el contorno de los muros se dibuja con `Path2D`, que no existe en Node, así que las suites del núcleo no podían comprobar la regla | La regla quedó en una función pura (`wallOutlineSides`) que usa el dibujo y que verifica `core/inc21.js`: interior de un bloque, esquinas, bordes, pilares sueltos y el borde del mapa | No |
+| 20 | 21 | Corrección no planificada | **Balance:** con los mapas compactos, el bot de balance perdió las 50 partidas sin usar el poder y 49 de 50 usándolo, casi todas en el nivel 1. Pacman limpiaba el nivel en unos 130 s y el bot llegaba a derrotarlo 2 de las 3 veces necesarias | Se probó en una copia temporal Pacman al −15 % en modo GhostMan y se aprobó como decisión 71. La comprobación de huida de `core/inc11.js` aceptaba solo la huida hacia la derecha; con la velocidad nueva Pacman huye hacia arriba por la columna 8, que también es una huida válida, y se amplió | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 
@@ -746,6 +791,23 @@ Los valores a revisar después de jugar son las velocidades (decisiones 39 y 40)
 
 **Balance después del incremento 20.** Con el bot que usa su poder, el acelerado sigue en 8 victorias y 2 Game Over en el nivel 3, igual que después del incremento 19: recorrer las celdas en 0,25 s en lugar de aparecer de golpe no cambió el resultado. El resto de los tipos no se ve afectado por este incremento y da lo mismo que en la medición anterior.
 
+**Balance después del incremento 21.** Mismo bot y mismas semillas. Victorias en 10 partidas por tipo (sin usar el poder · usando el poder):
+
+| Tipo | Incremento 20 (sin poder) | Mapas compactos y 4,5 celdas/s | Con la decisión 71 |
+|---|---|---|---|
+| Clásico | 6 | 0 · 0 | 5 · 5 |
+| Espectro | 0 | 0 · 0 | 2 · 2 |
+| Saltarín | 6 | 0 · 1 | 5 · 3 |
+| Naval | 0 | 0 · 0 | 0 · 0 |
+| Acelerado | 6 | 0 · 0 | 5 · 1 |
+
+- **Sin compensar, el modo GhostMan se volvía casi imposible para el bot.** Con un tercio menos de esferas, Pacman limpia el nivel 1 en unos 130 s, y el bot solo llegaba a derrotarlo 2 veces. Subir todas las velocidades por igual (decisión 70) no cambia esa relación: lo que cambió es cuánto tarda Pacman en terminar.
+- **Con la decisión 71 el balance vuelve a valores cercanos a los del incremento 20,** y desaparecen casi todas las partidas sin terminar: los mapas compactos ya no producen las persecuciones sin fin del anillo.
+- **El espectro gana 2 de 10, contra 0 de 10 en el incremento 20.** Los muros de una celda que quedan los cruza bien. **El naval** sigue sin ganar: es el más lento (3,6 celdas/s contra 3,825 de Pacman) y su poder no compensa la diferencia.
+- **Usar el poder empeora al saltarín y al acelerado** cuando el bot lo usa apenas puede. Una explicación posible es que el salto al azar y el impulso en línea recta lo alejan de Pacman en los mapas con bloques más grandes; el bot no elige cuándo conviene usarlo.
+
+Las velocidades del naval y del espectro y las cargas de la decisión 22 siguen como pendientes del playtest (decisión 51).
+
 *El resto, a completar al cierre de la etapa de generación.*
 
 ---
@@ -764,7 +826,7 @@ Se mantiene la estrategia de la sección 9 de la Entrega 01: pruebas manuales de
 | Túnel | Media | Medio | **Medio** | El salto de un borde al otro es un caso especial para el movimiento, las colisiones, las distancias y el dibujado |
 | Tableros de puntaje | Media | Medio | **Medio** | Orden, empates, límites del top 10 y la actualización inmediata dependen de la base de datos |
 | Puntajes falsos | Baja | Medio | **Bajo** | Limitación conocida y aceptada (decisión 63): un usuario podría enviar un puntaje dentro del rango válido sin haberlo logrado |
-| Animaciones y cuenta regresiva | Media | Bajo | **Bajo** | Si alteran tiempos o colisiones, afectan a las reglas. Se mitiga con la regla de la decisión 59 y la verificación del incremento 23 |
+| Animaciones y cuenta regresiva | Media | Bajo | **Bajo** | Si alteran tiempos o colisiones, afectan a las reglas. Se mitiga con la regla de la decisión 59 y la verificación del incremento 24 |
 | Audio | Baja | Bajo | **Bajo** | No afecta las reglas del juego |
 
 ### 8.2 Regresión de la V1 y la V2

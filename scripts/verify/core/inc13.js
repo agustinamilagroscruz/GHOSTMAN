@@ -20,23 +20,24 @@ const step = (s, n, dir = null, power = false) => { for (let i = 0; i < n; i++) 
 // Fuera de la base desde el incremento 19: dentro, el poder no se puede usar.
 const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; g.inHouse = false; };
 
-// ---------- Espectro (nivel 2: muros de una celda)
+// ---------- Espectro (nivel 2: muro de una celda en (3,6), entre los pasillos (3,5) y (3,7))
+// Hasta el incremento 20 se usaba el muro (1,8) del nivel 2, que no existe en los mapas del 21.
 {
   const [s, g] = setup("specter", 2);
-  place(g, 1, 6);
-  step(s, 30, "right"); // avanza a (1,7) y queda detenido contra el muro (1,8)
-  check(g.row === 1 && g.col === 7 && g.direction === null && g.facing === "right", "detenido contra el muro conserva la dirección de avance");
-  step(s, 1, "right", true);
+  place(g, 3, 8);
+  step(s, 30, "left"); // avanza a (3,7) y queda detenido contra el muro (3,6)
+  check(g.row === 3 && g.col === 7 && g.direction === null && g.facing === "left", "detenido contra el muro conserva la dirección de avance");
+  step(s, 1, "left", true);
   check(g.powerCooldown > 9.9 && isPhasing(g), "espacio: empieza el cruce y arranca el cooldown de 10 s");
   let harmlessAll = true, t = 0;
   while (isPhasing(g) && t < 2) { if (canGhostHarm(g)) harmlessAll = false; step(s, 1, "up"); t += DT; }
-  check(g.row === 1 && g.col === 9, `sale del otro lado del muro, en (1,9) (está en ${g.row},${g.col})`);
+  check(g.row === 3 && g.col === 5, `sale del otro lado del muro, en (3,5) (está en ${g.row},${g.col})`);
   check(harmlessAll, "durante el cruce no puede derrotar a Pacman");
   check(Math.abs(g.noEatTimer - 3) < 0.05 && !canGhostHarm(g), "al salir: 3 s sin poder derrotar a Pacman");
   step(s, 3.05 / DT);
   check(canGhostHarm(g), "pasados los 3 s vuelve a poder derrotar a Pacman");
   // cooldown: intento a los ~3,3 s sin efecto, disponible exactamente a los 10 s
-  place(g, 1, 7); g.facing = "right";
+  place(g, 3, 7); g.facing = "left";
   step(s, 1, null, true);
   check(!isPhasing(g) && isPowerReady(g) === false, "espacio durante el cooldown: sin efecto");
   const tLeft = g.powerCooldown;
@@ -48,16 +49,16 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
 {
   // En movimiento hacia el muro: termina de llegar y lo cruza
   const [s, g] = setup("specter", 2);
-  place(g, 1, 5); g.facing = "right";
-  step(s, 8, "right"); // a mitad de camino hacia (1,6)
-  check(g.progress > 0 && g.row === 1 && g.col === 5, "a mitad de celda hacia la derecha");
-  step(s, 1, "right", true); // muro contiguo a la celda de llegada (1,6)? (1,7) es camino → no hay muro
+  place(g, 3, 9); g.facing = "left";
+  step(s, 8, "left"); // a mitad de camino hacia (3,8)
+  check(g.progress > 0 && g.row === 3 && g.col === 9, "a mitad de celda hacia la izquierda");
+  step(s, 1, "left", true); // muro contiguo a la celda de llegada (3,8)? (3,7) es camino → no hay muro
   check(g.powerCooldown === 0 && !g.phasePending, "si el muro no es contiguo a la celda de llegada, no se consume");
-  place(g, 1, 6); g.facing = "right"; step(s, 6, "right");
-  check(g.progress > 0 && g.col === 6, "a mitad de celda llegando a (1,7), contigua al muro");
-  step(s, 1, "right", true);
-  let t = 0; while ((g.phasePending || isPhasing(g)) && t < 2) { step(s, 1, "left"); t += DT; }
-  check(g.row === 1 && g.col === 9 && g.powerCooldown > 8.5, `en movimiento: termina de llegar, cruza el muro y sale en (1,9), sin obedecer el teclado en el trayecto (${g.row},${g.col},${g.powerCooldown.toFixed(2)})`);
+  place(g, 3, 8); g.facing = "left"; step(s, 6, "left");
+  check(g.progress > 0 && g.col === 8, "a mitad de celda llegando a (3,7), contigua al muro");
+  step(s, 1, "left", true);
+  let t = 0; while ((g.phasePending || isPhasing(g)) && t < 2) { step(s, 1, "right"); t += DT; }
+  check(g.row === 3 && g.col === 5 && g.powerCooldown > 8.5, `en movimiento: termina de llegar, cruza el muro y sale en (3,5), sin obedecer el teclado en el trayecto (${g.row},${g.col},${g.powerCooldown.toFixed(2)})`);
 }
 {
   // Sin destino válido: borde del mapa y muro grueso
@@ -141,13 +142,13 @@ const place = (g, r, c) => { g.row = r; g.col = c; g.progress = 0; g.direction =
 {
   // Salto sobre Pacman: derrota sin PowerUp. Se fuerza el azar para caer en la celda de Pacman.
   const [s, g] = setup("jumper", 1);
-  s.pacman.row = 5; s.pacman.col = 3; // fila 5 del nivel 1 de la V3: pasillo de las columnas 1 a 26
-  place(g, 5, 1); g.facing = "right";
+  s.pacman.row = 3; s.pacman.col = 3; // fila 3 del nivel 1 (incremento 21): pasillo de las columnas 1 a 26
+  place(g, 3, 1); g.facing = "right";
   const { tryJumperTeleport } = require(path.join(B, "powers.js"));
-  // buscar un valor de azar que elija (4,3)
+  // buscar un valor de azar que elija (3,3)
   let hit = null;
-  for (let k = 0; k < 400 && !hit; k++) { const v = (k + 0.5) / 400; place(g, 5, 1); tryJumperTeleport(g, s.map, () => v); if (g.row === 5 && g.col === 3) hit = v; }
-  place(g, 5, 1); g.facing = "right"; g.powerCooldown = 0; s.random = () => hit;
+  for (let k = 0; k < 400 && !hit; k++) { const v = (k + 0.5) / 400; place(g, 3, 1); tryJumperTeleport(g, s.map, () => v); if (g.row === 3 && g.col === 3) hit = v; }
+  place(g, 3, 1); g.facing = "right"; g.powerCooldown = 0; s.random = () => hit;
   step(s, 1, null, true);
   check(s.lives === 2 && s.score === 500, "salto sobre Pacman sin PowerUp: Pacman pierde una vida");
 }

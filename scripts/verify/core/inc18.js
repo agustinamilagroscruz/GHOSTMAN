@@ -14,9 +14,9 @@ function setup(kind, level = 1, random = seeded()) {
   const s = st.createInitialGameState({ mode: "ghostman", playerGhostKind: kind }, random);
   if (level > 1) { s.level = level - 1; s.levelComplete = true; s.levelTransitionTimer = 0.001; st.updateGameState(s, DT, null); }
   for (const g of s.ghosts) if (!g.controlledByPlayer) { g.eaten = true; g.respawnTimer = 1e9; }
-  // Coordenadas sobre los mapas de la V3 (incremento 19): en el nivel 1, la fila 5 es un pasillo
+  // Coordenadas sobre los mapas de la V3 (incremento 19): en el nivel 1, la fila 3 es un pasillo
   // de las columnas 1 a 26.
-  s.pacman.speed = 0; s.pacman.row = 5; s.pacman.col = 8; s.pacman.progress = 0; s.pacman.direction = null;
+  s.pacman.speed = 0; s.pacman.row = 3; s.pacman.col = 8; s.pacman.progress = 0; s.pacman.direction = null;
   return [s, st.getPlayerGhost(s)];
 }
 const step = (s, n, dir = null, power = false) => { for (let i = 0; i < n; i++) st.updateGameState(s, DT, dir, power && i === 0); };
@@ -33,22 +33,22 @@ function placeFruit(s, g, r, c) {
 
 // ---------- Registro (decisión 42)
 {
-  // Mapa del nivel 1: desde (5,8), la celda (5,3) está a 5 celdas de recorrido.
+  // Mapa del nivel 1: desde (3,8), la celda (3,3) está a 5 celdas de recorrido.
   const [s, g] = setup("naval", 1, never);
-  const fruit = placeFruit(s, g, 5, 3);
+  const fruit = placeFruit(s, g, 3, 3);
   check(fruit.knownByPacman === true, "fruta colocada a 5 celdas de recorrido: Pacman la registra");
 }
 {
-  // Exactamente a 8 celdas: (5,8) → (5,16).
+  // Exactamente a 8 celdas: (3,8) → (3,16).
   const [s, g] = setup("naval", 1, never);
-  const fruit = placeFruit(s, g, 5, 16);
+  const fruit = placeFruit(s, g, 3, 16);
   check(fruit.knownByPacman === true, "fruta a 8 celdas de recorrido: la registra (límite incluido)");
 }
 {
   const [s, g] = setup("naval", 1, never);
-  const fruit = placeFruit(s, g, 5, 17); // 9 celdas
+  const fruit = placeFruit(s, g, 3, 17); // 9 celdas
   check(fruit.knownByPacman === false, "fruta a 9 celdas de recorrido: no la registra");
-  s.pacman.row = 5; s.pacman.col = 15; step(s, secs(1));
+  s.pacman.row = 3; s.pacman.col = 15; step(s, secs(1));
   check(fruit.knownByPacman === false, "si Pacman se acerca después, la fruta sigue sin registrarse");
 }
 {
@@ -62,18 +62,18 @@ function placeFruit(s, g, r, c) {
   const [s, g] = setup("naval", 1, never);
   s.pacman.speed = 5;
   for (const row of s.map.pellets) row.fill("none");
-  s.map.pellets[5][1] = "pellet"; s.map.pellets[1][8] = "pellet"; s.pelletsRemaining = 2;
-  placeFruit(s, g, 5, 6); // a 2 celdas, entre Pacman y la esfera de (5,1)
+  s.map.pellets[3][1] = "pellet"; s.map.pellets[1][8] = "pellet"; s.pelletsRemaining = 2;
+  placeFruit(s, g, 3, 6); // a 2 celdas, entre Pacman y la esfera de (3,1)
   let entered = false, t = 0;
-  while (t < 4) { step(s, 1); t += DT; if (s.pacman.row === 5 && s.pacman.col === 6) entered = true; }
+  while (t < 4) { step(s, 1); t += DT; if (s.pacman.row === 3 && s.pacman.col === 6) entered = true; }
   check(!entered && s.lives === 3 && s.fakeFruits.length === 1, "Pacman no pasa por la fruta que recuerda (busca otra esfera)");
 }
 {
   const [s, g] = setup("naval", 1, never);
   s.pacman.speed = 5; s.pacman.row = 29; s.pacman.col = 26;
   for (const row of s.map.pellets) row.fill("none"); s.map.pellets[1][20] = "pellet"; s.pelletsRemaining = 1;
-  const fruit = placeFruit(s, g, 5, 10); // Pacman lejos: no la registra
-  s.pacman.row = 5; s.pacman.col = 8;
+  const fruit = placeFruit(s, g, 3, 10); // Pacman lejos: no la registra
+  s.pacman.row = 3; s.pacman.col = 8;
   let t = 0; while (s.fakeFruits.length && t < 3) { step(s, 1); t += DT; }
   check(fruit.knownByPacman === false && s.lives === 2, `fruta que no vio colocar: va por ella y pierde una vida (a los ${t.toFixed(2)} s)`);
 }
@@ -81,13 +81,13 @@ function placeFruit(s, g, r, c) {
 // ---------- Olvido (decisión 37): una tirada por segundo cumplido, 5 %
 {
   const [s, g] = setup("naval", 1, never);
-  const fruit = placeFruit(s, g, 5, 3);
+  const fruit = placeFruit(s, g, 3, 3);
   step(s, secs(9));
   check(fruit.knownByPacman === true, "con azar 0,99 la recuerda durante toda la mecha (9 s)");
 }
 {
   const [s, g] = setup("naval", 1, never);
-  const fruit = placeFruit(s, g, 5, 3);
+  const fruit = placeFruit(s, g, 3, 3);
   s.random = () => 0.04; // < 5 %: olvida en la primera tirada
   step(s, secs(0.9));
   check(fruit.knownByPacman === true, "antes de cumplir el primer segundo no hay tirada");
@@ -96,7 +96,7 @@ function placeFruit(s, g, r, c) {
 }
 {
   const [s, g] = setup("naval", 1, never);
-  const fruit = placeFruit(s, g, 5, 3);
+  const fruit = placeFruit(s, g, 3, 3);
   const rolls = [0.5, 0.5, 0.05, 0.01]; let n = 0;
   s.random = () => rolls[Math.min(n++, rolls.length - 1)];
   step(s, secs(3.5));
@@ -109,7 +109,7 @@ function placeFruit(s, g, r, c) {
   let forgot = 0; const N = 4000; const rnd = seeded(777);
   for (let i = 0; i < N; i++) {
     const [s, g] = setup("naval", 1, never);
-    const fruit = placeFruit(s, g, 5, 3);
+    const fruit = placeFruit(s, g, 3, 3);
     s.random = rnd; step(s, secs(1.01));
     if (!fruit.knownByPacman) forgot++;
   }
@@ -168,12 +168,12 @@ function placeFruit(s, g, r, c) {
   const expected = new Set();
   for (let r = 0; r < s.map.rows; r++) for (let c = 0; c < s.map.cols; c++) {
     // Nunca dentro de la base (decisión 49, incremento 19).
-    if (s.map.cells[r][c] === "path" && !isHouseCell(s.map, r, c) && c > 8 && Math.abs(r - 7) + Math.abs(c - 8) <= 10) expected.add(r + "," + c);
+    if (s.map.cells[r][c] === "path" && !isHouseCell(s.map, r, c) && c > 8 && Math.abs(r - 8) + Math.abs(c - 8) <= 10) expected.add(r + "," + c);
   }
   const counts = {}; const N = 40000; const rnd = seeded(4242);
-  for (let i = 0; i < N; i++) { place(g, 7, 8); g.facing = "right"; tryJumperTeleport(g, s.map, rnd); const k = g.row + "," + g.col; counts[k] = (counts[k] || 0) + 1; }
+  for (let i = 0; i < N; i++) { place(g, 8, 8); g.facing = "right"; tryJumperTeleport(g, s.map, rnd); const k = g.row + "," + g.col; counts[k] = (counts[k] || 0) + 1; }
   const seen = Object.keys(counts);
-  check(seen.length === expected.size && seen.every(k => expected.has(k)), `desde (7,8) hacia la derecha: ${seen.length} destinos, los ${expected.size} del semiplano (columna > 8)`);
+  check(seen.length === expected.size && seen.every(k => expected.has(k)), `desde (8,8) hacia la derecha: ${seen.length} destinos, los ${expected.size} del semiplano (columna > 8)`);
   const vals = Object.values(counts); const e = N / vals.length; const df = vals.length - 1;
   const chi = vals.reduce((a, o) => a + (o - e) ** 2 / e, 0); const limit = df + 2.33 * Math.sqrt(2 * df);
   check(chi < limit, `distribución uniforme (chi² ${chi.toFixed(1)} < ${limit.toFixed(0)})`);

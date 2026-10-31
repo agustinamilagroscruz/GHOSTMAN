@@ -51,24 +51,24 @@ const chi2 = (counts, keys, n) => keys.reduce((acc, k) => acc + ((counts[k] || 0
 
   const s3 = atLevel(3);
   check(s3.ghosts.map(g => g.kind).join() === POWERED.join(), "N3 arranca con uno de cada tipo: espectro, saltarín, naval y acelerado");
-  check(Math.abs(s3.ghosts[2].speed - 2.55) < 1e-9 && Math.abs(s3.ghosts[0].speed - 2.23125) < 1e-9 && Math.abs(s3.ghosts[1].speed - 3.1875) < 1e-9, "N3: velocidades de la sección 4.5 con el −15 % del modo Pacman (naval 2,55, espectro 2,23, saltarín 3,19)");
+  check(Math.abs(s3.ghosts[2].speed - 3.06) < 1e-9 && Math.abs(s3.ghosts[0].speed - 2.6775) < 1e-9 && Math.abs(s3.ghosts[1].speed - 3.825) < 1e-9, "N3: velocidades de la sección 4.5 con el −15 % del modo Pacman (naval 3,06, espectro 2,68, saltarín 3,83)");
   // Decisión 40: en el modo Pacman los fantasmas van un 15 % más lentos; Pacman y el modo GhostMan no cambian
   const p1 = st.createInitialGameState();
-  check(p1.ghosts.every(g => Math.abs(g.speed - 3.1875) < 1e-9) && Math.abs(p1.pacman.speed - 3.75) < 1e-9, "modo Pacman N1: fantasmas a 3,19 celdas/s (−15 %) y Pacman a 3,75");
+  check(p1.ghosts.every(g => Math.abs(g.speed - 3.825) < 1e-9) && Math.abs(p1.pacman.speed - 4.5) < 1e-9, "modo Pacman N1: fantasmas a 3,83 celdas/s (−15 %) y Pacman a 4,5");
   const gm1 = st.createInitialGameState({ mode: "ghostman", playerGhostKind: "naval" });
-  check(gm1.ghosts.filter(g => !g.controlledByPlayer).every(g => Math.abs(g.speed - 3.75) < 1e-9) && Math.abs(st.getPlayerGhost(gm1).speed - 3) < 1e-9, "modo GhostMan: velocidades sin el −15 % (clásicos 3,75, naval del jugador 3)");
+  check(gm1.ghosts.filter(g => !g.controlledByPlayer).every(g => Math.abs(g.speed - 4.5) < 1e-9) && Math.abs(st.getPlayerGhost(gm1).speed - 3.6) < 1e-9, "modo GhostMan: velocidades sin el −15 % (clásicos 4,5, naval del jugador 3,6)");
   const c3 = respawnKinds(s3, 1000);
   const x3 = chi2(c3, POWERED, 1000);
   check(!c3.classic && x3 < 11.34, `N3: 1000 reapariciones, siempre con poderes y uniformes (${JSON.stringify(c3)}, chi² ${x3.toFixed(2)})`);
 }
 
 // --- Poderes de la IA. Un solo fantasma activo; los demás comidos. Coordenadas sobre el nivel 3
-// de la V3 (incremento 19): la fila 19 es camino de la columna 1 a la 9; (29,26) es una esquina lejana.
+// de la V3 (incremento 21): la fila 19 es camino de la columna 1 a la 26; (29,26) es una esquina lejana.
 function solo(kind, { pacman = [19, 8], ghost = [19, 4], dir = "right", mode = "chase" } = {}) {
   const s = atLevel(3);
   s.ghosts.forEach((g, i) => { if (i > 0) { g.eaten = true; g.respawnTimer = 1e9; } });
   const g = s.ghosts[0];
-  g.kind = kind; g.speed = (kind === "naval" ? 3 : kind === "specter" ? 2.625 : 3.75) * 0.85; // modo Pacman: −15 % (decisión 40)
+  g.kind = kind; g.speed = (kind === "naval" ? 3.6 : kind === "specter" ? 3.15 : 4.5) * 0.85; // modo Pacman: −15 % (decisión 40)
   g.row = ghost[0]; g.col = ghost[1]; g.progress = 0; g.direction = dir; g.facing = dir; g.powerCooldown = 0;
   s.pacman.row = pacman[0]; s.pacman.col = pacman[1];
   s.ghostMode = mode; s.ghostModeTimer = 0;
@@ -110,16 +110,16 @@ function solo(kind, { pacman = [19, 8], ghost = [19, 4], dir = "right", mode = "
   const [s, g] = solo("accelerated", { pacman: [29, 26], ghost: [19, 1] });
   step(s, 1);
   check(g.powerCooldown === 0, "acelerado: Pacman a 35 celdas → no hace dash");
-  s.pacman.row = 21; s.pacman.col = 9; g.row = 19; g.col = 2; g.progress = 0; g.direction = "right"; g.facing = "right";
+  s.pacman.row = 21; s.pacman.col = 10; g.row = 19; g.col = 2; g.progress = 0; g.direction = "right"; g.facing = "right";
   step(s, 1);
-  check(g.powerCooldown === 0 && Math.abs(g.speed - 3.1875) < 1e-9, `acelerado: Pacman a 9 celdas → no hace dash (${g.powerCooldown}, ${g.speed}, ${g.col})`);
+  check(g.powerCooldown === 0 && Math.abs(g.speed - 3.825) < 1e-9, `acelerado: Pacman a 10 celdas → no hace dash (${g.powerCooldown}, ${g.speed}, ${g.col})`);
 }
 {
   const [s, g] = solo("accelerated", { pacman: [19, 9], ghost: [19, 4] });
   step(s, 16); // el impulso dura 0,25 s desde el incremento 20 (antes era instantáneo)
-  check(g.powerCooldown > 9.6 && g.col === 7 && Math.abs(g.speed - 1.59375) < 1e-9, `acelerado: Pacman a 5 → dash de 3 celdas (col ${g.col}) y velocidad 1,59 (50 % de 3,19)`);
+  check(g.powerCooldown > 9.6 && g.col === 7 && Math.abs(g.speed - 1.9125) < 1e-9, `acelerado: Pacman a 5 → dash de 3 celdas (col ${g.col}) y velocidad 1,91 (50 % de 3,83)`);
   step(s, 60 * 5 + 2);
-  check(Math.abs(g.speed - 3.1875) < 1e-9, "acelerado: a los 5 s recupera la velocidad 3,19 (modo Pacman)");
+  check(Math.abs(g.speed - 3.825) < 1e-9, "acelerado: a los 5 s recupera la velocidad 3,83 (modo Pacman)");
 }
 {
   // Contacto en todo el trayecto del dash: Pacman en el medio pierde una vida
@@ -141,13 +141,13 @@ function solo(kind, { pacman = [19, 8], ghost = [19, 4], dir = "right", mode = "
   // Fruta falsa en el modo Pacman: sin PowerUp quita una vida; con PowerUp desaparece sin efecto
   const s = atLevel(3);
   s.ghosts.forEach(g => { g.eaten = true; g.respawnTimer = 1e9; });
-  s.pacman.speed = 3.75; s.pacman.row = 13; s.pacman.col = 5; s.fakeFruits.push({ row: 13, col: 6, timeLeft: 10 });
+  s.pacman.speed = 4.5; s.pacman.row = 13; s.pacman.col = 5; s.fakeFruits.push({ row: 13, col: 6, timeLeft: 10 });
   const lives = s.lives;
   for (let i = 0; i < 30; i++) st.updateGameState(s, DT, "right");
   check(s.lives === lives - 1, "fruta falsa consumida sin PowerUp: Pacman pierde una vida");
   const t = atLevel(3);
   t.ghosts.forEach(g => { g.eaten = true; g.respawnTimer = 1e9; });
-  t.pacman.speed = 3.75; t.pacman.row = 13; t.pacman.col = 5; t.fakeFruits.push({ row: 13, col: 6, timeLeft: 10 });
+  t.pacman.speed = 4.5; t.pacman.row = 13; t.pacman.col = 5; t.fakeFruits.push({ row: 13, col: 6, timeLeft: 10 });
   t.powerUpActive = true; t.powerUpTimer = 8;
   for (let i = 0; i < 30; i++) st.updateGameState(t, DT, "right");
   check(t.lives === 3 && t.fakeFruits.length === 0, "fruta falsa consumida con PowerUp: desaparece sin efecto");
@@ -170,7 +170,7 @@ function solo(kind, { pacman = [19, 8], ghost = [19, 4], dir = "right", mode = "
   // Invariantes en el nivel 3 durante 120 s de juego al azar con varias semillas
   let bad = [];
   for (let seed = 1; seed <= 5; seed++) {
-    const s = atLevel(3, seed); s.pacman.speed = 3.75;
+    const s = atLevel(3, seed); s.pacman.speed = 4.5;
     const r = seeded(seed * 13); const dirs = ["up", "left", "down", "right"]; let d = "left";
     let lastScore = s.score;
     for (let i = 0; i < 60 * 120 && !s.gameOver && !s.won && s.level === 3; i++) {

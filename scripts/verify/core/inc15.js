@@ -21,18 +21,19 @@ const step = (s, n, dir = null, power = false) => { for (let i = 0; i < n; i++) 
 const dash = (s) => { step(s, 1, null, true); step(s, 16); };
 const place = (g, r, c, facing) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; g.facing = facing; g.inHouse = false; };
 
-// Coordenadas sobre el nivel 1 de la V3 (incremento 19): la fila 1 es camino de la columna 7 a
-// la 20, y la fila 5 de la 1 a la 26.
-// 3, 2, 1 y 0 celdas libres (fila 1 del nivel 1: camino hasta la columna 20)
-for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
+// Coordenadas sobre el nivel 1 de la V3 (incremento 21): la fila 3 es camino de la columna 1 a
+// la 26, y la fila 1 de la 8 a la 12.
+// Velocidad del acelerado: 4,5 celdas/s; con la penalidad, 2,25 (decisión 70).
+// 3, 2, 1 y 0 celdas libres (fila 3 del nivel 1: camino hasta la columna 26)
+for (const [startCol, expected] of [[23, 3], [24, 2], [25, 1], [26, 0]]) {
   const [s, g] = setup();
-  place(g, 1, startCol, "right");
+  place(g, 3, startCol, "right");
   g.speed = 0; // quieto al terminar el impulso, para medir solo el impulso
   dash(s);
   const moved = g.col - startCol;
-  check(g.row === 1 && moved === expected, `desde (1,${startCol}) con ${expected} celdas libres: avanza ${moved}`);
+  check(g.row === 3 && moved === expected, `desde (3,${startCol}) con ${expected} celdas libres: avanza ${moved}`);
   if (expected === 0) check(g.powerCooldown === 0 && g.slowTimer === 0, "  0 celdas: sin cooldown ni penalidad");
-  else check(g.powerCooldown > 9.6 && Math.abs(g.speed - 1.875) < 1e-9, "  cooldown de 10 s y velocidad 1,875 celdas/s al terminar el impulso");
+  else check(g.powerCooldown > 9.6 && Math.abs(g.speed - 2.25) < 1e-9, "  cooldown de 10 s y velocidad 2,25 celdas/s al terminar el impulso");
 }
 {
   // Nunca sale del mapa ni entra a un muro: dash contra el borde en las cuatro direcciones
@@ -62,79 +63,79 @@ for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
   check(g.row === 1 && g.col === 1 && g.powerCooldown === 0, "sin dirección de avance: no hay desplazamiento ni cooldown");
 }
 {
-  // Penalidad: 5 s al 50 %, después vuelve a 5 celdas/s; cooldown hasta los 10 s
+  // Penalidad: 5 s al 50 %, después vuelve a 4,5 celdas/s; cooldown hasta los 10 s
   const [s, g] = setup();
-  place(g, 5, 1, "right");
+  place(g, 3, 1, "right");
   dash(s); // la penalidad arranca al terminar el impulso
   step(s, Math.round(4.9 / DT));
-  check(Math.abs(g.speed - 1.875) < 1e-9, "a los 4,9 s sigue al 50 %");
+  check(Math.abs(g.speed - 2.25) < 1e-9, "a los 4,9 s sigue al 50 %");
   step(s, Math.round(0.2 / DT));
-  check(g.speed === 3.75 && g.slowTimer === 0, "a los 5,1 s recupera 3,75 celdas/s");
+  check(g.speed === 4.5 && g.slowTimer === 0, "a los 5,1 s recupera 4,5 celdas/s");
   check(isPowerReady(g) === false, "a los 5,1 s el poder sigue en cooldown");
   step(s, Math.round(4.9 / DT) - 1);
   check(isPowerReady(g) === true, "a los 10 s el poder vuelve a estar disponible");
   // medir la velocidad real durante la penalidad
   const [s2, g2] = setup();
-  place(g2, 5, 1, "right"); dash(s2); // impulso hasta (5,4)
+  place(g2, 3, 1, "right"); dash(s2); // impulso hasta (3,4)
   const c0 = g2.col + g2.progress; step(s2, 60, "right");
-  check(Math.abs(g2.col + g2.progress - c0 - 1.875) < 0.05, `desplazamiento real en 1 s de penalidad: ${(g2.col + g2.progress - c0).toFixed(2)} celdas`);
+  check(Math.abs(g2.col + g2.progress - c0 - 2.25) < 0.05, `desplazamiento real en 1 s de penalidad: ${(g2.col + g2.progress - c0).toFixed(2)} celdas`);
 }
 {
   // Dash que pasa por encima de Pacman y termina más allá
   const [s, g] = setup();
-  s.pacman.row = 1; s.pacman.col = 12;
-  place(g, 1, 10, "right"); // termina en (1,13)
+  s.pacman.row = 3; s.pacman.col = 12;
+  place(g, 3, 10, "right"); // termina en (3,13)
   dash(s);
-  check(s.lives === 2 && s.scoreBreakdown.pacmanDefeats === 500, "pasa por encima de Pacman (1,12) y termina en (1,13): Pacman pierde una vida");
+  check(s.lives === 2 && s.scoreBreakdown.pacmanDefeats === 500, "pasa por encima de Pacman (3,12) y termina en (3,13): Pacman pierde una vida");
 }
 {
   // Pacman a mitad de camino entre dos celdas del trayecto
   const [s, g] = setup();
-  s.pacman.row = 1; s.pacman.col = 11; s.pacman.direction = "right"; s.pacman.progress = 0.5; // en 11,5
-  place(g, 1, 9, "right"); // trayecto 9→12
+  s.pacman.row = 3; s.pacman.col = 11; s.pacman.direction = "right"; s.pacman.progress = 0.5; // en 11,5
+  place(g, 3, 9, "right"); // trayecto 9→12
   dash(s);
-  check(s.lives === 2, "Pacman entre dos celdas del trayecto (1,11½): también es contacto");
+  check(s.lives === 2, "Pacman entre dos celdas del trayecto (3,11½): también es contacto");
 }
 {
   // Termina exactamente sobre Pacman
   const [s, g] = setup();
-  s.pacman.row = 1; s.pacman.col = 13;
-  place(g, 1, 10, "right");
+  s.pacman.row = 3; s.pacman.col = 13;
+  place(g, 3, 10, "right");
   dash(s);
   check(s.lives === 2, "termina sobre Pacman: pierde una vida");
 }
 {
-  // Pacman fuera del trayecto, en la fila de al lado
+  // Pacman fuera del trayecto, en otra fila
   const [s, g] = setup();
-  s.pacman.row = 3; s.pacman.col = 11;
-  place(g, 1, 9, "right");
+  s.pacman.row = 1; s.pacman.col = 11;
+  place(g, 3, 9, "right");
   dash(s);
   check(s.lives === 3, "Pacman fuera del trayecto: no hay contacto");
 }
 {
   // Con el PowerUp: el fantasma vulnerable que pasa por Pacman es comido, Pacman no pierde vidas
   const [s, g] = setup();
-  s.pacman.row = 1; s.pacman.col = 12;
+  s.pacman.row = 3; s.pacman.col = 12;
   s.powerUpActive = true; s.powerUpTimer = 6; g.vulnerable = true;
-  place(g, 1, 10, "right");
+  place(g, 3, 10, "right");
   dash(s);
   check(g.eaten && s.lives === 3, "con PowerUp: el acelerado vulnerable que pasa por Pacman es comido");
 }
 {
   // La penalidad y el cooldown siguen corriendo mientras está comido
   const [s, g] = setup();
-  place(g, 5, 1, "right"); dash(s);
+  place(g, 3, 1, "right"); dash(s);
   g.eaten = true; g.respawnTimer = 5;
   step(s, Math.round(5.1 / DT));
   // Cooldown esperado: 10 s menos los 17 cuadros de dash(s) y los 5,1 s comido.
-  check(g.slowTimer === 0 && g.speed === 3.75 && Math.abs(g.powerCooldown - (10 - 17 * DT - 5.1)) < 0.03, `comido: la penalidad termina y el cooldown sigue corriendo (${g.powerCooldown.toFixed(2)} s)`);
+  check(g.slowTimer === 0 && g.speed === 4.5 && Math.abs(g.powerCooldown - (10 - 17 * DT - 5.1)) < 0.03, `comido: la penalidad termina y el cooldown sigue corriendo (${g.powerCooldown.toFixed(2)} s)`);
 }
 {
   // Penalidad después de una derrota de Pacman: se conserva, igual que el cooldown
   const [s, g] = setup();
-  place(g, 5, 1, "right"); dash(s);
+  place(g, 3, 1, "right"); dash(s);
   g.row = s.pacman.row; g.col = s.pacman.col; step(s, 1);
-  check(s.lives === 2 && g.slowTimer > 4.9 && Math.abs(g.speed - 1.875) < 1e-9, "derrota de Pacman: la penalidad en curso se conserva");
+  check(s.lives === 2 && g.slowTimer > 4.9 && Math.abs(g.speed - 2.25) < 1e-9, "derrota de Pacman: la penalidad en curso se conserva");
 }
 
 console.log(fails ? `\n${fails} FALLAS` : "\nTodo OK");

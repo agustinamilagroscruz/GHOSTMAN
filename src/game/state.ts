@@ -77,11 +77,19 @@ import {
 } from "./scoring";
 import type { GameMap } from "./types";
 
-/** Velocidad de Pacman: 3,75 celdas por segundo (5 en la V1 y la V2 original, bajada un 25 %). */
-const PACMAN_SPEED_CELLS_PER_SECOND = 3.75;
+/**
+ * Velocidad de Pacman: 4,5 celdas por segundo. Era 5 en la V1 y la V2 original, 3,75 en la V2
+ * final y sube un 20 % con los mapas de la V3 (decisión 70).
+ */
+const PACMAN_SPEED_CELLS_PER_SECOND = 4.5;
 
 /** Modo Pacman: los fantasmas van un 15 % más lentos que la velocidad de su tipo (decisión 40). */
 export const PACMAN_MODE_GHOST_SPEED_FACTOR = 0.85;
+/**
+ * Modo GhostMan: Pacman (IA) va un 15 % más lento, espejo de la decisión 40. Compensa los mapas
+ * compactos, con los que Pacman termina el nivel antes de que el jugador pueda derrotarlo (decisión 71).
+ */
+export const GHOSTMAN_MODE_PACMAN_SPEED_FACTOR = 0.85;
 
 /** Modo Pacman (sección 4.9): el saltarín de la IA salta si Pacman está a esta distancia Manhattan o menos. */
 export const AI_JUMPER_TRIGGER_CELLS = 10;
@@ -274,7 +282,8 @@ function loadLevel(state: GameState, level: number): void {
 
   state.level = level;
   state.map = map;
-  state.pacman = createMover(definition.pacmanSpawn.row, definition.pacmanSpawn.col, PACMAN_SPEED_CELLS_PER_SECOND);
+  const pacmanSpeedFactor = state.config.mode === "ghostman" ? GHOSTMAN_MODE_PACMAN_SPEED_FACTOR : 1;
+  state.pacman = createMover(definition.pacmanSpawn.row, definition.pacmanSpawn.col, PACMAN_SPEED_CELLS_PER_SECOND * pacmanSpeedFactor);
   state.ghosts = createLevelGhosts(definition, state.config, map);
   state.ghostMode = "chase";
   state.ghostModeTimer = 0;

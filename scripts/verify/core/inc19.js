@@ -89,7 +89,7 @@ for (const level of [1, 2, 3]) {
   for (const g of s.ghosts) { g.eaten = true; g.respawnTimer = 1e9; }
   for (const row of s.map.pellets) row.fill("none");
   s.map.pellets[14][13] = "pellet"; s.map.pellets[29][26] = "pellet"; s.pelletsRemaining = 2;
-  s.pacman.row = 11; s.pacman.col = 13; s.pacman.speed = 3.75;
+  s.pacman.row = 11; s.pacman.col = 13; s.pacman.speed = 4.5;
   s.powerUpActive = true; s.powerUpTimer = 1e9; s.wallCharges = 5;
   let inside = false;
   for (let i = 0; i < secs(20); i++) { step(s, 1); if (mv.isHouseCell(s.map, s.pacman.row, s.pacman.col)) inside = true; }
@@ -113,9 +113,9 @@ for (const kind of ["classic", "naval"]) {
   s.pacman.row = 29; s.pacman.col = 26;
   let t = 0;
   while (g.eaten && !g.inHouse && t < 10) { step(s, 1); t += DT; }
-  // A 7,5 celdas/s, el doble del clásico, por el camino más corto a través de la puerta.
+  // A 9 celdas/s, el doble del clásico, por el camino más corto a través de la puerta.
   const cells = houseDistance(s.map, { row: 5, col: 1 });
-  check(g.inHouse && key(g) === "14,13" && Math.abs(t - cells / 7.5) < 0.05, `${kind}: los ojos recorren las ${cells} celdas hasta el centro de la base al doble de velocidad (${t.toFixed(2)} s)`);
+  check(g.inHouse && key(g) === "14,13" && Math.abs(t - cells / 9) < 0.05, `${kind}: los ojos recorren las ${cells} celdas hasta el centro de la base al doble de velocidad (${t.toFixed(2)} s)`);
   const wait = kind === "naval" ? 3 : 0;
   let revivedAt = null; t = 0;
   while (revivedAt === null && t < 5) { step(s, 1); t += DT; if (!g.eaten) revivedAt = t; }
@@ -138,7 +138,7 @@ for (const kind of ["classic", "naval"]) {
 {
   const s = atLevel(1);
   for (const g of s.ghosts) { g.eaten = true; g.inHouse = true; g.respawnTimer = 1e9; }
-  s.pacman.row = 13; s.pacman.col = 4; s.pacman.speed = 3.75;
+  s.pacman.row = 13; s.pacman.col = 4; s.pacman.speed = 4.5;
   const cols = [];
   for (let i = 0; i < secs(3); i++) { st.updateGameState(s, DT, "left"); cols.push(s.pacman.col); }
   check(cols.includes(0) && cols.includes(27) && s.pacman.row === 13, "Pacman cruza el túnel hacia la izquierda: de la columna 0 a la 27");
@@ -159,18 +159,18 @@ for (const kind of ["classic", "naval"]) {
   const inTunnel = g.progress;
   const t = atLevel(1, GHOSTMAN("classic"));
   for (const x of t.ghosts) { x.eaten = true; x.inHouse = true; x.respawnTimer = 1e9; }
-  const h = t.ghosts[1]; h.eaten = false; h.inHouse = false; h.row = 5; h.col = 13; h.progress = 0; h.direction = "left";
-  t.pacman.speed = 0; t.pacman.row = 5; t.pacman.col = 1;
+  const h = t.ghosts[1]; h.eaten = false; h.inHouse = false; h.row = 3; h.col = 13; h.progress = 0; h.direction = "left";
+  t.pacman.speed = 0; t.pacman.row = 3; t.pacman.col = 1;
   step(t, 12);
-  check(Math.abs(inTunnel - 0.375) < 0.01 && Math.abs(h.progress - 0.75) < 0.01, `en 0,2 s: ${inTunnel.toFixed(3)} celdas en el túnel y ${h.progress.toFixed(3)} fuera (50 %)`);
+  check(Math.abs(inTunnel - 0.45) < 0.01 && Math.abs(h.progress - 0.9) < 0.01, `en 0,2 s: ${inTunnel.toFixed(3)} celdas en el túnel y ${h.progress.toFixed(3)} fuera (50 %)`);
 }
 {
   // Pacman en el túnel no se frena
   const s = atLevel(1);
   for (const g of s.ghosts) { g.eaten = true; g.inHouse = true; g.respawnTimer = 1e9; }
-  s.pacman.row = 13; s.pacman.col = 3; s.pacman.speed = 3.75;
+  s.pacman.row = 13; s.pacman.col = 3; s.pacman.speed = 4.5;
   step(s, 12, "left");
-  check(Math.abs(s.pacman.progress - 0.75) < 0.01, `Pacman en el túnel mantiene su velocidad (${s.pacman.progress.toFixed(3)} celdas en 0,2 s)`);
+  check(Math.abs(s.pacman.progress - 0.9) < 0.01, `Pacman en el túnel mantiene su velocidad (${s.pacman.progress.toFixed(3)} celdas en 0,2 s)`);
 }
 {
   // La IA de Pacman usa el túnel para llegar a una esfera del otro lado
@@ -178,7 +178,7 @@ for (const kind of ["classic", "naval"]) {
   for (const g of s.ghosts) { g.eaten = true; g.inHouse = true; g.respawnTimer = 1e9; }
   for (const row of s.map.pellets) row.fill("none");
   s.map.pellets[13][25] = "pellet"; s.map.pellets[29][26] = "pellet"; s.pelletsRemaining = 2;
-  s.pacman.row = 13; s.pacman.col = 2; s.pacman.speed = 3.75;
+  s.pacman.row = 13; s.pacman.col = 2; s.pacman.speed = 4.5;
   const visited = [];
   for (let i = 0; i < secs(2) && s.map.pellets[13][25] !== "none"; i++) { step(s, 1); visited.push(s.pacman.col); }
   check(s.map.pellets[13][25] === "none" && visited.includes(0) && visited.includes(27), "la IA de Pacman cruza el túnel para llegar a la esfera de (13,25)");

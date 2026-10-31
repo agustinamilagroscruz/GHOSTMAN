@@ -4,6 +4,7 @@ const path = require("path");
 const B = process.argv[2];
 const st = require(path.join(B, "state.js"));
 const { GHOST_CATALOG } = require(path.join(B, "ghostCatalog.js"));
+const gh = require(path.join(B, "ghosts.js"));
 let fails = 0;
 const check = (cond, msg) => { console.log((cond ? "OK   " : "FAIL ") + msg); if (!cond) fails++; };
 const DT = 1 / 60;
@@ -25,23 +26,26 @@ for (const { kind } of GHOST_CATALOG) {
   check(pg && pg.kind === kind && pg.row === 14 && pg.col === 13 && pg.inHouse, `${kind}: fantasma del jugador en el centro de la base (14,13) con su tipo`);
   check(s.ghosts.filter(g => g.controlledByPlayer).length === 1, `${kind}: un único fantasma del jugador`);
   check(s.ghosts.filter(g => !g.controlledByPlayer).every(g => g.kind === "classic"), `${kind}: los otros 3 son clásicos`);
-  const expected = { classic: 3.75, specter: 2.625, jumper: 3.75, naval: 3, accelerated: 3.75 }[kind];
+  // Velocidades de la sección 4.5 sobre la del clásico (4,5 celdas/s desde el incremento 21, decisión 70).
+  const V = gh.CLASSIC_GHOST_SPEED;
+  const expected = { classic: V, specter: V * gh.SPECTER_SPEED_FACTOR, jumper: V, naval: V * gh.NAVAL_SPEED_FACTOR, accelerated: V }[kind];
   check(Math.abs(pg.speed - expected) < 1e-9, `${kind}: velocidad ${expected} celdas/s`);
 }
 
 // Control del fantasma: avanza continuo, respeta muros
 s = st.createInitialGameState({ mode: "ghostman", playerGhostKind: "classic" }, seeded());
 let pg = st.getPlayerGhost(s);
-// Se lo saca de la base a (1,7): fila 1, pasillo de las columnas 7 a 20 con el borde arriba.
-pg.row = 1; pg.col = 7; pg.inHouse = false;
+// Se lo saca de la base a (29,7): fila 29, pasillo de las columnas 1 a 26 con el borde abajo
+// (hasta el incremento 20, (1,7) con el borde arriba; en los mapas del incremento 21 es muro).
+pg.row = 29; pg.col = 7; pg.inHouse = false;
 const pacStart = { row: s.pacman.row, col: s.pacman.col };
 const otherStart = s.ghosts.filter(g => !g.controlledByPlayer).map(g => [g.row, g.col].join());
-run(s, 5.05 / 3.75, "right");
-check(pg.row === 1 && pg.col === 12, `fantasma avanza 5 celdas en 1,33 s (3,75 celdas/s) hacia la derecha (col=${pg.col})`);
+run(s, 5.05 / gh.CLASSIC_GHOST_SPEED, "right");
+check(pg.row === 29 && pg.col === 12, `fantasma avanza 5 celdas en 1,11 s (4,5 celdas/s) hacia la derecha (col=${pg.col})`);
 run(s, 0.27, null);
 check(pg.col > 12, "avance continuo sin mantener la tecla");
-run(s, 0.2, "up");
-check(pg.row === 1, "no atraviesa el muro del borde superior");
+run(s, 0.2, "down");
+check(pg.row === 29, "no atraviesa el muro del borde inferior");
 run(s, 0.1, "left");
 check(pg.direction === "left", "puede invertir la marcha");
 check(s.pacman.row !== pacStart.row || s.pacman.col !== pacStart.col, "Pacman se mueve sin input del jugador (IA, incremento 11)");

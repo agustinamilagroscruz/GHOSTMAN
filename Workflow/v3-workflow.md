@@ -6,7 +6,7 @@ Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo 
 
 La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 17, decisiones desde la 41, historias desde la HU-44 y casos de prueba desde el CP-164.
 
-> **Estado al 30/10/2026:** V2 cerrada. Especificación de la V3 cerrada por D. Savoia (decisiones 26, 34, 37, 38 y 41 a 66). Incrementos 18 a 20 ejecutados.
+> **Estado al 31/10/2026:** V2 cerrada. Especificación de la V3 cerrada por D. Savoia (decisiones 26, 34, 37, 38 y 41 a 71). Incrementos 18 a 20 ejecutados; el 21 (escala del original y mapas compactos) surgió de la prueba manual y corre la numeración de los siguientes.
 
 ---
 
@@ -56,7 +56,7 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 | 56 | Efectos del resto de los poderes. Espectro: semitransparente y ondulado mientras atraviesa. Naval: aparición al colocar la fruta, parpadeo en sus últimos 2 s y explosión de 0,5 s que muestra el radio. Romper un muro: los escombros actuales se redibujan con pxl. El clásico no tiene efecto | HU-49 |
 | 57 | Sonidos por canal. **Música:** jingle de inicio, sirena de fondo en bucle, sirena del PowerUp, jingle de nivel completado y jingle de Game Over. **Efectos:** waka, esfera grande, comer fantasma, ojos que vuelven, fruta, derrota de Pacman, pitidos de la cuenta, un sonido por poder (atravesar, saltar, impulso, colocar fruta, explosión) y romper un muro | HU-48, HU-41 |
 | 58 | Sprites: celdas y sprites de 16 × 16 px; el mapa (448 × 496 px) se escala por un entero. Cada sprite usa roles de color (cuerpo, contorno, ojos, detalle) y una skin es una paleta para esos roles. Cada tipo de fantasma tiene un rasgo de forma que no depende del color: espectro con borde ondulado y transparencia, saltarín con resortes, naval con gorro, acelerado con líneas de velocidad, clásico con la forma tradicional. El estado vulnerable (azul con parpadeo blanco) tiene prioridad sobre cualquier skin. Cuadros: Pacman 3 por dirección, derrota unos 10, fantasmas 2 con ojos que miran hacia donde avanzan, vulnerables 2 más el parpadeo, ojos en 4 direcciones | HU-50, HU-40 |
-| 59 | Modo de prueba: las duraciones de la cuenta, del "¡Listo!" y de las animaciones son parámetros de la configuración de la partida. El núcleo usa 0 por defecto. En el navegador, `?modoPrueba=1` las pone en 0 y silencia el audio. El parámetro solo se acepta en builds de prueba (variable de entorno de build), no en el despliegue de Vercel, para que un jugador no pueda saltear la cuenta | Incremento 21 |
+| 59 | Modo de prueba: las duraciones de la cuenta, del "¡Listo!" y de las animaciones son parámetros de la configuración de la partida. El núcleo usa 0 por defecto. En el navegador, `?modoPrueba=1` las pone en 0 y silencia el audio. El parámetro solo se acepta en builds de prueba (variable de entorno de build), no en el despliegue de Vercel, para que un jugador no pueda saltear la cuenta | Incremento 22 |
 | 60 | Dos proyectos de Supabase, creados y administrados por D. Savoia: producción (conectado a Vercel) y prueba (con datos de prueba precargados). En el navegador y en Vercel va solo la URL y la clave pública de cada proyecto; la clave de servicio no va nunca al repositorio ni a Vercel | HU-35 a HU-42 |
 | 61 | Autenticación: email sintético a partir del username en minúsculas (`<username>@ghostman.invalid`), con la confirmación por email desactivada; si Supabase rechaza ese dominio, se usa otro dominio sintético. El username no distingue mayúsculas, tampoco para la unicidad, y se muestra como se registró. El perfil se crea en la misma transacción que el usuario, así que un registro rechazado no deja nada creado. Las reglas de la contraseña se validan en el formulario y en la configuración de Supabase. El mensaje de error del login es único, y la sesión persiste al recargar | HU-35, HU-36 |
 | 62 | Tablas: `profiles` (username, skins de Pacman y de los fantasmas, volumen de música y de efectos de 0 a 100) y `best_scores` (una fila por usuario y modo, con el mejor puntaje y la fecha). El top 10 sale de `best_scores` y cada jugador aparece una vez por modo. **Empates:** queda arriba el puntaje logrado antes. Permisos: con sesión iniciada se leen los usernames y los tableros; cada usuario modifica solo sus preferencias; nadie escribe puntajes directamente | HU-38, HU-39, HU-40, HU-41 |
@@ -65,6 +65,10 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 | 65 | Sin conexión: al terminar la partida se muestra el resultado con "No se pudo guardar el puntaje" y un botón para reintentar, sin cola local. En el registro y el login se muestra un error general | HU-35, HU-36, HU-39 |
 | 66 | Para jugar hace falta sesión iniciada (HU-37). Todos los casos manuales de la V1 y la V2 suman la precondición "sesión iniciada con el usuario de prueba", y los scripts de navegador inician sesión contra el proyecto de prueba. Las pruebas del núcleo no cambian | HU-37, regresión |
 | 67 | Dentro de la base ningún fantasma puede usar su poder; el intento no consume el cooldown. Surgió en el incremento 19 (tabla 7.5, fila 6) | HU-44, HU-28 a HU-31 |
+| 68 | Escala del original. La grilla sigue en 28 × 31, pero la celda lógica equivale a 8 px y los sprites miden 16 × 16 (unas 2 celdas), como en el Pac-Man original; el mapa (224 × 248) se dibuja ×3 en un canvas de 672 × 744. Los muros no se dibujan como bloques: cada bloque se dibuja como un tubo que recorre su contorno por el centro de sus celdas, con esquinas redondeadas, en los colores de cada nivel. La lógica y las colisiones no cambian. Modifica el tamaño de la decisión 58. Surgió de la prueba manual de los incrementos 18 a 20 (tabla 7.5, fila 16) | HU-50, decisiones 50 y 58 |
+| 69 | Mapas compactos. Los tres mapas se rediseñan con bloques de 2 o más celdas, como el original, y unas 260 esferas por nivel (antes, 344 a 388). Se mantienen algunos muros de 1 celda para el espectro (decisión 26) y el marco fijo (base, puerta, anillo, túnel, aparición de Pacman, esquinas y las esferas extra (15,1) y (15,26) del nivel 3 del modo GhostMan). Reemplaza los bocetos de `v3-mapas.md` | HU-44, HU-45, decisiones 26 y 51 |
+| 70 | Velocidad: Pacman y el fantasma clásico pasan de 3,75 a 4,5 celdas/s (+20 %). Los demás tipos y los ojos conservan su proporción, el modo Pacman mantiene el −15 % de los fantasmas (decisión 40) y el impulso del acelerado sigue en 12 celdas/s. No cambian los temporizadores | Decisiones 39, 40 y 51, HU-16 |
+| 71 | Modo GhostMan: Pacman (IA) va un 15 % más lento (3,825 celdas/s), espejo de la decisión 40. Con los mapas compactos, el bot de balance perdía todas las partidas porque Pacman terminaba el nivel antes de que lo derrotara 3 veces; con el ajuste vuelve a valores parecidos a los del incremento 20 | Decisiones 34, 40 y 51 |
 
 ---
 
@@ -93,7 +97,7 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 - [x] Definir qué hace un fantasma comido: los ojos vuelven a la base (decisión 46)
 - [x] Definir la interacción de los poderes con la base: es infranqueable salvo por la puerta (decisiones 44 y 49)
 - [x] Definir qué pasa con las esferas de las esquinas donde aparecían los fantasmas: se resuelve con los mapas nuevos, porque los fantasmas aparecen en la base
-- [x] Rediseñar los tres mapas: bocetos aprobados en `Workflow/v3-mapas.md`, con muros finos para el espectro
+- [x] Rediseñar los tres mapas: bocetos aprobados en `Workflow/v3-mapas.md`, con muros finos para el espectro. Reemplazados en el incremento 21 por mapas compactos (decisión 69)
 - [x] Túneles: uno por nivel, en la fila 13, en la misma posición en los tres niveles (`v3-mapas.md`)
 - [x] Túneles: definir si los fantasmas van más lentos dentro del túnel, como en el original: sí, al 50 % en las celdas del túnel; Pacman mantiene su velocidad (decisión 48)
 - [x] Túneles: definir cómo se cuentan las distancias que cruzan el túnel. Propuesta: las distancias **por recorrido** (IA de Pacman, persecución de los fantasmas, visión de 8 celdas de la decisión 37) cuentan el túnel. La distancia **Manhattan** del radio del saltarín (decisión 31) no lo cuenta, porque el ejecutor la verifica contando celdas en pantalla
@@ -163,50 +167,61 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Registrar problemas en la tabla de la sesión
 - [x] Commit del incremento
 
-### Incremento 21 — Cuenta regresiva y modo de prueba (HU-46)
-- [ ] Redactar y ejecutar el Prompt 20
+### Incremento 21 — Escala del original y mapas compactos (HU-44, HU-45, HU-50; decisiones 68 a 71)
+- [x] Registrar el hallazgo de la prueba manual (tabla 7.5) y las decisiones 68 a 71
+- [x] Rediseñar los tres mapas con un validador (conexión, simetría, marco fijo, sin callejones ni espacios de 2 × 2) y aprobarlos con capturas
+- [x] Redactar y ejecutar el Prompt 20
+- [x] Verificar: los muros se ven como contorno y los personajes miden unas 2 celdas, en los tres niveles; un personaje a mitad del túnel se ve en los dos bordes
+- [x] Verificar: el espectro tiene cruces válidos en los tres niveles y un jugador quieto sigue sin ganar (decisión 34)
+- [x] Actualizar las suites del núcleo que usan coordenadas o velocidades y agregar `core/inc21.js`
+- [x] Volver a medir el balance (sección 7.6 de `entrega-03.md`) y compensar el modo GhostMan (decisión 71)
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
+
+### Incremento 22 — Cuenta regresiva y modo de prueba (HU-46)
+- [ ] Redactar y ejecutar el Prompt 21
 - [ ] Verificar: la cuenta aparece al inicio de cada nivel, en los dos modos, y nada se mueve ni descuenta tiempo durante la cuenta
 - [ ] Verificar: con el modo de prueba activo, las suites de `scripts/verify/` pasan sin cambios en sus tiempos
 - [ ] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento
 
-### Incremento 22 — Sprites de pixel art (HU-50)
+### Incremento 23 — Sprites de pixel art (HU-50)
 - [ ] Dibujar con la skill `pxl-pixel-art`, desde cero: Pacman (boca, cuatro direcciones), un fantasma por tipo, el estado vulnerable y su parpadeo, los ojos (si los comidos vuelven a la base), las frutas real y falsa, y las esferas
 - [ ] Dibujar al menos una skin alternativa de Pacman y una de los fantasmas, para probar que el diseño las admite
-- [ ] Redactar y ejecutar el Prompt 21 para integrar los sprites al renderizado
+- [ ] Redactar y ejecutar el Prompt 22 para integrar los sprites al renderizado
 - [ ] Verificar: los tipos de fantasma y el estado vulnerable se distinguen a simple vista
 - [ ] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento
 
-### Incremento 23 — Animaciones (HU-47, HU-49)
+### Incremento 24 — Animaciones (HU-47, HU-49)
 - [ ] Dibujar con `pxl-pixel-art`: la derrota de Pacman (pierde partes hasta desaparecer), el salto del saltarín (arco, sombra, marca de destino, polvo al aterrizar), la estela del acelerado y los efectos del espectro y del naval
-- [ ] Redactar y ejecutar el Prompt 22
+- [ ] Redactar y ejecutar el Prompt 23
 - [ ] Verificar: durante la animación de derrota el juego queda pausado, y las animaciones no alteran tiempos ni colisiones fuera de lo definido
 - [ ] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento
 
-### Incremento 24 — Música y efectos de sonido (HU-48)
-- [ ] Redactar y ejecutar el Prompt 23: motor de audio con la Web Audio API, con dos canales (música y efectos) preparados para la HU-41
+### Incremento 25 — Música y efectos de sonido (HU-48)
+- [ ] Redactar y ejecutar el Prompt 24: motor de audio con la Web Audio API, con dos canales (música y efectos) preparados para la HU-41
 - [ ] Verificar: el audio arranca después de la primera interacción del usuario (política de reproducción automática de los navegadores), suena cada evento de la lista y nada suena con la pestaña oculta o la partida en pausa
 - [ ] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento
 
-### Incremento 25 — Registro, inicio de sesión y menú principal (HU-35, HU-36, HU-37)
-- [ ] Redactar y ejecutar el Prompt 24
+### Incremento 26 — Registro, inicio de sesión y menú principal (HU-35, HU-36, HU-37)
+- [ ] Redactar y ejecutar el Prompt 25
 - [ ] Verificar: las validaciones de la sección 4.9 de la Entrega 01, el mensaje de error único en el login, la sesión que persiste al recargar y el menú inaccesible sin sesión
 - [ ] Verificar: un registro rechazado no deja la cuenta en estado parcial
 - [ ] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento
 
-### Incremento 26 — Tableros de puntaje (HU-38, HU-39)
-- [ ] Redactar y ejecutar el Prompt 25
+### Incremento 27 — Tableros de puntaje (HU-38, HU-39)
+- [ ] Redactar y ejecutar el Prompt 26
 - [ ] Cargar los datos de prueba: usuarios y puntajes para verificar el orden, el top 10 y los modos sin puntajes
 - [ ] Verificar: el top 10 por modo, la alternancia con ←/→ y A/D, el tablero personal y la actualización inmediata al terminar una partida
 - [ ] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento
 
-### Incremento 27 — Opciones: skins, volumen, cerrar sesión y salir (HU-40, HU-41, HU-42)
-- [ ] Redactar y ejecutar el Prompt 26
+### Incremento 28 — Opciones: skins, volumen, cerrar sesión y salir (HU-40, HU-41, HU-42)
+- [ ] Redactar y ejecutar el Prompt 27
 - [ ] Verificar: los carruseles de skins, la persistencia de las skins y del volumen entre sesiones, los volúmenes independientes con efecto inmediato, el cierre de sesión y la pantalla de salida
 - [ ] Verificar: ninguna skin altera las mecánicas
 - [ ] Registrar problemas en la tabla de la sesión
@@ -216,7 +231,7 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [ ] Completar la tabla de problemas con todas las filas de la sesión
 - [ ] Redactar las observaciones sobre la implementación con AI
 - [ ] Transcribir en el anexo los prompts de corrección no planificados
-- [ ] Extender `scripts/verify/` con las suites de los incrementos 18 a 27
+- [ ] Extender `scripts/verify/` con las suites de los incrementos 18 a 28
 
 ---
 

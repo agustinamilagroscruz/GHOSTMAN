@@ -1,12 +1,12 @@
 # Mapas de la V3 (bocetos aprobados)
 
-Bocetos de los tres niveles de la V3, aprobados el 30/10/2026. Son la entrada del incremento 19 (HU-44 y HU-45; decisiones 26 y 34). Antes de ese incremento se pasan a `TP/entrega-03.md`.
+Mapas de los tres niveles de la V3, aprobados por D. Savoia el 31/10/2026 (decisión 69). Son la entrada del incremento 21 y reemplazan los bocetos de muros finos del 30/10/2026, que se usaron en los incrementos 19 y 20 (están en el historial de git). El marco fijo no cambió.
 
 ## Reglas comunes
 
-- **Tamaño:** 28 columnas × 31 filas, como el Pac-Man original. Si los niveles resultan lentos de completar, se ajustan las velocidades después de un playtest.
+- **Tamaño:** 28 columnas × 31 filas, como el Pac-Man original. Se dibujan a la escala del original: personajes de unas 2 celdas y muros como contorno (decisión 68).
 - **Diseño:** cada laberinto es propio, no una copia del original. Conserva lo reconocible: simetría horizontal, la base en el centro, el túnel a la altura de la base, cuatro esferas grandes y Pacman apareciendo debajo de la base.
-- **Muros finos:** los pasillos están en las filas impares y los muros interiores tienen una celda de espesor casi en todo el mapa, para que el espectro tenga muchos lugares donde usar su poder (decisión 26). El espectro nunca cruza el borde del mapa.
+- **Bloques:** como en el original, la mayoría de los muros son bloques de 2 o más celdas, y hay unas 260 esferas por nivel (decisión 69). Quedan algunos muros de una celda para que el espectro tenga dónde usar su poder (decisión 26); en pantalla se ven como una sola línea. El espectro nunca cruza el borde del mapa.
 - **Validación:** los tres mapas no tienen celdas aisladas, callejones sin salida ni espacios abiertos de 2 × 2 fuera de la base.
 
 ### Marco fijo (igual en los tres niveles)
@@ -33,135 +33,135 @@ Bocetos de los tres niveles de la V3, aprobados el 30/10/2026. Son la entrada de
 
 | | Nivel 1 | Nivel 2 | Nivel 3 |
 |---|---|---|---|
-| Muros interiores que el espectro puede cruzar | 234 de 282 | 240 de 318 | 210 de 328 |
-| Esferas comunes | 388 | 352 | 344 |
-| Esferas grandes | (1,1) (1,26) (23,1) (23,26) | (5,1) (5,26) (25,1) (25,26) | (1,1) (1,26) (29,1) (29,26); en modo GhostMan, además (15,1) y (15,26) |
+| Muros interiores que el espectro puede cruzar | 30 de 414 | 22 de 404 | 46 de 414 |
+| Esferas comunes | 258 | 268 | 258 |
+| Esferas grandes | (1,1) (1,26) (23,1) (23,26) | (3,1) (3,26) (22,1) (22,26) | (1,1) (1,26) (29,1) (29,26); en modo GhostMan, además (15,1) y (15,26) |
 
-Los conteos excluyen el borde y la base. Las posiciones de las esferas grandes van como (fila, columna). En el nivel 3 del modo GhostMan las esferas grandes son dinámicas (incremento 17 de la V2), así que esas posiciones son solo las iniciales.
+Los conteos de muros excluyen el borde y la base; un muro se puede cruzar si tiene pasillo a los dos lados, en vertical o en horizontal. Las posiciones de las esferas grandes van como (fila, columna). En el nivel 3 del modo GhostMan las esferas grandes son dinámicas (incremento 17 de la V2), así que esas posiciones son solo las iniciales.
 
 ---
 
 ## Nivel 1
 
+Bloques rectangulares, con pasillos largos de lado a lado en las filas 3, 5, 20 y 29.
+
 ```
    0         1         2
    0123456789012345678901234567
  0 ############################
- 1 #o....#..............#....o#
- 2 #.#.#.#.###.####.###.#.#.#.#
- 3 #...#..................#...#
- 4 #.#####.############.#####.#
- 5 #..........................#
- 6 #.###.###.########.###.###.#
- 7 #...#.......####.......#...#
- 8 ###.#.#.###.####.###.#.#.###
- 9 #.....#..............#.....#
-10 #.#####.#.########.#.#####.#
-11 #.......#          #.......#
-12 #####.#.# ###--### #.#.#####
+ 1 #o.....#.....##.....#.....o#
+ 2 #.####.#.###.##.###.#.####.#
+ 3 #..........................#
+ 4 #.####.##.########.##.####.#
+ 5 #.####.##.########.##.####.#
+ 6 #......##....##....##......#
+ 7 #.####.##.##.##.##.##.####.#
+ 8 #............##............#
+ 9 ######.##.########.##.######
+10 ######.##.########.##.######
+11 ######.##          ##.######
+12 ######.## ###--### ##.######
 13     ..... #      # .....    
-14 #####.#.# #      # #.#.#####
-15 #.....#.# #      # #.#.....#
-16 #.#####.# ######## #.#####.#
-17 #...#...#          #...#...#
-18 ###.#.#.# ######## #.#.#.###
-19 #.....#..............#.....#
-20 #.###.#.###.####.###.#.###.#
-21 #.....#...#......#...#.....#
-22 ###.###.#.########.#.###.###
-23 #o......#....  ....#......o#
-24 #.###.###.#.####.#.###.###.#
-25 #.#.........####.........#.#
-26 #.#.###.###.####.###.###.#.#
-27 #...#..................#...#
-28 #.###.###.########.###.###.#
+14 ######.## #      # ##.######
+15 ######.## #      # ##.######
+16 ######.## ######## ##.######
+17 ######.##          ##.######
+18 ######.##.########.##.######
+19 ######.##.########.##.######
+20 #..........................#
+21 #.####.##############.####.#
+22 #.####.##############.####.#
+23 #o...........  ...........o#
+24 #.######.##########.######.#
+25 #.######.##########.######.#
+26 #.######.##########.######.#
+27 #.######.##########.######.#
+28 #.######.##########.######.#
 29 #..........................#
 30 ############################
 ```
-
 ## Nivel 2
 
-Laberinto en espiral en las esquinas, con las esferas grandes a los costados.
+Un gran bloque central arriba, bolsillos a los costados de la base y las esferas grandes a los costados.
 
 ```
    0         1         2
    0123456789012345678901234567
  0 ############################
- 1 #.......#...####...#.......#
- 2 #.#####.#.#.####.#.#.#####.#
- 3 #.#.....#.#.####.#.#.....#.#
- 4 #.#.#####.#.####.#.#####.#.#
- 5 #o#...#...#.####.#...#...#o#
- 6 #.###.#.###.####.###.#.###.#
- 7 #...#.....#......#.....#...#
- 8 ###.#.#.#.########.#.#.#.###
- 9 #...#.#...#......#...#.#...#
-10 #.#.#.#####.####.#####.#.#.#
-11 #...#....          ....#...#
-12 ######### ###--### #########
+ 1 #.....################.....#
+ 2 #.###.################.###.#
+ 3 #o###.#......##......#.###o#
+ 4 #.###.#.####.##.####.#.###.#
+ 5 #..........................#
+ 6 #.##########.##.##########.#
+ 7 #.##########.##.##########.#
+ 8 #............##............#
+ 9 #.####.##.########.##.####.#
+10 #.####.##.########.##.####.#
+11 #......##          ##......#
+12 ######.## ###--### ##.######
 13     ..... #      # .....    
-14 ######### #      # #########
-15 #.......# #      # #.......#
-16 #.#####.# ######## #.#####.#
-17 #.......#          #.......#
-18 #######.# ######## #.#######
-19 #..........................#
-20 #.###.#.#.########.#.#.###.#
-21 #.#...#.#.#......#.#.#...#.#
-22 #.#.###.#.#.####.#.#.###.#.#
-23 #.....#.#....  ....#.#.....#
-24 ###.#.#.############.#.#.###
-25 #o..#.#.....####.....#.#..o#
-26 #.###.#.###.####.###.#.###.#
-27 #.....#...#.####.#...#.....#
-28 #.###.#.#.#.####.#.#.#.###.#
-29 #.....#...#......#...#.....#
+14 ######.## #      # ##.######
+15 ######.## #      # ##.######
+16 ######.## ######## ##.######
+17 #......##          ##......#
+18 #.####.##.########.##.####.#
+19 #.####.##.########.##.####.#
+20 #..........................#
+21 #.########.######.########.#
+22 #o########.######.########o#
+23 #............  ............#
+24 #.#####.############.#####.#
+25 #.#####.############.#####.#
+26 #.......############.......#
+27 #.########################.#
+28 #.########################.#
+29 #..........................#
 30 ############################
 ```
-
 ## Nivel 3
 
-Más compartimentado. Hay tramos donde las columnas 12 a 15 forman un muro de 4 celdas, y ahí el espectro no puede cruzar por el centro. Tiene que usar los cruces laterales o las filas que atraviesan el centro (por ejemplo, la 29).
+El más compartimentado: bloques con forma de L y de escalón, y un muro central de 4 celdas en la parte de arriba. El espectro tiene más cruces que en los otros niveles.
 
 ```
    0         1         2
    0123456789012345678901234567
  0 ############################
- 1 #o..........####..........o#
- 2 #.#.#######.####.#######.#.#
- 3 #...#...#...####...#...#...#
- 4 #.###.#.#.########.#.#.###.#
- 5 #...#...#.#......#.#...#...#
- 6 ###.#.###.#.####.#.###.#.###
- 7 #.......#...####...#.......#
- 8 #.#.###.############.###.#.#
- 9 #.#...#.....####.....#...#.#
-10 #.###.#.###.####.###.#.###.#
-11 #.....#..          ..#.....#
-12 ######### ###--### #########
+ 1 #o....#.....####.....#....o#
+ 2 #.###.#.###.####.###.#.###.#
+ 3 #.###...###.####.###...###.#
+ 4 #.#########.####.#########.#
+ 5 #..........................#
+ 6 ####.###.##########.###.####
+ 7 #....###.##########.###....#
+ 8 #.######.##########.######.#
+ 9 #.######.##########.######.#
+10 #.####...##########...####.#
+11 #.####.##          ##.####.#
+12 #.####.## ###--### ##.####.#
 13     ..... #      # .....    
-14 ######### #      # #########
-15 #.....#.. #      # ..#.....#
-16 #.#.#.#.# ######## #.#.#.#.#
-17 #...#...#          #...#...#
-18 #.#########.####.#########.#
-19 #.........#.####.#.........#
-20 #####.#.#.#.####.#.#.#.#####
-21 #.....#...#.####.#...#.....#
-22 #.#.#######.####.#######.#.#
-23 #...#.....#..  ..#.....#...#
-24 #.###.#.#.#.####.#.#.#.###.#
-25 #...#.#...#.####.#...#.#...#
-26 ###.#.#####.####.#####.#.###
-27 #...#...#...####...#...#...#
-28 #.#####.#.########.#.#####.#
-29 #o......#..........#......o#
+14 ######.## #      # ##.######
+15 #......## #      # ##......#
+16 #.####.## ######## ##.####.#
+17 #.####.##          ##.####.#
+18 #.####.##.########.##.####.#
+19 #..........................#
+20 ###.#.####.######.####.#.###
+21 #...#.####.######.####.#...#
+22 #.###......######......###.#
+23 #.....####...  ...####.....#
+24 #.###.####.######.####.###.#
+25 #.###......######......###.#
+26 #.#####.############.#####.#
+27 #.#####.############.#####.#
+28 #.#####.############.#####.#
+29 #o......############......o#
 30 ############################
 ```
 
 ---
 
-## Pendientes antes del incremento 19
+## Pendientes antes del incremento 19 (cerrados)
 
 - [ ] Pasar el formato de texto de `src/game/maps/parse.ts` a esta leyenda: espacio como pasillo sin esfera, `-` como puerta y las celdas de borde de la fila 13 como túnel
 - [x] Definir el resto de los puntos de la base y el túnel: decisiones 44 a 50 de `v3-workflow.md`

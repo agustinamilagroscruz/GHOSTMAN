@@ -1,7 +1,17 @@
 import type { GhostKind } from "./ghosts";
-import type { Direction } from "./movement";
+import { DIRECTION_VECTORS, type Direction } from "./movement";
 import type { GameMap } from "./types";
 import type { LevelTheme } from "./theme";
+
+/**
+ * Escala del original (decisión 68): la celda lógica equivale a 8 px y los personajes miden unas
+ * 2 celdas. Los muros no se dibujan como bloques: cada bloque de muro se dibuja como un tubo que
+ * recorre su contorno por el centro de sus celdas, con las esquinas redondeadas.
+ */
+const WALL_TUBE_WIDTH = 0.5;
+const WALL_TUBE_CORE_WIDTH = 0.2;
+/** Radio de Pacman y de los fantasmas, en celdas: unos 13 px de 16 a la escala del original. */
+export const SPRITE_RADIUS = 0.8;
 
 export function renderMap(
   ctx: CanvasRenderingContext2D,
@@ -12,15 +22,23 @@ export function renderMap(
   ctx.fillStyle = theme.background;
   ctx.fillRect(0, 0, map.cols * cellSize, map.rows * cellSize);
 
+  const walls = buildWallPath(map, cellSize);
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = theme.wallOutline;
+  ctx.lineWidth = cellSize * WALL_TUBE_WIDTH;
+  ctx.stroke(walls);
+  ctx.strokeStyle = theme.wallStripe ?? theme.wallFill;
+  ctx.lineWidth = cellSize * WALL_TUBE_CORE_WIDTH;
+  ctx.stroke(walls);
+  ctx.restore();
+
   for (let row = 0; row < map.rows; row++) {
     for (let col = 0; col < map.cols; col++) {
       const x = col * cellSize;
       const y = row * cellSize;
 
-      if (map.cells[row][col] === "wall") {
-        drawWallCell(ctx, x, y, cellSize, theme);
-        continue;
-      }
       if (map.cells[row][col] === "door") {
         drawDoorCell(ctx, x, y, cellSize);
         continue;
@@ -28,36 +46,85 @@ export function renderMap(
 
       const pellet = map.pellets[row][col];
       if (pellet === "pellet") {
-        drawDot(ctx, x, y, cellSize, theme.pathDot, cellSize * 0.12);
+        drawDot(ctx, x, y, cellSize, theme.pathDot, cellSize * 0.14);
       } else if (pellet === "power") {
-        drawDot(ctx, x, y, cellSize, theme.pathDot, cellSize * 0.28);
+        drawDot(ctx, x, y, cellSize, theme.pathDot, cellSize * 0.45);
       }
     }
   }
 }
 
-function drawWallCell(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  size: number,
-  theme: LevelTheme
-): void {
-  ctx.fillStyle = theme.wallFill;
-  ctx.fillRect(x, y, size, size);
+const SIDES: readonly Direction[] = ["up", "right", "down", "left"];
 
-  if (theme.wallStripe) {
-    ctx.strokeStyle = theme.wallStripe;
-    ctx.lineWidth = Math.max(1, size * 0.08);
-    ctx.beginPath();
-    ctx.moveTo(x + size * 0.2, y + size * 0.8);
-    ctx.lineTo(x + size * 0.8, y + size * 0.2);
-    ctx.stroke();
+/** Fuera del mapa cuenta como muro: el borde no dibuja contorno hacia afuera. */
+function isWallAt(map: GameMap, row: number, col: number): boolean {
+  if (row < 0 || row >= map.rows || col < 0 || col >= map.cols) return true;
+  return map.cells[row][col] === "wall";
+}
+
+/**
+ * Dos celdas de muro vecinas se unen con un tramo del contorno solo si junto al tramo hay algo
+ * que no es muro; así el interior de un bloque grueso queda vacío y un muro de una celda de
+ * espesor se ve como una sola línea.
+ */
+function isWallEdge(map: GameMap, row: number, col: number, side: Direction): boolean {
+  const [dRow, dCol] = DIRECTION_VECTORS[side];
+  if (map.cells[row + dRow]?.[col + dCol] !== "wall") return false;
+  // Las cuatro celdas que flanquean el tramo, dos de cada lado.
+  const [pRow, pCol] = [dCol, dRow];
+  for (const sign of [-1, 1]) {
+    if (!isWallAt(map, row + sign * pRow, col + sign * pCol)) return true;
+    if (!isWallAt(map, row + dRow + sign * pRow, col + dCol + sign * pCol)) return true;
   }
+  return false;
+}
 
-  ctx.strokeStyle = theme.wallOutline;
-  ctx.lineWidth = Math.max(1, size * 0.06);
-  ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
+/** Lados de una celda de muro por los que pasa el contorno; vacío si no es muro o es interior a un bloque. */
+export function wallOutlineSides(map: GameMap, row: number, col: number): Direction[] {
+  if (map.cells[row]?.[col] !== "wall") return [];
+  return SIDES.filter((side) => isWallEdge(map, row, col, side));
+}
+
+/** Celda de muro que toca un pasillo, también en diagonal: si no tiene tramos, es un pilar suelto. */
+function touchesPath(map: GameMap, row: number, col: number): boolean {
+  for (let dRow = -1; dRow <= 1; dRow++) {
+    for (let dCol = -1; dCol <= 1; dCol++) {
+      if (!isWallAt(map, row + dRow, col + dCol)) return true;
+    }
+  }
+  return false;
+}
+
+function buildWallPath(map: GameMap, cellSize: number): Path2D {
+  const path = new Path2D();
+  const half = cellSize / 2;
+  for (let row = 0; row < map.rows; row++) {
+    for (let col = 0; col < map.cols; col++) {
+      if (map.cells[row][col] !== "wall") continue;
+      const centerX = col * cellSize + half;
+      const centerY = row * cellSize + half;
+      const sides = wallOutlineSides(map, row, col);
+      const edgePoint = (side: Direction): [number, number] => {
+        const [dRow, dCol] = DIRECTION_VECTORS[side];
+        return [centerX + dCol * half, centerY + dRow * half];
+      };
+      const isCorner = sides.length === 2 && DIRECTION_VECTORS[sides[0]][0] !== DIRECTION_VECTORS[sides[1]][0];
+      if (isCorner) {
+        // Esquina redondeada: un cuarto de curva de un borde al otro, pasando cerca del centro.
+        path.moveTo(...edgePoint(sides[0]));
+        path.quadraticCurveTo(centerX, centerY, ...edgePoint(sides[1]));
+      } else if (sides.length > 0) {
+        for (const side of sides) {
+          path.moveTo(centerX, centerY);
+          path.lineTo(...edgePoint(side));
+        }
+      } else if (touchesPath(map, row, col)) {
+        path.moveTo(centerX, centerY);
+        path.lineTo(centerX, centerY);
+      }
+    }
+  }
+  return path;
 }
 
 const DOOR_COLOR = "#ffb8ff";
@@ -101,7 +168,7 @@ export function renderPacman(
 ): void {
   const centerX = col * cellSize + cellSize / 2;
   const centerY = row * cellSize + cellSize / 2;
-  const radius = cellSize * 0.45;
+  const radius = cellSize * SPRITE_RADIUS;
   const facing = FACING_ANGLE[direction ?? "right"];
 
   ctx.fillStyle = PACMAN_COLOR;
@@ -146,7 +213,7 @@ export function renderGhost(
   const isSpecter = kind === "specter";
   const centerX = col * cellSize + cellSize / 2;
   const centerY = row * cellSize + cellSize / 2;
-  const radius = cellSize * 0.45;
+  const radius = cellSize * SPRITE_RADIUS;
   const domeCenterY = centerY - radius * 0.15;
   const bottomY = centerY + radius;
   const left = centerX - radius;
@@ -247,6 +314,8 @@ function drawKindMark(ctx: CanvasRenderingContext2D, kind: GhostKind, x: number,
 
 /** Fruta (cereza): dos frutos rojos con tallo verde, distinta de esferas y personajes. */
 export function renderFruit(ctx: CanvasRenderingContext2D, row: number, col: number, cellSize: number): void {
+  ctx.save();
+  scaleAroundCell(ctx, row, col, cellSize);
   const x = col * cellSize;
   const y = row * cellSize;
   const r = cellSize * 0.18;
@@ -269,6 +338,18 @@ export function renderFruit(ctx: CanvasRenderingContext2D, row: number, col: num
     ctx.arc(x + cellSize * cx, y + cellSize * cy, r, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.restore();
+}
+
+/** Las frutas se dibujan en una celda y se agrandan alrededor de su centro, como los personajes. */
+const FRUIT_SCALE = 1.7;
+
+function scaleAroundCell(ctx: CanvasRenderingContext2D, row: number, col: number, cellSize: number): void {
+  const centerX = col * cellSize + cellSize / 2;
+  const centerY = row * cellSize + cellSize / 2;
+  ctx.translate(centerX, centerY);
+  ctx.scale(FRUIT_SCALE, FRUIT_SCALE);
+  ctx.translate(-centerX, -centerY);
 }
 
 const FAKE_FRUIT_COLOR = "#8a2be2";
@@ -287,6 +368,8 @@ export function renderFakeFruit(
   timeLeft: number,
   warningSeconds: number
 ): void {
+  ctx.save();
+  scaleAroundCell(ctx, row, col, cellSize);
   const x = col * cellSize;
   const y = row * cellSize;
   const r = cellSize * 0.18;
@@ -329,6 +412,7 @@ export function renderFakeFruit(
     ctx.textBaseline = "top";
     ctx.fillText(String(Math.ceil(timeLeft)), x + cellSize * 0.5, y - cellSize * 0.15);
   }
+  ctx.restore();
 }
 
 /** Explosión de una fruta falsa: las celdas alcanzadas se tiñen de naranja y se desvanecen. */
@@ -379,7 +463,7 @@ export function renderGhostEyes(
 ): void {
   const centerX = col * cellSize + cellSize / 2;
   const centerY = row * cellSize + cellSize / 2;
-  const radius = cellSize * 0.45;
+  const radius = cellSize * SPRITE_RADIUS;
   const eyeOffsetX = radius * 0.4;
   const eyeRadius = radius * 0.24;
   const [lookRow, lookCol] = direction ? DIRECTION_LOOK[direction] : [0, 0];
@@ -409,7 +493,9 @@ const DIRECTION_LOOK: Readonly<Record<Direction, readonly [number, number]>> = {
  * del canvas se recorta sola, así que se ve una parte en cada borde y nada pisa el HUD.
  */
 export function drawWrapped(cols: number, col: number, draw: (col: number) => void): void {
+  // El sprite sobresale de su celda: la copia hace falta apenas toca el borde.
+  const overhang = SPRITE_RADIUS - 0.5;
   draw(col);
-  if (col > cols - 1) draw(col - cols);
-  else if (col < 0) draw(col + cols);
+  if (col > cols - 1 - overhang) draw(col - cols);
+  else if (col < overhang) draw(col + cols);
 }
