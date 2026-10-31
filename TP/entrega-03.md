@@ -259,9 +259,9 @@ Todos los sonidos son **originales**, sintetizados con la Web Audio API al estil
 | Parámetro | Valor |
 |---|---|
 | Tamaño | Celda lógica de 8 × 8 px y sprites de 16 × 16 px (unas 2 celdas), como el original. El mapa (224 × 248 px) se escala por un número entero: ×3 en un canvas de 672 × 744 *(D-68, modifica la D-58)* |
-| Herramienta | Pixel art dibujado con pxl |
+| Herramienta | Pixel art dibujado con pxl. Fuente: `art/ghostman.px.js`; `scripts/sprites/generate.mjs` lo pasa a `src/game/sprites.ts` |
 | Roles de color | Cada sprite usa roles: cuerpo, contorno, ojos y detalle |
-| Skin | Una paleta para esos roles. Las skins con forma propia son opcionales |
+| Skin | Una paleta para esos roles. Las skins con forma propia son opcionales. Disponibles desde el incremento 23: Pacman "Clásico" y "Menta"; fantasmas "Clásica" (cada uno con su color) y "Pastel" |
 | Distinción entre tipos | Un rasgo de forma por tipo, que no depende del color: espectro con borde ondulado y transparencia, saltarín con resortes, naval con gorro, acelerado con líneas de velocidad, clásico con la forma tradicional |
 | Estado vulnerable | Azul con parpadeo blanco. Tiene prioridad sobre cualquier skin |
 | Cuadros | Pacman: 3 por dirección · derrota: unos 10 · fantasmas: 2, con ojos que miran hacia donde avanzan · vulnerables: 2 más el parpadeo · ojos: 4 direcciones |
@@ -766,6 +766,38 @@ la cuenta sin el modo de prueba y que no esté con él. Si algo es ambiguo,
 preguntame antes de generar código.
 ```
 
+#### Prompt 22 — Sprites de pixel art (HU-50; decisiones 58 y 68)
+
+```
+Incremento 23. Reemplazá el dibujo hecho con figuras por sprites de pixel art
+dibujados desde cero con pxl (sección 4.8, decisiones 58 y 68):
+
+- Fuente: art/ghostman.px.js. Cada letra es un rol de color (cuerpo,
+  contorno, ojos blanco y pupila, detalle, acento, cara del vulnerable,
+  esferas), no un color fijo. Un script (scripts/sprites/generate.mjs) pasa
+  los sprites a src/game/sprites.ts como filas de letras, con un ancla (centro
+  y parte de arriba del cuerpo).
+- Sprites: Pacman con 3 cuadros por dirección (cerrado, entreabierto y
+  abierto); un cuerpo de 14 x 14 con contorno por tipo, con 2 cuadros de
+  pollera y su rasgo de forma (clásico tradicional, espectro ondulado y
+  translúcido, saltarín con resortes, naval con gorro, acelerado con líneas
+  de velocidad detrás); vulnerable con cara, igual para todos; ojos en 4
+  direcciones, que también son los del fantasma comido; esferas; cereza real
+  y la falsa del naval (violeta con una cruz, roja en la alarma).
+- El cuadro depende de la posición (la boca y la pollera cambian al avanzar),
+  así la animación se detiene sola con la pausa y la cuenta regresiva.
+- Skins: una skin es una paleta para los roles. Clásicas por defecto, y una
+  alternativa de Pacman ("Menta") y una de los fantasmas ("Pastel") para
+  probar el diseño. El vulnerable no depende de la skin. Se eligen en la
+  configuración de la partida; el menú para elegirlas es de la HU-40.
+- La escala es la del incremento 21: 1 px del sprite = 3 px de pantalla.
+
+Agregá core/inc23.js: sprites completos y bien formados, ojos alineados con
+el cuerpo de cada tipo, siluetas distintas por tipo, vulnerable igual para
+todos, boca hacia la dirección de avance, ciclo de cuadros y paletas de las
+skins. Si algo es ambiguo, preguntame antes de generar código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -797,6 +829,10 @@ preguntame antes de generar código.
 | 23 | 22 | Prompt 21 | **Cambio esperado en las suites de navegador:** con la cuenta, todas las suites tardarían 3,5 s más al empezar y 2 s más después de cada vida perdida, y varias miden tiempos | Las suites abren el juego con `?modoPrueba=1` y corren contra un build de prueba (`NEXT_PUBLIC_MODO_PRUEBA=1`). La suite nueva `inc22-cuenta.js` es la única que abre el juego sin el parámetro | No |
 | 24 | 22 | Prompt 21 | **Artefacto de la prueba:** las primeras comprobaciones de los tiempos de la cuenta caían justo en el borde entre dos números, y la suma de cuadros de 1/60 s daba un número o el otro según el redondeo | Se mide lejos de los bordes (por ejemplo, a 0,92 y a 1,08 s). No es un defecto del juego: el cambio de número ocurre en el cuadro en que se cumple el segundo | No |
 | 25 | 22 | Prompt 21 | **Prueba inestable:** en una de las corridas completas falló "en pausa Pacman (IA) también se detiene" de `inc11-ia-pacman.js`. Al repetirla pasó 3 de 3 veces | La comprobación leía el contador de esferas apenas presionaba ESC, y el HUD se actualiza en el cuadro siguiente: si Pacman comía una esfera en ese cuadro, el conteo cambiaba "durante la pausa". Ahora espera a que aparezca la pantalla de pausa. No es un defecto del juego | No |
+| 26 | 23 — Sprites de pixel art | Prompt 22 | **Decisión de diseño no especificada:** la decisión 58 pide cuadros con los ojos mirando hacia donde avanzan, pero no cómo combinar 5 tipos × 2 cuadros × 4 direcciones | Los ojos son un sprite aparte, en 4 direcciones, que se dibuja sobre el cuerpo alineado por un ancla (centro y parte de arriba del cuerpo). Los mismos ojos sirven para el fantasma comido. `core/inc23.js` verifica que caen dentro del cuerpo de cada tipo | No |
+| 27 | 23 | Prompt 22 | **Primer borrador de los sprites:** el gorro del naval era la cabeza pintada de blanco y no se leía como gorro, y la esfera grande quedó irregular | Se revisaron con la vista previa de pxl y con capturas del mapa: el gorro pasó a ir encima de la cabeza (el sprite es 3 filas más alto) y la esfera grande se redibujó con la forma de 8 × 8 del original | No |
+| 28 | 23 | Prompt 22 | **Alcance:** la decisión 58 lista unos 10 cuadros para la derrota de Pacman | Quedan para el incremento 24 (animaciones), que también dibuja el salto, la estela y los efectos | No |
+| 29 | 23 | Prompt 22 | **Herramienta:** pxl no está en las dependencias del proyecto (es una skill del agente) | Los sprites generados (`src/game/sprites.ts`) se versionan, así que el juego y el build no necesitan pxl. Solo hace falta para cambiar el arte: `PXL_DIR=<carpeta de pxl> node scripts/sprites/generate.mjs` | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 

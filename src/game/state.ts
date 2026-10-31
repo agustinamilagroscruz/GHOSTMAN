@@ -121,6 +121,9 @@ export interface GameConfig {
   playerGhostKind?: GhostKind;
   /** Duración de la cuenta y del "¡Listo!" (decisión 59); sin indicar, 0 (núcleo y pruebas). */
   timings?: GameTimings;
+  /** Skins de Pacman y de los fantasmas (ids de `skins.ts`); sin indicar, las clásicas. Solo cambian el dibujo. */
+  pacmanSkin?: string;
+  ghostSkin?: string;
 }
 
 export const PACMAN_MODE_CONFIG: GameConfig = { mode: "pacman" };

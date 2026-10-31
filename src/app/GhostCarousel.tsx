@@ -65,13 +65,13 @@ export function GhostCarousel({ onConfirm, onBack }: GhostCarouselProps) {
           ◀
         </button>
         <div className={styles.side} aria-hidden>
-          <GhostPreview kind={previous.kind} size={40} />
+          <GhostPreview kind={previous.kind} size={48} />
         </div>
         <div className={styles.center} data-testid="carousel-selected" data-kind={current.kind}>
-          <GhostPreview kind={current.kind} size={88} />
+          <GhostPreview kind={current.kind} size={96} />
         </div>
         <div className={styles.side} aria-hidden>
-          <GhostPreview kind={next.kind} size={40} />
+          <GhostPreview kind={next.kind} size={48} />
         </div>
         <button className={styles.arrow} aria-label="Siguiente" onClick={() => setIndex((index + 1) % count)}>
           ▶
@@ -99,9 +99,14 @@ function GhostPreview({ kind, size }: { kind: GhostKind; size: number }) {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
     ctx.clearRect(0, 0, size, size);
-    renderGhost(ctx, 0, 0, size, {
+    // El sprite (16 px, más el gorro del naval o las líneas del acelerado) entra en 24 px lógicos:
+    // la celda mide un tercio del canvas y el fantasma va en la del medio. Con 48 y 96 px la escala
+    // del pixel art es entera (×2 y ×4).
+    renderGhost(ctx, 1, 1, size / 3, {
+      id: "blinky",
       color: PLAYER_GHOST_COLOR,
       kind,
+      direction: "right",
       isHarmless: false,
       isVulnerable: false,
       isWarning: false,

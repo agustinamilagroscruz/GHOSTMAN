@@ -186,12 +186,12 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Commit del incremento
 
 ### Incremento 23 — Sprites de pixel art (HU-50)
-- [ ] Dibujar con la skill `pxl-pixel-art`, desde cero: Pacman (boca, cuatro direcciones), un fantasma por tipo, el estado vulnerable y su parpadeo, los ojos (si los comidos vuelven a la base), las frutas real y falsa, y las esferas
-- [ ] Dibujar al menos una skin alternativa de Pacman y una de los fantasmas, para probar que el diseño las admite
-- [ ] Redactar y ejecutar el Prompt 22 para integrar los sprites al renderizado
-- [ ] Verificar: los tipos de fantasma y el estado vulnerable se distinguen a simple vista
-- [ ] Registrar problemas en la tabla de la sesión
-- [ ] Commit del incremento
+- [x] Dibujar con la skill `pxl-pixel-art`, desde cero: Pacman (boca, cuatro direcciones), un fantasma por tipo, el estado vulnerable y su parpadeo, los ojos (si los comidos vuelven a la base), las frutas real y falsa, y las esferas
+- [x] Dibujar al menos una skin alternativa de Pacman y una de los fantasmas, para probar que el diseño las admite
+- [x] Redactar y ejecutar el Prompt 22 para integrar los sprites al renderizado
+- [x] Verificar: los tipos de fantasma y el estado vulnerable se distinguen a simple vista
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
 
 ### Incremento 24 — Animaciones (HU-47, HU-49)
 - [ ] Dibujar con `pxl-pixel-art`: la derrota de Pacman (pierde partes hasta desaparecer), el salto del saltarín (arco, sombra, marca de destino, polvo al aterrizar), la estela del acelerado y los efectos del espectro y del naval

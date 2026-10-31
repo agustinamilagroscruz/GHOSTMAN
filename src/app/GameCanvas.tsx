@@ -31,6 +31,7 @@ import {
   type GameConfig,
   type GameState,
 } from "../game/state";
+import { findGhostSkin, findPacmanSkin } from "../game/skins";
 import { LEVEL_THEMES } from "../game/theme";
 import { countdownLabel } from "../game/timings";
 import { Hud } from "./Hud";
@@ -133,6 +134,10 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
     const fireworks = createFireworksState();
     let nextFireworkIn = 0;
 
+    // Skins (decisión 58): hasta la HU-40 (incremento 28) son siempre las clásicas.
+    const pacmanSkin = findPacmanSkin(state.config.pacmanSkin);
+    const ghostSkin = findGhostSkin(state.config.ghostSkin);
+
     canvas.width = state.map.cols * CELL_SIZE;
     canvas.height = state.map.rows * CELL_SIZE;
 
@@ -188,14 +193,17 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
         if (ghost.eaten) {
           if (!ghost.inHouse) {
             drawWrapped(state.map.cols, ghostPosition.col, (col) =>
-              renderGhostEyes(ctx, ghostPosition.row, col, CELL_SIZE, ghost.direction)
+              renderGhostEyes(ctx, ghostPosition.row, col, CELL_SIZE, ghost.direction, ghostSkin)
             );
           }
           continue;
         }
         const appearance = {
+          id: ghost.id,
           color: ghost.color,
           kind: ghost.kind,
+          direction: ghost.facing ?? ghost.direction,
+          skin: ghostSkin,
           isHarmless: ghost.noEatTimer > 0 || isPhasing(ghost),
           isVulnerable: ghost.vulnerable,
           isWarning,
@@ -216,7 +224,7 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
       }
       const position = getMoverPosition(state.pacman);
       drawWrapped(state.map.cols, position.col, (col) =>
-        renderPacman(ctx, position.row, col, CELL_SIZE, state.pacman.direction)
+        renderPacman(ctx, position.row, col, CELL_SIZE, state.pacman.direction, pacmanSkin)
       );
       renderFireworks(ctx, fireworks, CELL_SIZE);
     };
