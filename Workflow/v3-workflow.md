@@ -64,6 +64,7 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 | 64 | Salir del juego detiene el bucle y el audio y muestra "¡Gracias por jugar!" con un botón para volver a entrar. No cierra la sesión | HU-42 |
 | 65 | Sin conexión: al terminar la partida se muestra el resultado con "No se pudo guardar el puntaje" y un botón para reintentar, sin cola local. En el registro y el login se muestra un error general | HU-35, HU-36, HU-39 |
 | 66 | Para jugar hace falta sesión iniciada (HU-37). Todos los casos manuales de la V1 y la V2 suman la precondición "sesión iniciada con el usuario de prueba", y los scripts de navegador inician sesión contra el proyecto de prueba. Las pruebas del núcleo no cambian | HU-37, regresión |
+| 67 | Dentro de la base ningún fantasma puede usar su poder; el intento no consume el cooldown. Surgió en el incremento 19 (tabla 7.5, fila 6) | HU-44, HU-28 a HU-31 |
 
 ---
 
@@ -75,7 +76,7 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 - [x] Decidir la decisión 37 (memoria de frutas: opción B, *p* = 5 %)
 - [x] Decidir la decisión 38 (saltarín: opción A)
 - [x] Aprobar las decisiones 41 y 42 (detalles de la 37 y la 38)
-- [ ] Decidir si se registra como decisión 67 la interpretación del incremento 19: dentro de la base no se puede usar el poder (tabla 7.5 de `entrega-03.md`, fila 6)
+- [x] Decidir la decisión 67: dentro de la base ningún fantasma puede usar su poder (aprobada; ya implementada en el incremento 19)
 - [ ] Revisar las decisiones 17 a 36 y pasarlas a Aprobada o Modificada
 - [x] Decidir si el cooldown de los fantasmas de la IA sigue corriendo mientras están comidos (pendiente 6): sí, decisión 47
 - [ ] Validar la explosión de la fruta falsa como derrota en modo GhostMan (pendiente 8)
