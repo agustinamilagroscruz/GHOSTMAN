@@ -833,6 +833,39 @@ salto cortado por el reinicio, polvo, duraciones 0 por defecto). Si algo es
 ambiguo, preguntame antes de generar código.
 ```
 
+#### Prompt 24 — Música y efectos de sonido (HU-48; decisiones 43, 57 y 59)
+
+```
+Incremento 25. Agregá música y efectos de sonido originales, sintetizados con
+la Web Audio API al estilo del Pac-Man original, sin usar sus archivos
+(sección 4.7, decisiones 43 y 57):
+
+- El núcleo registra los eventos de sonido de cada paso en el estado (comer
+  una esfera, esfera grande, comer un fantasma, fruta, derrota de Pacman,
+  nivel completado, Game Over, inicio de la partida, y cada poder:
+  atravesar, saltar, impulso, colocar fruta, explosión y romper un muro),
+  también los de los fantasmas de la IA. La interfaz los consume y los hace
+  sonar. Los pitidos de la cuenta salen de la cuenta regresiva.
+- Dos canales con su propio volumen (0 a 100), preparados para la HU-41.
+  Música: jingle de inicio, sirena de fondo en bucle, sirena del PowerUp,
+  jingle de nivel completado y de Game Over. Efectos: todo lo demás, incluido
+  el sonido en bucle de los ojos que vuelven a la base.
+- La sirena suena solo mientras se juega: no durante la cuenta, la derrota,
+  el resultado del nivel ni el final. Durante el PowerUp la reemplaza la
+  sirena del PowerUp.
+- El audio arranca después de la primera interacción (política de
+  reproducción automática de los navegadores). Con la partida en pausa o la
+  pestaña oculta no suena nada. Salir al menú corta todo.
+- El modo de prueba silencia el audio (decisión 59). En un build de prueba,
+  el motor deja un registro de lo que hizo sonar en window, para las suites
+  de navegador.
+
+Agregá core/inc25.js (eventos de cada caso, también de la IA, y canal de cada
+sonido según la decisión 57) y una suite de navegador (nada antes de la
+primera interacción, waka y sirena al jugar, sirena del PowerUp, pausa y
+pestaña oculta). Si algo es ambiguo, preguntame antes de generar código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -873,6 +906,10 @@ ambiguo, preguntame antes de generar código.
 | 32 | 24 | Prompt 23 | **Hueco de especificación:** la decisión 56 pide que la fruta falsa parpadee en sus últimos 2 s, pero la V2 muestra la cuenta regresiva en los últimos 3 s | Se mantienen las dos: el número aparece a los 3 s y el parpadeo en rojo empieza a los 2 s | No |
 | 33 | 24 | Prompt 23 | **Artefacto de la prueba:** las primeras versiones de dos comprobaciones de `core/inc24.js` no producían el contacto: Pacman estaba a mitad de celda, y en modo GhostMan el toque de un fantasma de la IA no reinicia el nivel (decisión 19) | Se centra a Pacman antes del contacto, y la prueba del salto cortado por el reinicio pasó al modo Pacman. No son defectos del juego | No |
 | 34 | 24 | Prompt 23 | **Revisión visual:** la sombra del destino del saltarín, en un gris casi negro, no se veía sobre el fondo negro | Se aclaró a un gris azulado. Se revisaron con capturas los 11 cuadros de la derrota, el salto, el polvo, la ondulación del espectro, la aparición y la alarma de la fruta falsa, la explosión y los escombros | No |
+| 35 | 25 — Música y efectos de sonido | Prompt 24 | **Diseño:** los poderes se activan en lugares distintos (el del jugador al presionar la barra; el espectro de la IA decide el cruce dentro de su movimiento; la explosión y los muros rotos ocurren dentro de otras reglas), y emitir el sonido en cada uno habría repartido el código por todo el núcleo | El núcleo compara el estado antes y después de cada paso (cruces, saltos e impulsos que empiezan, frutas falsas, explosiones y muros rotos nuevos) y registra los eventos en un solo lugar. Los sonidos de Pacman (esferas, fruta, fantasma, derrota) y los jingles se registran donde ocurren | No |
+| 36 | 25 | Prompt 24 | **Hueco de especificación:** la sección 4.7 pone el "ojos que vuelven a la base" entre los efectos, pero dura todo el viaje de vuelta y no es un evento puntual | Es un bucle del canal de efectos que suena mientras haya ojos volviendo, salvo en pausa o durante la derrota de Pacman | No |
+| 37 | 25 | Prompt 24 | **Hueco de especificación:** el jingle de inicio es de "la partida" (HU-48) o del "primer nivel" (decisión 52); ¿suena también al volver a jugar? | Suena al iniciar cada partida, también con "Volver a jugar", y no al pasar a los niveles 2 y 3. Dura 3,2 s, dentro de la cuenta regresiva | No |
+| 38 | 25 | Prompt 24 | **Verificación:** las suites de navegador no pueden escuchar el audio, y en el modo de prueba está silenciado | En los builds de prueba el motor registra en `window.__ghostmanAudio` lo que hace sonar, aunque esté silenciado. `inc25-audio.js` verifica ese registro: nada antes de la primera interacción, jingle, sirena, waka, sirena del PowerUp, pausa y pestaña oculta. Que los sonidos se escuchen bien queda para la prueba manual | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 

@@ -201,11 +201,11 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Commit del incremento
 
 ### Incremento 25 — Música y efectos de sonido (HU-48)
-- [ ] Redactar y ejecutar el Prompt 24: motor de audio con la Web Audio API, con dos canales (música y efectos) preparados para la HU-41
-- [ ] Silenciar el audio en el modo de prueba con `isTestMode` de `src/game/timings.ts` (decisión 59; tabla 7.5, fila 22)
-- [ ] Verificar: el audio arranca después de la primera interacción del usuario (política de reproducción automática de los navegadores), suena cada evento de la lista y nada suena con la pestaña oculta o la partida en pausa
-- [ ] Registrar problemas en la tabla de la sesión
-- [ ] Commit del incremento
+- [x] Redactar y ejecutar el Prompt 24: motor de audio con la Web Audio API, con dos canales (música y efectos) preparados para la HU-41
+- [x] Silenciar el audio en el modo de prueba con `isTestMode` de `src/game/timings.ts` (decisión 59; tabla 7.5, fila 22)
+- [x] Verificar: el audio arranca después de la primera interacción del usuario (política de reproducción automática de los navegadores), suena cada evento de la lista y nada suena con la pestaña oculta o la partida en pausa
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
 
 ### Incremento 26 — Registro, inicio de sesión y menú principal (HU-35, HU-36, HU-37)
 - [ ] Redactar y ejecutar el Prompt 25

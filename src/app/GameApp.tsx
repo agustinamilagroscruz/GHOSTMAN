@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { GhostKind } from "../game/ghosts";
 import type { GameConfig } from "../game/state";
-import { resolveTimings } from "../game/timings";
+import { isTestMode, resolveTimings } from "../game/timings";
+import { getAudioEngine } from "./audio";
 import { GameCanvas } from "./GameCanvas";
 import { GhostCarousel } from "./GhostCarousel";
 import { MainMenu } from "./MainMenu";
@@ -14,10 +15,23 @@ type Screen = { name: "menu" } | { name: "carousel" } | { name: "game"; config: 
 export function GameApp() {
   const [screen, setScreen] = useState<Screen>({ name: "menu" });
 
+  // El audio recién puede arrancar con la primera interacción (política de reproducción automática).
+  useEffect(() => {
+    const unlock = () => getAudioEngine().unlock();
+    window.addEventListener("keydown", unlock);
+    window.addEventListener("pointerdown", unlock);
+    return () => {
+      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("pointerdown", unlock);
+    };
+  }, []);
+
   // Modo de prueba (decisión 59): `?modoPrueba=1` solo vale en un build con NEXT_PUBLIC_MODO_PRUEBA=1.
   const startGame = (config: GameConfig) => {
-    const timings = resolveTimings(window.location.search, process.env.NEXT_PUBLIC_MODO_PRUEBA === "1");
-    setScreen({ name: "game", config: { ...config, timings }, id: Date.now() });
+    const testModeAllowed = process.env.NEXT_PUBLIC_MODO_PRUEBA === "1";
+    const timings = resolveTimings(window.location.search, testModeAllowed);
+    const muted = isTestMode(window.location.search, testModeAllowed);
+    setScreen({ name: "game", config: { ...config, timings, muted }, id: Date.now() });
   };
   const goToMenu = () => setScreen({ name: "menu" });
 

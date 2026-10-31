@@ -1,6 +1,8 @@
 import {
   cancelDash,
+  isDashing,
   isJumping,
+  isPhasing,
   LANDING_DUST_SECONDS,
   canGhostHarm,
   clearSpecterState,
@@ -77,6 +79,7 @@ import {
   type ScoreBreakdown,
   type ScoreCategory,
 } from "./scoring";
+import type { GameSoundEvent } from "./sounds";
 import { NO_WAIT_TIMINGS, type AfterPacmanDeath, type Countdown, type CountdownKind, type GameTimings, type PacmanDeath } from "./timings";
 import type { GameMap } from "./types";
 
@@ -126,6 +129,8 @@ export interface GameConfig {
   /** Skins de Pacman y de los fantasmas (ids de `skins.ts`); sin indicar, las clásicas. Solo cambian el dibujo. */
   pacmanSkin?: string;
   ghostSkin?: string;
+  /** Sin sonido (modo de prueba, decisión 59). No afecta al juego. */
+  muted?: boolean;
 }
 
 export const PACMAN_MODE_CONFIG: GameConfig = { mode: "pacman" };
@@ -190,6 +195,8 @@ export interface GameState {
   pacmanDeath: PacmanDeath | null;
   /** Polvo de los saltarines que acaban de aterrizar (solo visual). */
   landingDust: WallFlash[];
+  /** Sonidos producidos desde que la interfaz los consumió por última vez (sección 4.7). */
+  events: GameSoundEvent[];
 }
 
 function levelDefinition(state: GameState): LevelDefinition {
@@ -355,6 +362,7 @@ export function createInitialGameState(
     paused: false,
     scoreBreakdown: createScoreBreakdown(),
     random,
+    events: ["gameStart"],
   } as GameState;
   loadLevel(state, 1);
   return state;
@@ -436,10 +444,12 @@ function consumeFruitAt(state: GameState, row: number, col: number): void {
   if (index === -1) return;
   state.fruits.splice(index, 1);
   addPoints(state, "fruits", FRUIT_POINTS);
+  state.events.push("fruit");
 }
 
 function completeLevel(state: GameState): void {
   state.levelComplete = true;
+  state.events.push("levelComplete");
   state.levelTransitionTimer = LEVEL_TRANSITION_SECONDS;
   if (state.config.mode === "pacman") {
     state.lastLevelTimeBonus = computeTimeBonus(state.level, state.levelElapsed);
@@ -467,6 +477,8 @@ export function finishGame(state: GameState, won: boolean): void {
   if (state.gameOver || state.won) return;
   state.won = won;
   state.gameOver = !won;
+  // La victoria llega después del nivel 3 completado, que ya tuvo su jingle.
+  if (!won) state.events.push("gameOver");
   // addPoints descarta este bonus en modo GhostMan, donde las vidas son las de Pacman.
   addPoints(state, "livesBonus", computeLivesBonus(state.lives, won));
 }
@@ -479,6 +491,7 @@ function consumePelletAt(state: GameState, row: number, col: number): void {
   state.pelletsRemaining -= 1;
   state.dynamicPowerPellets = state.dynamicPowerPellets.filter((cell) => cell.row !== row || cell.col !== col);
 
+  state.events.push(pellet === "power" ? "powerPellet" : "pellet");
   if (pellet === "power") {
     addPoints(state, "pellets", POWER_PELLET_POINTS);
     activatePowerUp(state);
@@ -657,6 +670,7 @@ function eatGhost(state: GameState, ghost: Ghost): void {
   const index = Math.min(state.ghostsEatenInPowerUp, GHOST_POINTS_SCALE.length - 1);
   addPoints(state, "ghosts", GHOST_POINTS_SCALE[index]);
   state.ghostsEatenInPowerUp += 1;
+  state.events.push("ghostEaten");
 
   // Quedan sus ojos, que vuelven solos a la base desde donde está (decisión 46).
   ghost.eaten = true;
@@ -686,6 +700,7 @@ function loseLife(state: GameState): void {
  * desarma y después lo que corresponda. Con duraciones 0 (núcleo, modo de prueba) es inmediato.
  */
 function startPacmanDeath(state: GameState, after: AfterPacmanDeath): void {
+  state.events.push("pacmanDeath");
   const timings = state.config.timings ?? NO_WAIT_TIMINGS;
   const total = timings.deathFreezeSeconds + timings.deathSeconds;
   if (total <= 0) {
@@ -951,7 +966,6 @@ export function updateGameState(
   /** Barra espaciadora presionada desde el paso anterior (solo tiene efecto en modo GhostMan). */
   playerPowerRequested = false
 ): void {
-  const isPacmanMode = state.config.mode === "pacman";
   if (state.gameOver || state.won || state.paused) return;
 
   if (state.levelComplete) {
@@ -974,6 +988,50 @@ export function updateGameState(
     return;
   }
 
+  const before = takePowerSnapshot(state);
+  playStep(state, deltaSeconds, playerDesiredDirection, playerPowerRequested);
+  pushPowerEvents(state, before);
+}
+
+/**
+ * Lo que había antes del paso, para detectar los poderes que se usaron en él, del jugador o de la
+ * IA, sin importar dónde se activaron (el espectro de la IA decide el cruce al moverse).
+ */
+interface PowerSnapshot {
+  ghosts: Array<{ ghost: Ghost; phasing: boolean; jumping: boolean; dashing: boolean }>;
+  fakeFruits: Set<object>;
+  explosions: Set<object>;
+  wallFlashes: Set<object>;
+}
+
+function takePowerSnapshot(state: GameState): PowerSnapshot {
+  return {
+    ghosts: state.ghosts.map((ghost) => ({
+      ghost,
+      phasing: isPhasing(ghost) || ghost.phasePending,
+      jumping: isJumping(ghost),
+      dashing: isDashing(ghost),
+    })),
+    fakeFruits: new Set(state.fakeFruits),
+    explosions: new Set(state.explosions),
+    wallFlashes: new Set(state.wallFlashes),
+  };
+}
+
+function pushPowerEvents(state: GameState, before: PowerSnapshot): void {
+  for (const { ghost, phasing, jumping, dashing } of before.ghosts) {
+    if (!phasing && (isPhasing(ghost) || ghost.phasePending)) state.events.push("phase");
+    if (!jumping && isJumping(ghost)) state.events.push("jump");
+    if (!dashing && isDashing(ghost)) state.events.push("dash");
+  }
+  if (state.fakeFruits.some((fruit) => !before.fakeFruits.has(fruit))) state.events.push("fakeFruitPlaced");
+  if (state.explosions.some((explosion) => !before.explosions.has(explosion))) state.events.push("explosion");
+  if (state.wallFlashes.some((flash) => !before.wallFlashes.has(flash))) state.events.push("wallBreak");
+}
+
+/** Un paso de juego en marcha: sin pausa, cuenta, derrota ni resultado de nivel. */
+function playStep(state: GameState, deltaSeconds: number, playerDesiredDirection: Direction | null, playerPowerRequested: boolean): void {
+  const isPacmanMode = state.config.mode === "pacman";
   state.levelElapsed += deltaSeconds;
 
   const previousRow = state.pacman.row;

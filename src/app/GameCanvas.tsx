@@ -28,6 +28,7 @@ import { startGameLoop } from "../game/loop";
 import {
   createInitialGameState,
   getPlayerGhost,
+  isGameFinished,
   isPowerUpWarning,
   restartGame,
   togglePause,
@@ -38,6 +39,7 @@ import {
 import { findGhostSkin, findPacmanSkin } from "../game/skins";
 import { LEVEL_THEMES } from "../game/theme";
 import { countdownLabel, pacmanDeathFrame } from "../game/timings";
+import { getAudioEngine } from "./audio";
 import { Hud } from "./Hud";
 import { ScoreBreakdownView } from "./ScoreBreakdownView";
 import styles from "./GameCanvas.module.css";
@@ -149,10 +151,29 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
 
     let lastSnapshot = takeSnapshot(state);
 
+    // Sonido (HU-48): eventos del núcleo, pitidos de la cuenta y bucles según lo que pasa en el juego.
+    const audio = getAudioEngine();
+    audio.setMuted(!!state.config.muted);
+    const updateSuspended = () => audio.setSuspended(state.paused || document.hidden);
+    document.addEventListener("visibilitychange", updateSuspended);
+
+    const updateAudio = (snapshot: UiSnapshot) => {
+      for (const event of state.events.splice(0)) audio.play(event);
+      if (snapshot.countdown !== lastSnapshot.countdown && snapshot.countdown) {
+        if (snapshot.countdown === "¡ya!") audio.play("countdownGo");
+        else if (snapshot.countdown !== "¡Listo!") audio.play("countdownBeep");
+      }
+      updateSuspended();
+      const playing = !state.paused && !state.countdown && !state.pacmanDeath && !state.levelComplete && !isGameFinished(state);
+      const eyes = !state.paused && !state.pacmanDeath && state.ghosts.some((ghost) => ghost.eaten && !ghost.inHouse);
+      audio.setLoops({ siren: playing && !state.powerUpActive, powerSiren: playing && state.powerUpActive, eyes });
+    };
+
     const update = (dt: number) => {
       updateGameState(state, dt, input.getDirection(), input.consumePowerPress());
 
       const snapshot = takeSnapshot(state);
+      updateAudio(snapshot);
       if (!sameSnapshot(snapshot, lastSnapshot)) {
         // Nueva vida o nuevo nivel (en modo GhostMan, derrota de Pacman): el personaje del
         // jugador arranca quieto hasta que se indique una dirección.
@@ -271,6 +292,10 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
     return () => {
       loop.stop();
       input.dispose();
+      // Salir al menú corta todo el sonido.
+      audio.stopAll();
+      audio.setSuspended(false);
+      document.removeEventListener("visibilitychange", updateSuspended);
     };
   }, [state]);
 
