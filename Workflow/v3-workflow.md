@@ -6,7 +6,7 @@ Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo 
 
 La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 17, decisiones desde la 41, historias desde la HU-44 y casos de prueba desde el CP-164.
 
-> **Estado al 30/10/2026:** V2 cerrada. Especificación de la V3 cerrada por D. Savoia (decisiones 26, 34, 37, 38 y 41 a 66). Incrementos 18 y 19 ejecutados.
+> **Estado al 30/10/2026:** V2 cerrada. Especificación de la V3 cerrada por D. Savoia (decisiones 26, 34, 37, 38 y 41 a 66). Incrementos 18 a 20 ejecutados.
 
 ---
 
@@ -156,11 +156,11 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Commit del incremento
 
 ### Incremento 20 — Impulso del acelerado (HU-31, HU-49)
-- [ ] Redactar y ejecutar el Prompt 19
-- [ ] Verificar: el dash de 3, 2, 1 y 0 celdas recorre las celdas en el tiempo definido, con colisión en el trayecto, y la penalidad de 5 s se mantiene
-- [ ] Actualizar la suite del incremento 15
-- [ ] Registrar problemas en la tabla de la sesión
-- [ ] Commit del incremento
+- [x] Redactar y ejecutar el Prompt 19
+- [x] Verificar: el dash de 3, 2, 1 y 0 celdas recorre las celdas en el tiempo definido, con colisión en el trayecto, y la penalidad de 5 s se mantiene
+- [x] Actualizar las suites de los incrementos 15 y 16 y agregar `core/inc20.js`
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
 
 ### Incremento 21 — Cuenta regresiva y modo de prueba (HU-46)
 - [ ] Redactar y ejecutar el Prompt 20

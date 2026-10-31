@@ -29,6 +29,10 @@ export const NAVAL_SPEED_FACTOR = 0.8;
 export const ACCELERATED_SLOW_FACTOR = 0.5;
 export const SPECTER_PHASE_COOLDOWN_SECONDS = 10;
 export const SPECTER_NO_EAT_SECONDS = 3;
+/** Impulso del acelerado: recorre sus celdas a 12 celdas/s, 3 celdas en 0,25 s (decisión 54). */
+export const DASH_SPEED = 12;
+/** Penalidad del acelerado después del impulso: 5 s al 50 % (HU-31). */
+export const DASH_SLOW_SECONDS = 5;
 /** En las celdas del túnel los fantasmas van al 50 % de su velocidad (decisión 48). */
 export const TUNNEL_SPEED_FACTOR = 0.5;
 /** Los ojos de un fantasma comido vuelven a la base al doble de la velocidad del clásico (decisión 46). */
@@ -60,6 +64,8 @@ export interface Ghost extends Mover {
   releaseTimer: number;
   /** Segundos de espera para salir al empezar el nivel o después de perder una vida. */
   releaseDelay: number;
+  /** Acelerado: celdas que le faltan recorrer en el impulso en curso (0 = no se está impulsando). */
+  dashCellsLeft: number;
   /** Segundos hasta poder volver a usar el poder (cualquier tipo). Sobrevive al reinicio del nivel. */
   powerCooldown: number;
   /**
@@ -120,6 +126,7 @@ export function createGhost(
     inHouse: false,
     releaseTimer: 0,
     releaseDelay: 0,
+    dashCellsLeft: 0,
     powerCooldown: 0,
     facing: null,
     phasePending: false,
@@ -272,6 +279,10 @@ export function updateGhost(
   // Cooldown y penalidad del acelerado (incremento 16: el acelerado de la IA también la tiene).
   tickPowerTimers(ghost, deltaSeconds);
   if (ghost.noEatTimer > 0) ghost.noEatTimer = Math.max(0, ghost.noEatTimer - deltaSeconds);
+  if (isDashing(ghost)) {
+    advanceDash(ghost, map, deltaSeconds);
+    return;
+  }
 
   if (ghost.progress === 0) {
     decide(ghost, map, targetRow, targetCol, allowPhase);
@@ -314,6 +325,10 @@ export function updatePlayerGhost(ghost: Ghost, map: GameMap, deltaSeconds: numb
     advancePlayerPhase(ghost, map, deltaSeconds);
     return;
   }
+  if (isDashing(ghost)) {
+    advanceDash(ghost, map, deltaSeconds);
+    return;
+  }
 
   ghost.desiredDirection = desiredDirection;
   // Dentro de la base puede cruzar la puerta para salir; afuera, la puerta es un muro (decisión 44).
@@ -333,6 +348,49 @@ export function tickPowerTimers(ghost: Ghost, deltaSeconds: number): void {
     ghost.slowTimer = tickTimer(ghost.slowTimer, deltaSeconds);
     if (ghost.slowTimer === 0) ghost.speed = speedForKind(ghost.kind) * ghost.speedFactor;
   }
+}
+
+/** Acelerado a mitad de un impulso (decisión 54). */
+export function isDashing(ghost: Ghost): boolean {
+  return ghost.dashCellsLeft > 0;
+}
+
+/**
+ * Impulso del acelerado: avanza en línea recta a 12 celdas/s, sin leer el teclado ni la IA y sin
+ * la reducción del túnel. Al terminar arranca la penalidad de velocidad y, si puede, sigue en la
+ * misma dirección. El contacto con Pacman lo resuelve la detección de colisiones de cada cuadro.
+ */
+function advanceDash(ghost: Ghost, map: GameMap, deltaSeconds: number): void {
+  const facing = ghost.facing!;
+  ghost.direction = facing;
+  ghost.progress += DASH_SPEED * deltaSeconds;
+  while (ghost.progress >= 1 && isDashing(ghost)) {
+    const next = neighborCell(map, ghost.row, ghost.col, facing);
+    ghost.row = next.row;
+    ghost.col = next.col;
+    ghost.progress -= 1;
+    ghost.dashCellsLeft -= 1;
+  }
+  if (isDashing(ghost)) return;
+  ghost.progress = 0;
+  const ahead = neighborCell(map, ghost.row, ghost.col, facing);
+  ghost.direction = canEnterCell(map, ahead.row, ahead.col) ? facing : null;
+  startDashPenalty(ghost);
+}
+
+/**
+ * Termina el impulso antes de tiempo (comido o reinicio del nivel): la penalidad arranca igual,
+ * para que cortar el impulso no la evite.
+ */
+export function cancelDash(ghost: Ghost): void {
+  if (!isDashing(ghost)) return;
+  ghost.dashCellsLeft = 0;
+  startDashPenalty(ghost);
+}
+
+function startDashPenalty(ghost: Ghost): void {
+  ghost.slowTimer = DASH_SLOW_SECONDS;
+  ghost.speed = speedForKind(ghost.kind) * ghost.speedFactor * ACCELERATED_SLOW_FACTOR;
 }
 
 /** Cruce del espectro del jugador: dirección fija, sin chequear muros hasta la celda de salida. */
@@ -373,8 +431,9 @@ function advancePlayerPhase(ghost: Ghost, map: GameMap, deltaSeconds: number): v
 export function reverseGhostDirection(ghost: Ghost, map: GameMap): void {
   // La reversa forzada es de la IA: al fantasma del jugador lo sigue controlando el jugador.
   if (ghost.controlledByPlayer || !ghost.direction) return;
-  // Un espectro a mitad de un muro completa el cruce antes de poder invertir la marcha.
-  if (isPhasing(ghost)) return;
+  // Un espectro a mitad de un muro completa el cruce antes de poder invertir la marcha, y un
+  // acelerado, su impulso (decisión 54).
+  if (isPhasing(ghost) || isDashing(ghost)) return;
 
   if (ghost.progress > 0) {
     const next = neighborCell(map, ghost.row, ghost.col, ghost.direction);

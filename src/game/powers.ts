@@ -1,6 +1,5 @@
 import { canPlaceFakeFruit, createFakeFruit, NAVAL_PLACE_COOLDOWN_SECONDS, type FakeFruit } from "./fakeFruits";
-import { ACCELERATED_SLOW_FACTOR, SPECTER_PHASE_COOLDOWN_SECONDS, speedForKind, type Ghost } from "./ghosts";
-import { isPhaseableWall } from "./ghosts";
+import { isPhaseableWall, SPECTER_PHASE_COOLDOWN_SECONDS, type Ghost } from "./ghosts";
 import { canEnterCell, cellAt, DIRECTION_VECTORS, getMoverPosition, isHouseCell, isTunnelCell, neighborCell } from "./movement";
 import type { GameMap } from "./types";
 
@@ -13,10 +12,9 @@ import type { GameMap } from "./types";
 export const JUMPER_RADIUS_CELLS = 10;
 export const JUMPER_COOLDOWN_SECONDS = 10;
 
-/** Acelerado: largo máximo del dash, cooldown y duración de la penalidad de velocidad. */
+/** Acelerado: largo máximo del dash y cooldown. La penalidad de velocidad está en ghosts.ts. */
 export const DASH_MAX_CELLS = 3;
 export const DASH_COOLDOWN_SECONDS = 10;
-export const DASH_SLOW_SECONDS = 5;
 
 export type RandomSource = () => number;
 
@@ -111,19 +109,19 @@ export function tryNavalPlaceFruit(ghost: Ghost, fakeFruits: FakeFruit[], map: G
 }
 
 /**
- * Acelerado: desplazamiento instantáneo de hasta 3 celdas en la dirección de avance, desde la
- * celda que ocupa. Se detiene en la última celda transitable antes de un muro y nunca sale del
- * mapa. Si la primera celda ya está bloqueada, o si no tiene dirección de avance (recién
- * aparecido), no hay desplazamiento y el poder no se consume (decisión 25). Después del dash
- * se mueve al 50 % durante 5 s. El contacto con Pacman a lo largo del trayecto lo resuelve el
- * estado del juego (decisión 32).
+ * Acelerado: impulso de hasta 3 celdas en la dirección de avance, desde la celda que ocupa (decisión
+ * 54). Acá solo se cuenta cuántas celdas puede recorrer: se detiene en la última transitable antes
+ * de un muro y el túnel cuenta como camino. Si la primera ya está bloqueada, o si no tiene
+ * dirección de avance, no hay impulso y el poder no se consume (decisión 25). El recorrido, a
+ * 12 celdas/s, y la penalidad posterior están en ghosts.ts; el contacto con Pacman, en el estado.
  */
 export function tryAcceleratedDash(ghost: Ghost, map: GameMap): boolean {
   const facing = ghost.facing;
   if (!facing) return false;
-  let { row, col } = cellAt(map, getMoverPosition(ghost));
+  const start = cellAt(map, getMoverPosition(ghost));
 
   let cells = 0;
+  let { row, col } = start;
   for (let next = neighborCell(map, row, col, facing); cells < DASH_MAX_CELLS && canEnterCell(map, next.row, next.col); next = neighborCell(map, row, col, facing)) {
     row = next.row;
     col = next.col;
@@ -131,14 +129,12 @@ export function tryAcceleratedDash(ghost: Ghost, map: GameMap): boolean {
   }
   if (cells === 0) return false;
 
-  ghost.row = row;
-  ghost.col = col;
+  ghost.row = start.row;
+  ghost.col = start.col;
   ghost.progress = 0;
-  const ahead = neighborCell(map, row, col, facing);
-  ghost.direction = canEnterCell(map, ahead.row, ahead.col) ? facing : null;
+  ghost.direction = facing;
+  ghost.dashCellsLeft = cells;
   ghost.powerCooldown = DASH_COOLDOWN_SECONDS;
-  ghost.slowTimer = DASH_SLOW_SECONDS;
-  ghost.speed = speedForKind(ghost.kind) * ghost.speedFactor * ACCELERATED_SLOW_FACTOR;
   return true;
 }
 
@@ -148,7 +144,7 @@ export function tryAcceleratedDash(ghost: Ghost, map: GameMap): boolean {
  */
 export function tryActivateGhostPower(ghost: Ghost, context: PowerContext): boolean {
   // Dentro de la base no se usa el poder: el saltarín no puede salir sin pasar por la puerta.
-  if (ghost.eaten || ghost.inHouse || ghost.powerCooldown > 0 || ghost.phaseCellsLeft > 0 || ghost.phasePending) return false;
+  if (ghost.eaten || ghost.inHouse || ghost.powerCooldown > 0 || ghost.phaseCellsLeft > 0 || ghost.phasePending || ghost.dashCellsLeft > 0) return false;
   switch (ghost.kind) {
     case "specter":
       return trySpecterPhase(ghost, context.map);

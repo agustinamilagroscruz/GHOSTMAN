@@ -658,6 +658,37 @@ GhostMan). Después medí el balance. Si algo es ambiguo, preguntame antes de
 generar código.
 ```
 
+#### Prompt 19 — Impulso del acelerado (HU-31, HU-49; decisión 54)
+
+```
+Incremento 20. El dash del acelerado hoy es un teletransporte: el fantasma
+aparece de golpe hasta 3 celdas adelante y el contacto con Pacman se calcula
+sobre el segmento recorrido (decisión 32). Cambialo por un impulso real
+(sección 4.4, decisión 54):
+
+- Al activarlo se calcula cuántas celdas puede avanzar (3, 2, 1 o 0, con la
+  regla actual; el túnel cuenta como camino). Con 0, nada cambia y el poder no
+  se consume (decisión 25).
+- El fantasma recorre esas celdas a 12 celdas/s (3 celdas en 0,25 s), en línea
+  recta, sin leer el teclado ni la IA. El túnel no lo frena.
+- La colisión con Pacman es la de siempre, cuadro a cuadro, durante todo el
+  trayecto: si lo toca sin PowerUp, Pacman pierde una vida; si el acelerado
+  está vulnerable, Pacman se lo come y el impulso se corta.
+- El cooldown de 10 s arranca al activarlo. La penalidad de velocidad (50 %
+  durante 5 s) arranca al terminar el impulso, o cuando se corta (comido o
+  reinicio del nivel), para que nunca se pierda.
+- Durante el impulso no se puede invertir la marcha (ni por el cambio de
+  persecución a dispersión ni por el PowerUp) ni usar otro poder.
+- Se ve una estela de 2 o 3 siluetas detrás del fantasma mientras se impulsa.
+  El acelerado de la IA del modo Pacman usa la misma función.
+
+Actualizá core/inc15.js y core/inc16.js, que hoy esperan el desplazamiento en
+el mismo cuadro, y agregá core/inc20.js con: duración del impulso, celdas
+recorridas por cuadro, colisión en el trayecto (adelante, a mitad de celda y
+al final), corte por ser comido, penalidad al terminar y al cortarse, túnel y
+la IA del modo Pacman. Si algo es ambiguo, preguntame antes de generar código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -676,6 +707,9 @@ generar código.
 | 10 | 19 | Prompt 18 | **Rendimiento:** el mapa nuevo tiene 868 celdas (3,4 veces el anterior) y la búsqueda de caminos de la IA de Pacman con cargas recorría todo el mapa en cada paso de Dijkstra | Se reemplazó por una cola por distancia (los costos son 1 y 3), con el mismo orden de desempate | No |
 | 11 | 19 | Prompt 18 | **Interfaz:** el aviso "Reaparecés en N" de la HU-27 contaba los 5 s de la V2. Con los ojos, la vuelta no tiene un tiempo fijo | Mientras vuelven los ojos se muestra "Volviendo a la base…"; el naval, ya adentro, muestra "Reaparecés en N" durante su espera de 3 s | No |
 | 12 | 19 | Prompt 18 | **Entorno:** las suites de navegador no se podían correr porque `playwright-core`, que figura en las dependencias de desarrollo, no estaba instalado | Se instaló con `npm install` desde el lockfile, sin cambiar `package.json` ni `package-lock.json` | No |
+| 13 | 20 — Impulso del acelerado | Prompt 19 | **Cambio de implementación de una decisión anterior:** la decisión 32 (contacto en todo el trayecto del *dash*) estaba resuelta calculando la distancia de Pacman al segmento recorrido, porque el *dash* era instantáneo. Con el impulso, el acelerado pasa por cada celda | Se eliminó el cálculo del segmento: el contacto lo detecta la colisión de cada cuadro, como para cualquier fantasma. Lo verifica `core/inc20.js`, también con Pacman yendo de frente hacia el acelerado | No |
+| 14 | 20 | Prompt 19 | **Hueco de especificación:** la decisión 54 mantiene la penalidad de 5 s, pero no dice si arranca al activar el poder o al terminar el impulso, ni qué pasa si el impulso se corta | Se definió en el prompt: arranca al terminar el impulso, o cuando se corta (comido o reinicio del nivel), para que cortarlo no la evite | No |
+| 15 | 20 | Prompt 19 | **Observación:** el impulso arranca desde el centro de la celda que ocupa el acelerado (la misma regla de la V2), así que si estaba a mitad de camino vuelve hasta media celda antes de impulsarse. Además, el acelerado de la IA activa el poder al final del cuadro, después de moverse, y su impulso empieza a avanzar en el cuadro siguiente | Se dejó así: el retroceso es de media celda como máximo y queda tapado por la estela. Las pruebas cuentan los 15 cuadros del impulso desde que empieza a avanzar | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 
@@ -707,6 +741,8 @@ Tres lecturas para el playtest que prevé la decisión 51:
 - **El saltarín y el acelerado** son los que mejor aprovechan su poder en los mapas grandes: el salto y el *dash* acortan distancias que ahora son más largas.
 
 Los valores a revisar después de jugar son las velocidades (decisiones 39 y 40) y las cargas de destrucción de la decisión 22, que en esta medición no se tocaron.
+
+**Balance después del incremento 20.** Con el bot que usa su poder, el acelerado sigue en 8 victorias y 2 Game Over en el nivel 3, igual que después del incremento 19: recorrer las celdas en 0,25 s en lugar de aparecer de golpe no cambió el resultado. El resto de los tipos no se ve afectado por este incremento y da lo mismo que en la medición anterior.
 
 *El resto, a completar al cierre de la etapa de generación.*
 

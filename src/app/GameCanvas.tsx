@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createFireworksState, renderFireworks, spawnFireworkBurst, updateFireworks } from "../game/fireworks";
-import { isPhasing } from "../game/ghosts";
+import { isDashing, isPhasing } from "../game/ghosts";
 import { createKeyboardDirectionInput } from "../game/input";
-import { getMoverPosition } from "../game/movement";
+import { DIRECTION_VECTORS, getMoverPosition } from "../game/movement";
 import { isPowerReady } from "../game/powers";
 import { EXPLOSION_DISPLAY_SECONDS, FAKE_FRUIT_WARNING_SECONDS } from "../game/fakeFruits";
 import { WALL_FLASH_SECONDS } from "../game/difficulty";
@@ -37,6 +37,11 @@ import { ScoreBreakdownView } from "./ScoreBreakdownView";
 import styles from "./GameCanvas.module.css";
 
 const CELL_SIZE = 24;
+/** Siluetas de la estela del impulso: distancia detrás del acelerado, en celdas, y opacidad. */
+const DASH_TRAIL = [
+  { offset: 0.8, alpha: 0.2 },
+  { offset: 0.4, alpha: 0.45 },
+] as const;
 
 /** Lo que la interfaz React necesita del estado del juego; se actualiza solo cuando cambia. */
 interface UiSnapshot {
@@ -183,16 +188,26 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
           }
           continue;
         }
-        drawWrapped(state.map.cols, ghostPosition.col, (col) =>
-          renderGhost(ctx, ghostPosition.row, col, CELL_SIZE, {
-            color: ghost.color,
-            kind: ghost.kind,
-            isHarmless: ghost.noEatTimer > 0 || isPhasing(ghost),
-            isVulnerable: ghost.vulnerable,
-            isWarning,
-            blinkOn,
-          })
-        );
+        const appearance = {
+          color: ghost.color,
+          kind: ghost.kind,
+          isHarmless: ghost.noEatTimer > 0 || isPhasing(ghost),
+          isVulnerable: ghost.vulnerable,
+          isWarning,
+          blinkOn,
+        };
+        // Estela del impulso del acelerado: dos siluetas que se desvanecen detrás (decisión 54).
+        if (isDashing(ghost) && ghost.facing) {
+          const [dRow, dCol] = DIRECTION_VECTORS[ghost.facing];
+          DASH_TRAIL.forEach(({ offset, alpha }) => {
+            const row = ghostPosition.row - dRow * offset;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            drawWrapped(state.map.cols, ghostPosition.col - dCol * offset, (col) => renderGhost(ctx, row, col, CELL_SIZE, appearance));
+            ctx.restore();
+          });
+        }
+        drawWrapped(state.map.cols, ghostPosition.col, (col) => renderGhost(ctx, ghostPosition.row, col, CELL_SIZE, appearance));
       }
       const position = getMoverPosition(state.pacman);
       drawWrapped(state.map.cols, position.col, (col) =>

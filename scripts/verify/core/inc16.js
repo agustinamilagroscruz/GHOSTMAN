@@ -116,8 +116,8 @@ function solo(kind, { pacman = [19, 8], ghost = [19, 4], dir = "right", mode = "
 }
 {
   const [s, g] = solo("accelerated", { pacman: [19, 9], ghost: [19, 4] });
-  step(s, 1);
-  check(g.powerCooldown > 9.9 && g.col === 7 && Math.abs(g.speed - 1.59375) < 1e-9, `acelerado: Pacman a 5 → dash de 3 celdas (col ${g.col}) y velocidad 1,59 (50 % de 3,19)`);
+  step(s, 16); // el impulso dura 0,25 s desde el incremento 20 (antes era instantáneo)
+  check(g.powerCooldown > 9.6 && g.col === 7 && Math.abs(g.speed - 1.59375) < 1e-9, `acelerado: Pacman a 5 → dash de 3 celdas (col ${g.col}) y velocidad 1,59 (50 % de 3,19)`);
   step(s, 60 * 5 + 2);
   check(Math.abs(g.speed - 3.1875) < 1e-9, "acelerado: a los 5 s recupera la velocidad 3,19 (modo Pacman)");
 }
@@ -125,7 +125,7 @@ function solo(kind, { pacman = [19, 8], ghost = [19, 4], dir = "right", mode = "
   // Contacto en todo el trayecto del dash: Pacman en el medio pierde una vida
   const [s] = solo("accelerated", { pacman: [19, 6], ghost: [19, 4] });
   const lives = s.lives;
-  step(s, 1);
+  step(s, 17);
   check(s.lives === lives - 1, "acelerado: el dash que pasa por encima de Pacman le quita una vida (decisión 32)");
 }
 {

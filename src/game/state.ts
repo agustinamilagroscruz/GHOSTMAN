@@ -1,4 +1,5 @@
 import {
+  cancelDash,
   canGhostHarm,
   clearSpecterState,
   createGhost,
@@ -231,6 +232,8 @@ export function getPlayerGhost(state: GameState): Ghost | undefined {
 
 /** Posición inicial del nivel o después de perder una vida: afuera o dentro de la base, esperando salir. */
 function placeGhostAtSpawn(ghost: Ghost, map: GameMap): void {
+  // Un impulso cortado por el reinicio del nivel deja la penalidad en curso (decisión 54).
+  cancelDash(ghost);
   ghost.row = ghost.spawn.row;
   ghost.col = ghost.spawn.col;
   ghost.inHouse = isHouseCell(map, ghost.row, ghost.col);
@@ -595,34 +598,6 @@ function resolveContact(state: GameState, ghost: Ghost): boolean {
   return true;
 }
 
-/** Distancia de un punto al segmento recto (horizontal o vertical) entre dos centros de celda. */
-function distanceToSegment(
-  point: { row: number; col: number },
-  from: { row: number; col: number },
-  to: { row: number; col: number }
-): number {
-  const dRow = to.row - from.row;
-  const dCol = to.col - from.col;
-  const lengthSquared = dRow * dRow + dCol * dCol;
-  const t =
-    lengthSquared === 0
-      ? 0
-      : Math.max(0, Math.min(1, ((point.row - from.row) * dRow + (point.col - from.col) * dCol) / lengthSquared));
-  return Math.hypot(point.row - (from.row + t * dRow), point.col - (from.col + t * dCol));
-}
-
-/**
- * Dash del acelerado: el contacto con Pacman se evalúa en todo el trayecto, no solo en la celda
- * de llegada. Pasar por encima de Pacman también es contacto (decisión 32).
- */
-function checkDashContact(state: GameState, ghost: Ghost, from: { row: number; col: number }): void {
-  if (state.levelComplete || state.gameOver || state.won) return;
-  const pacman = getMoverPosition(state.pacman);
-  if (distanceToSegment(pacman, from, { row: ghost.row, col: ghost.col }) < CONTACT_DISTANCE) {
-    resolveContact(state, ghost);
-  }
-}
-
 /**
  * Modo GhostMan: el fantasma del jugador derrota a Pacman (HU-25). Pacman pierde una vida,
  * el jugador suma 500 y el nivel se reinicia según la tabla 4.3: se conservan las esferas
@@ -654,6 +629,7 @@ function eatGhost(state: GameState, ghost: Ghost): void {
   ghost.respawnTimer = ghost.kind === "naval" ? NAVAL_HOUSE_WAIT_SECONDS : 0;
   ghost.desiredDirection = null;
   clearSpecterState(ghost);
+  cancelDash(ghost);
   turnTowardIfMidStep(ghost, state.map, state.map.house.center);
 }
 
@@ -895,7 +871,8 @@ function triggerAiGhostPower(state: GameState, ghost: Ghost): void {
       const origin = cellAt(state.map, from);
       const ahead = neighborCell(state.map, origin.row, origin.col, ghost.facing);
       if (!canEnterCell(state.map, ahead.row, ahead.col)) break;
-      if (tryAcceleratedDash(ghost, state.map)) checkDashContact(state, ghost, from);
+      // El impulso avanza en los cuadros siguientes y el contacto se detecta en cada uno (decisión 54).
+      tryAcceleratedDash(ghost, state.map);
       break;
     }
   }
@@ -966,14 +943,12 @@ export function updateGameState(
   if (!isPacmanMode && playerPowerRequested) {
     const playerGhost = getPlayerGhost(state);
     if (playerGhost) {
-      const from = getMoverPosition(playerGhost);
       const fakeFruitsBefore = state.fakeFruits.length;
       const used = tryActivateGhostPower(playerGhost, {
         map: state.map,
         random: state.random,
         fakeFruits: state.fakeFruits,
       });
-      if (used && playerGhost.kind === "accelerated") checkDashContact(state, playerGhost, from);
       if (used && playerGhost.kind === "naval") noticePlacedFakeFruits(state, fakeFruitsBefore);
     }
   }

@@ -4,6 +4,7 @@ const path = require("path");
 const B = process.argv[2];
 const st = require(path.join(B, "state.js"));
 const { isPowerReady } = require(path.join(B, "powers.js"));
+const { neighborCell } = require(path.join(B, "movement.js"));
 let fails = 0;
 const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fails++; };
 const DT = 1 / 60;
@@ -16,6 +17,8 @@ function setup() {
 }
 const step = (s, n, dir = null, power = false) => { for (let i = 0; i < n; i++) st.updateGameState(s, DT, dir, power && i === 0); };
 // Fuera de la base desde el incremento 19: dentro, el poder no se puede usar.
+/** Barra espaciadora y los cuadros que dura el impulso (0,25 s desde el incremento 20; antes era instantáneo). */
+const dash = (s) => { step(s, 1, null, true); step(s, 16); };
 const place = (g, r, c, facing) => { g.row = r; g.col = c; g.progress = 0; g.direction = null; g.facing = facing; g.inHouse = false; };
 
 // Coordenadas sobre el nivel 1 de la V3 (incremento 19): la fila 1 es camino de la columna 7 a
@@ -24,11 +27,12 @@ const place = (g, r, c, facing) => { g.row = r; g.col = c; g.progress = 0; g.dir
 for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
   const [s, g] = setup();
   place(g, 1, startCol, "right");
-  step(s, 1, null, true);
+  g.speed = 0; // quieto al terminar el impulso, para medir solo el impulso
+  dash(s);
   const moved = g.col - startCol;
   check(g.row === 1 && moved === expected, `desde (1,${startCol}) con ${expected} celdas libres: avanza ${moved}`);
-  if (expected === 0) check(g.powerCooldown === 0 && g.slowTimer === 0 && g.speed === 3.75, "  0 celdas: sin cooldown ni penalidad");
-  else check(g.powerCooldown > 9.9 && Math.abs(g.speed - 1.875) < 1e-9, "  cooldown de 10 s y velocidad 1,875 celdas/s");
+  if (expected === 0) check(g.powerCooldown === 0 && g.slowTimer === 0, "  0 celdas: sin cooldown ni penalidad");
+  else check(g.powerCooldown > 9.6 && Math.abs(g.speed - 1.875) < 1e-9, "  cooldown de 10 s y velocidad 1,875 celdas/s al terminar el impulso");
 }
 {
   // Nunca sale del mapa ni entra a un muro: dash contra el borde en las cuatro direcciones
@@ -38,7 +42,11 @@ for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
     if (s.map.cells[r][c] !== "path") continue;
     place(g, r, c, f); g.powerCooldown = 0;
     const { tryAcceleratedDash } = require(path.join(B, "powers.js"));
-    tryAcceleratedDash(g, s.map);
+    if (tryAcceleratedDash(g, s.map)) {
+      // Desde el incremento 20 el impulso se recorre en los cuadros siguientes: se calcula la llegada.
+      for (let k = g.dashCellsLeft; k > 0; k--) { const n = neighborCell(s.map, g.row, g.col, f); g.row = n.row; g.col = n.col; }
+      g.dashCellsLeft = 0;
+    }
     if (g.row < 0 || g.row >= s.map.rows || g.col < 0 || g.col >= s.map.cols || s.map.cells[g.row][g.col] !== "path") bad++;
     // Por el túnel la distancia se cuenta por el borde (incremento 19).
     const dc = Math.abs(g.col - c);
@@ -57,7 +65,7 @@ for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
   // Penalidad: 5 s al 50 %, después vuelve a 5 celdas/s; cooldown hasta los 10 s
   const [s, g] = setup();
   place(g, 5, 1, "right");
-  step(s, 1, null, true);
+  dash(s); // la penalidad arranca al terminar el impulso
   step(s, Math.round(4.9 / DT));
   check(Math.abs(g.speed - 1.875) < 1e-9, "a los 4,9 s sigue al 50 %");
   step(s, Math.round(0.2 / DT));
@@ -67,8 +75,8 @@ for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
   check(isPowerReady(g) === true, "a los 10 s el poder vuelve a estar disponible");
   // medir la velocidad real durante la penalidad
   const [s2, g2] = setup();
-  place(g2, 5, 1, "right"); step(s2, 1, null, true); // dash a (5,4)
-  const c0 = g2.col; step(s2, 60, "right");
+  place(g2, 5, 1, "right"); dash(s2); // impulso hasta (5,4)
+  const c0 = g2.col + g2.progress; step(s2, 60, "right");
   check(Math.abs(g2.col + g2.progress - c0 - 1.875) < 0.05, `desplazamiento real en 1 s de penalidad: ${(g2.col + g2.progress - c0).toFixed(2)} celdas`);
 }
 {
@@ -76,7 +84,7 @@ for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
   const [s, g] = setup();
   s.pacman.row = 1; s.pacman.col = 12;
   place(g, 1, 10, "right"); // termina en (1,13)
-  step(s, 1, null, true);
+  dash(s);
   check(s.lives === 2 && s.scoreBreakdown.pacmanDefeats === 500, "pasa por encima de Pacman (1,12) y termina en (1,13): Pacman pierde una vida");
 }
 {
@@ -84,7 +92,7 @@ for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
   const [s, g] = setup();
   s.pacman.row = 1; s.pacman.col = 11; s.pacman.direction = "right"; s.pacman.progress = 0.5; // en 11,5
   place(g, 1, 9, "right"); // trayecto 9→12
-  step(s, 1, null, true);
+  dash(s);
   check(s.lives === 2, "Pacman entre dos celdas del trayecto (1,11½): también es contacto");
 }
 {
@@ -92,7 +100,7 @@ for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
   const [s, g] = setup();
   s.pacman.row = 1; s.pacman.col = 13;
   place(g, 1, 10, "right");
-  step(s, 1, null, true);
+  dash(s);
   check(s.lives === 2, "termina sobre Pacman: pierde una vida");
 }
 {
@@ -100,7 +108,7 @@ for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
   const [s, g] = setup();
   s.pacman.row = 3; s.pacman.col = 11;
   place(g, 1, 9, "right");
-  step(s, 1, null, true);
+  dash(s);
   check(s.lives === 3, "Pacman fuera del trayecto: no hay contacto");
 }
 {
@@ -109,21 +117,22 @@ for (const [startCol, expected] of [[17, 3], [18, 2], [19, 1], [20, 0]]) {
   s.pacman.row = 1; s.pacman.col = 12;
   s.powerUpActive = true; s.powerUpTimer = 6; g.vulnerable = true;
   place(g, 1, 10, "right");
-  step(s, 1, null, true);
+  dash(s);
   check(g.eaten && s.lives === 3, "con PowerUp: el acelerado vulnerable que pasa por Pacman es comido");
 }
 {
   // La penalidad y el cooldown siguen corriendo mientras está comido
   const [s, g] = setup();
-  place(g, 5, 1, "right"); step(s, 1, null, true);
+  place(g, 5, 1, "right"); dash(s);
   g.eaten = true; g.respawnTimer = 5;
   step(s, Math.round(5.1 / DT));
-  check(g.slowTimer === 0 && g.speed === 3.75 && g.powerCooldown > 4.8 && g.powerCooldown < 5, "comido: la penalidad termina y el cooldown sigue corriendo");
+  // Cooldown esperado: 10 s menos los 17 cuadros de dash(s) y los 5,1 s comido.
+  check(g.slowTimer === 0 && g.speed === 3.75 && Math.abs(g.powerCooldown - (10 - 17 * DT - 5.1)) < 0.03, `comido: la penalidad termina y el cooldown sigue corriendo (${g.powerCooldown.toFixed(2)} s)`);
 }
 {
   // Penalidad después de una derrota de Pacman: se conserva, igual que el cooldown
   const [s, g] = setup();
-  place(g, 5, 1, "right"); step(s, 1, null, true);
+  place(g, 5, 1, "right"); dash(s);
   g.row = s.pacman.row; g.col = s.pacman.col; step(s, 1);
   check(s.lives === 2 && g.slowTimer > 4.9 && Math.abs(g.speed - 1.875) < 1e-9, "derrota de Pacman: la penalidad en curso se conserva");
 }
