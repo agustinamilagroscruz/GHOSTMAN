@@ -894,6 +894,66 @@ IA, y las líneas del acelerado. Si algo es ambiguo, preguntame antes de
 generar código.
 ```
 
+#### Prompt 26 — Registro, inicio de sesión y menú principal (HU-35, HU-36, HU-37; decisiones 60, 61, 65 y 66)
+
+```
+Incremento 27. Agregá las cuentas de usuario con Supabase (sección 4.9 de la
+Entrega 01 y sección 4.10 de este documento). Los proyectos de prueba y de
+producción ya existen, con la confirmación por email desactivada y las reglas
+de contraseña configuradas. En .env.local están NEXT_PUBLIC_SUPABASE_URL y
+NEXT_PUBLIC_SUPABASE_ANON_KEY del proyecto de prueba. La clave de servicio no
+existe para vos: todo se hace con la clave pública y la sesión del usuario.
+
+1. Base de datos. Escribí la migración en supabase/migrations/ con la tabla
+   profiles (decisión 62): id del usuario, username tal como se registró,
+   skin de Pacman y de los fantasmas (las clásicas por defecto) y volumen de
+   música y de efectos (0 a 100, 100 por defecto). El username es único sin
+   distinguir mayúsculas. El perfil se crea con un trigger sobre auth.users,
+   en la misma transacción que el usuario, a partir del username que manda el
+   registro: si el trigger falla, el alta entera se deshace (decisión 61).
+   RLS: con sesión iniciada se leen los usernames; cada usuario modifica solo
+   sus preferencias, nunca su username. best_scores es del incremento 28. No
+   podés aplicar la migración: cuando esté lista, pará y avisame para que la
+   aplique en los dos proyectos.
+
+2. Registro (HU-35). Username, contraseña y confirmación. Se valida en el
+   formulario: username de 3 a 16 caracteres alfanuméricos, contraseña de 8 o
+   más con al menos una letra y un número, confirmación igual, ningún campo
+   vacío; cada error junto a su campo. Las contraseñas se ven ocultas. El email
+   es <username en minúsculas>@ghostman.invalid. Un username en uso se informa
+   junto al campo, también si solo difiere en mayúsculas. Un registro exitoso
+   inicia la sesión y lleva al menú principal.
+
+3. Inicio de sesión (HU-36). Username y contraseña, con un mensaje por campo
+   vacío. Con credenciales incorrectas, un único mensaje que no dice cuál de
+   los dos datos falló. El username no distingue mayúsculas; la contraseña sí.
+   La sesión persiste al recargar. Desde el login se llega al registro y al
+   revés.
+
+4. Sin conexión (decisión 65): en el registro y en el login, un error general
+   si Supabase no responde, distinto del de credenciales.
+
+5. Menú principal (HU-37): Jugar, Puntajes y Opciones, con el manejo de
+   teclado del menú actual. Jugar lleva a la elección de modo que hoy es el
+   menú (HU-22), que pasa a tener un botón para volver. Puntajes y Opciones son
+   secciones vacías por ahora, con su título y el botón para volver: se llenan
+   en los incrementos 28 y 29. Sin sesión no se ve ninguna pantalla que no sea
+   el login o el registro. Cerrar sesión es del incremento 29.
+
+Las suites de navegador inician sesión contra el proyecto de prueba antes de
+empezar (decisión 66), con el usuario de GHOSTMAN_TEST_USER y
+GHOSTMAN_TEST_PASSWORD de .env.local; si no existe, la suite lo registra.
+Agregá una suite de navegador del incremento 27 con: cada validación del
+registro y sus valores límite (2, 3, 16 y 17 caracteres; contraseña de 7 y de
+8), username en uso con otras mayúsculas, registro exitoso, registro
+rechazado sin cuenta parcial, login correcto y con mayúsculas cambiadas,
+mensaje único para contraseña incorrecta y username inexistente, sesión
+después de recargar, menú inaccesible sin sesión y navegación del menú. Los
+usuarios que crea la suite usan un prefijo propio y un sufijo al azar. Las
+suites del núcleo no cambian. Si algo es ambiguo, preguntame antes de generar
+código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -941,6 +1001,10 @@ generar código.
 | 39 | 26 — Ajustes de la prueba manual | Prompt 25 | **Defecto de la prueba manual (D. Savoia): no se escuchaban la música ni los efectos.** No se pudo reproducir en Chromium (con la política de reproducción automática real, el audio arrancaba y llegaba señal a la salida), pero el motor tenía un punto frágil: si el navegador dejaba el contexto suspendido en la primera interacción, nunca se reintentaba | Se reintenta en cada tecla o clic, salvo que el motor lo haya suspendido por la pausa o la pestaña oculta. Con el cambio, el audio sonó en la prueba manual. No se pudo confirmar cuál fue la causa exacta en el navegador del equipo | No |
 | 40 | 26 | Prompt 25 | **Defecto de la prueba manual: no se podía usar el poder del naval ni del acelerado.** El fantasma del jugador dejaba de estar "en la base" solo si estaba detenido al llegar a la fila de arriba de la puerta. Si salía y giraba sin frenar, seguía "en la base": la decisión 67 le bloqueaba el poder (a cualquier tipo, no solo a esos dos) y la puerta le quedaba abierta para volver a entrar, contra la decisión 44. La prueba del incremento 19 salía hacia arriba y frenaba contra el muro, así que no lo detectó | Deja de estar en la base apenas llega a esa fila. `core/inc26.js` lo verifica con los cuatro tipos con poder. Además se registró el pedido de que el espectro cruce muros de dos celdas (decisión 72) | No |
 | 41 | 26 | Prompt 25 | **Pedido de la prueba manual:** las líneas de velocidad del acelerado quedaban a un costado también al subir o bajar | Se dibujaron con pxl dos variantes, con las líneas debajo (sube) y arriba (baja); el sprite de costado se sigue reflejando según el lado. Decisión 73 | No |
+| 42 | 27 — Registro, inicio de sesión y menú principal | Prompt 26 | **Limitación del agente:** sin la clave de servicio, el agente no puede crear tablas ni triggers en Supabase | El agente escribió la migración (`supabase/migrations/20261103000000_profiles.sql`) y paró; D. Savoia la aplicó en el SQL Editor de los dos proyectos. Después el agente verificó por la API, con la sesión del usuario de prueba, que el perfil se crea con el usuario y que los permisos son los de la decisión 62: sin sesión no se lee nada, nadie inserta perfiles ni cambia su username, y cada usuario cambia solo sus preferencias | Sí: aplicar la migración (previsto en el prompt) |
+| 43 | 27 | Prompt 26 | **Hueco de especificación:** "un registro rechazado no deja la cuenta en estado parcial" (HU-35) no dice qué pasa si alguien llama a la API de Supabase salteando el formulario | El trigger que crea el perfil valida el username (3 a 16 alfanuméricos) y que corresponda al email sintético; si falla, Supabase deshace el alta entera. La contraseña la valida la configuración del proyecto. `inc27-cuentas.js` prueba los tres rechazos por la API y que después la cuenta no existe | No |
+| 44 | 27 | Prompt 26 | **Cambio esperado en las suites anteriores:** las 9 suites de navegador abrían el juego directamente en la elección de modo, que ahora está detrás del login y del menú principal, y tiene una tercera opción, "Volver" | `helpers.js` inicia sesión con el usuario de prueba (de `.env.local`) y entra en "Jugar" antes de cada suite. `inc10-menu-carrusel.js` ajusta la navegación con flechas a las tres opciones. `inc25-audio.js` inicia sesión y recarga, porque el login ya es una interacción y habilitaba el audio antes de la comprobación "nada antes de la primera interacción" | No |
+| 45 | 27 | Prompt 26 | **Hueco de especificación:** la HU-37 no dice adónde vuelven "Menú principal" al terminar una partida ni Esc en el carrusel, ahora que hay dos menús | "Menú principal" vuelve al menú de la HU-37; Esc en el carrusel vuelve a la elección de modo, que es la pantalla anterior | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 
@@ -1081,7 +1145,7 @@ Especificación de la V3 cerrada por D. Savoia (decisiones 41 a 66). Sin increme
 | 4 | Decidir qué hacer con CP-032 (HU-08): marcarlo *No aplica* o reformular el criterio | Pendiente 14 de la Entrega 02 | Equipo completo |
 | 5 | Confirmar y verificar DEF-002 con otro integrante | Pendiente 14 de la Entrega 02 | `[completar]` |
 | 6 | Subir el tag `v1.0` al remoto y crear el tag `v2.0` | Pendiente 15 de la Entrega 02 | Savoia |
-| 7 | Crear los proyectos de Supabase y pasar la URL y la clave pública de cada uno | Decisión 60 | Savoia |
+| 7 | Crear los proyectos de Supabase y pasar la URL y la clave pública de cada uno. Los dos están creados y configurados (03/11/2026). Falta cargar las variables en Vercel | Decisión 60 | Savoia |
 | 8 | Definir quién conduce los prompts y quién registra la sesión | Sección 7 | Equipo completo |
 
 ---

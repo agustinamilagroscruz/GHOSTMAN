@@ -1,6 +1,6 @@
 // Incremento 10 — menú principal, carrusel y modo GhostMan en el navegador.
 // Suite de navegador: se corre con `npm run verify:ui` (ver scripts/verify/README.md).
-const { APP_URL, SHOTS_DIR, launchBrowser } = require("./helpers");
+const { APP_URL, SHOTS_DIR, launchBrowser, openModeMenu } = require("./helpers");
 let fails = 0;
 const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fails++; };
 (async () => {
@@ -9,16 +9,18 @@ const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fail
   const errors = [];
   page.on("pageerror", e => errors.push(e.message));
   page.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
-  await page.goto(APP_URL);
-  await page.waitForSelector("[data-testid=main-menu]");
-  check(await page.isVisible("[data-testid=menu-pacman]") && await page.isVisible("[data-testid=menu-ghostman]"), "menú con las dos opciones");
+  await openModeMenu(page, APP_URL);
+  check(await page.isVisible("[data-testid=menu-pacman]") && await page.isVisible("[data-testid=menu-ghostman]") && await page.isVisible("[data-testid=menu-back]"),
+    "elección de modo con las dos opciones y Volver (desde el incremento 27)");
   await page.screenshot({ path: SHOTS_DIR + "/01-menu.png" });
 
   // Teclado: S baja a GhostMan, Enter abre el carrusel
   await page.keyboard.press("KeyS");
   check(await page.getAttribute("[data-testid=menu-ghostman]", "aria-current") === "true", "S selecciona Modo GhostMan");
   await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
   check(await page.getAttribute("[data-testid=menu-pacman]", "aria-current") === "true", "↓ desde la última opción vuelve a la primera");
+  await page.keyboard.press("ArrowUp");
   await page.keyboard.press("ArrowUp");
   await page.keyboard.press("Enter");
   await page.waitForSelector("[data-testid=ghost-carousel]");
@@ -38,8 +40,8 @@ const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fail
   check((await page.textContent("[data-testid=carousel-power]")).includes("Atraviesa una pared"), "subtítulo con la descripción del poder");
   await page.screenshot({ path: SHOTS_DIR + "/03-carrusel-espectro.png" });
   await page.keyboard.press("Escape");
-  await page.waitForSelector("[data-testid=main-menu]");
-  check(true, "ESC en el carrusel vuelve al menú");
+  await page.waitForSelector("[data-testid=mode-menu]");
+  check(true, "ESC en el carrusel vuelve a la elección de modo");
 
   // Modo GhostMan con el Naval
   await page.click("[data-testid=menu-ghostman]");
@@ -59,8 +61,7 @@ const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fail
   await page.keyboard.press("Escape");
 
   // Modo Pacman desde el menú (recarga: no hay salida del juego en curso salvo el cierre)
-  await page.goto(APP_URL);
-  await page.waitForSelector("[data-testid=main-menu]");
+  await openModeMenu(page, APP_URL);
   await page.keyboard.press("Enter");
   await page.waitForSelector("canvas");
   // DEF-001 (corregido en la V2): las vidas del modo Pacman van abajo a la izquierda, con el ícono de Pacman.

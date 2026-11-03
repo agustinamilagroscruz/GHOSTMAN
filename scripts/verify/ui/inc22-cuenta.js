@@ -1,7 +1,7 @@
 // Incremento 22 — cuenta regresiva (HU-46) y modo de prueba (decisión 59).
 // Suite de navegador: se corre con `npm run verify:ui` (ver scripts/verify/README.md). Abre el
 // juego sin el modo de prueba para ver la cuenta, y con él para ver que no está.
-const { BASE_URL, APP_URL, SHOTS_DIR, launchBrowser } = require("./helpers");
+const { BASE_URL, APP_URL, SHOTS_DIR, launchBrowser, openModeMenu } = require("./helpers");
 let fails = 0;
 const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fails++; };
 (async () => {
@@ -11,8 +11,7 @@ const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fail
   page.on("pageerror", e => errors.push(e.message));
   page.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
   const startGhostman = async url => {
-    await page.goto(url);
-    await page.waitForSelector("[data-testid=main-menu]");
+    await openModeMenu(page, url);
     await page.waitForLoadState("networkidle");
     await page.click("[data-testid=menu-ghostman]");
     await page.waitForSelector("[data-testid=ghost-carousel]");

@@ -1,11 +1,10 @@
 // Incremento 13 — indicador ⭐: se apaga con la barra espaciadora y vuelve a los ~10 s (medido con el reloj real: puede fallar si el equipo está muy cargado).
 // Suite de navegador: se corre con `npm run verify:ui` (ver scripts/verify/README.md).
-const { APP_URL, SHOTS_DIR, launchBrowser } = require("./helpers");
+const { APP_URL, SHOTS_DIR, launchBrowser, openModeMenu } = require("./helpers");
 let fails = 0;
 const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fails++; };
 async function startGhostman(page, rights) {
-  await page.goto(APP_URL);
-  await page.waitForSelector("[data-testid=main-menu]");
+  await openModeMenu(page, APP_URL);
   await page.waitForLoadState("networkidle");
   await page.click("[data-testid=menu-ghostman]");
   await page.waitForSelector("[data-testid=ghost-carousel]");

@@ -118,15 +118,16 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 - [x] Definir un **modo de prueba** (decisión 59) que saltee la cuenta regresiva y las animaciones, para que `scripts/verify/` siga funcionando
 
 ### Cuentas y puntajes (HU-35 a HU-42)
-- [ ] Crear los proyectos de Supabase de producción y de prueba (D. Savoia, decisión 60) y pasar la URL y la clave pública de cada uno
-- [ ] Cargar las variables de entorno en Vercel y en `.env.local` (el archivo no se sube al repositorio)
+- [x] Crear los proyectos de Supabase de producción y de prueba (D. Savoia, decisión 60) y pasar la URL y la clave pública de cada uno. **Creados el 03/11/2026**: prueba (`gstpskqyurpiansmtbtr`) y producción (`jzysqamviswcssehkugm`)
+- [ ] Cargar las variables de entorno en Vercel y en `.env.local` (el archivo no se sube al repositorio). `.env.local` cargado con el proyecto de prueba (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`); falta Vercel
+- [x] Confirmar que Supabase acepta el dominio sintético `@ghostman.invalid` (decisión 61): sondeo del 03/11/2026 sobre el proyecto de prueba, alta aceptada con sesión inmediata
 - [x] Decidir cómo se autentica un *username* sin email (decisión 61). Supabase Auth trabaja con email, así que la propuesta es un email sintético (`<username en minúsculas>@ghostman.invalid`), que además resuelve que el username no distinga mayúsculas (HU-36)
 - [x] Definir el esquema (decisión 62): `profiles` (username único, skins, volúmenes) y `scores` (usuario, modo, puntaje, fecha), con políticas RLS
 - [x] Definir cómo se registra un puntaje (decisión 63) para que un usuario no pueda escribir puntajes arbitrarios desde la consola. Mínimo: RLS por usuario y validación de rangos
 - [x] Definir la "pantalla de salida" de la HU-42 en un juego web (decisión 64)
 - [x] Definir qué pasa al terminar una partida sin conexión a Supabase (decisión 65)
-- [ ] En Supabase: desactivar la confirmación por email y configurar las reglas de contraseña (mínimo 8, letras y números)
-- [ ] Crear en el proyecto de prueba el usuario de prueba y los datos de prueba de los tableros
+- [x] En Supabase: desactivar la confirmación por email y configurar las reglas de contraseña (mínimo 8, letras y números). Verificado el 03/11/2026 en los dos proyectos: el alta devuelve sesión sin confirmar el email y rechaza `abc1234` (largo), `abcdefgh` y `12345678` (caracteres)
+- [ ] Crear en el proyecto de prueba el usuario de prueba y los datos de prueba de los tableros. Usuario de prueba `verificador` creado por las suites (credenciales en `.env.local`); faltan los datos de los tableros (incremento 28)
 
 ### Documentación
 - [x] Crear `TP/entrega-03.md` con la estructura de `entrega-02.md`
@@ -221,10 +222,11 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Commit del incremento
 
 ### Incremento 27 — Registro, inicio de sesión y menú principal (HU-35, HU-36, HU-37)
-- [ ] Redactar y ejecutar el Prompt 26
-- [ ] Verificar: las validaciones de la sección 4.9 de la Entrega 01, el mensaje de error único en el login, la sesión que persiste al recargar y el menú inaccesible sin sesión
-- [ ] Verificar: un registro rechazado no deja la cuenta en estado parcial
-- [ ] Registrar problemas en la tabla de la sesión
+- [x] Redactar y ejecutar el Prompt 26
+- [x] Aplicar la migración de `profiles` en los dos proyectos (D. Savoia, SQL Editor)
+- [x] Verificar: las validaciones de la sección 4.9 de la Entrega 01, el mensaje de error único en el login, la sesión que persiste al recargar y el menú inaccesible sin sesión (`ui/inc27-cuentas.js`)
+- [x] Verificar: un registro rechazado no deja la cuenta en estado parcial (también por la API, salteando el formulario)
+- [x] Registrar problemas en la tabla de la sesión
 - [ ] Commit del incremento
 
 ### Incremento 28 — Tableros de puntaje (HU-38, HU-39)

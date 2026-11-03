@@ -2,7 +2,7 @@
 // Suite de navegador: se corre con `npm run verify:ui` (ver scripts/verify/README.md). En el modo
 // de prueba el audio está silenciado, pero el motor registra en window.__ghostmanAudio lo que
 // hizo sonar; la suite verifica ese registro.
-const { APP_URL, SHOTS_DIR, launchBrowser } = require("./helpers");
+const { APP_URL, SHOTS_DIR, launchBrowser, openMainMenu } = require("./helpers");
 let fails = 0;
 const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fails++; };
 (async () => {
@@ -19,12 +19,17 @@ const check = (c, m) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fail
     return false;
   };
 
+  // Desde el incremento 27 el login ya es una interacción: se inicia sesión y se recarga, así la
+  // página queda en el menú principal, con la sesión guardada y sin ninguna interacción.
+  await openMainMenu(page, APP_URL);
   await page.goto(APP_URL);
   await page.waitForSelector("[data-testid=main-menu]");
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(500);
   check((await log()).length === 0, "antes de la primera interacción no hay audio (política de reproducción automática)");
 
+  await page.click("[data-testid=home-play]");
+  await page.waitForSelector("[data-testid=mode-menu]");
   await page.click("[data-testid=menu-pacman]");
   await page.waitForSelector("canvas");
   check(await waitFor("unlock") && await waitFor("play:gameStart"), "con la primera interacción arranca el audio y suena el jingle de inicio");

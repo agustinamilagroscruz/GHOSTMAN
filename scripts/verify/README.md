@@ -50,6 +50,13 @@ Manejan la aplicación con Chromium sin interfaz (`playwright-core`) a través d
 | `BASE_URL` | URL de la aplicación | `http://localhost:3000` |
 | `CHROMIUM_PATH` | Ejecutable de Chromium | El que instala `npx playwright-core install chromium` |
 | `SHOTS_DIR` | Carpeta para las capturas | Una carpeta temporal del sistema |
+| `GHOSTMAN_TEST_USER`, `GHOSTMAN_TEST_PASSWORD` | Usuario de prueba del proyecto de Supabase de prueba | Se leen de `.env.local` |
+
+Desde el incremento 27, para jugar hace falta sesión iniciada (decisión 66). `helpers.js` lee `.env.local` (las variables de Supabase y del usuario de prueba, que no se suben al repositorio), inicia sesión con el usuario de prueba antes de cada suite y, si no existe en el proyecto de prueba, lo registra. El build de prueba tiene que hacerse con las variables del proyecto de **prueba**.
+
+| Suite | Incremento | Qué verifica |
+|---|---|---|
+| `ui/inc27-cuentas.js` | 27 | Login y registro: campos vacíos, valores límite del username (2, 3, 16 y 17) y de la contraseña (7 y 8), espacios y símbolos, letras y números, confirmación, campos ocultos, registro exitoso con el username como se registró, username en uso con otras mayúsculas, rechazos del servidor sin cuenta parcial (contraseña débil y trigger del perfil, por la API), mensaje único para contraseña incorrecta y username inexistente, contraseña que distingue mayúsculas, error general sin conexión, sesión al recargar, menú inaccesible sin sesión y navegación del menú principal. Crea usuarios `v27…` en el proyecto de prueba |
 
 **Limitaciones conocidas:**
 - `inc10-pantallas-cierre.js` y `inc12-reglas-ghostman.js` esperan a que termine una partida sin intervención: tardan hasta 3 y 12 minutos. Desde el incremento 17, con la destrucción de paredes, la partida sin intervención del modo GhostMan pasó de unos 280 s a unos 500 a 540 s.
