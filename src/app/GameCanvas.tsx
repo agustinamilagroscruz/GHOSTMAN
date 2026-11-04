@@ -42,6 +42,7 @@ import { countdownLabel, pacmanDeathFrame } from "../game/timings";
 import { getAudioEngine } from "./audio";
 import { Hud } from "./Hud";
 import { ScoreBreakdownView } from "./ScoreBreakdownView";
+import { ScoreSaver } from "./ScoreSaver";
 import styles from "./GameCanvas.module.css";
 
 const CELL_SIZE = 24;
@@ -352,6 +353,7 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
           <div className={styles.gameOver}>
             <h2>💀 Game Over</h2>
             <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} mode={config.mode} />
+            <ScoreSaver mode={config.mode} score={ui.score} />
             <EndActions onRestart={() => restartRef.current()} onMainMenu={onMainMenu} />
           </div>
         )}
@@ -359,6 +361,7 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
           <div className={`${styles.gameOver} ${styles.victory}`}>
             <h2>🏆 ¡Victoria!</h2>
             <ScoreBreakdownView total={ui.score} breakdown={state.scoreBreakdown} mode={config.mode} />
+            <ScoreSaver mode={config.mode} score={ui.score} />
             <EndActions onRestart={() => restartRef.current()} onMainMenu={onMainMenu} />
           </div>
         )}

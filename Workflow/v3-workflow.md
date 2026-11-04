@@ -71,6 +71,7 @@ La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 
 | 71 | Modo GhostMan: Pacman (IA) va un 15 % más lento (3,825 celdas/s), espejo de la decisión 40. Con los mapas compactos, el bot de balance perdía todas las partidas porque Pacman terminaba el nivel antes de que lo derrotara 3 veces; con el ajuste vuelve a valores parecidos a los del incremento 20 | Decisiones 34, 40 y 51 |
 | 72 | El espectro atraviesa muros de una **o dos** celdas de espesor (antes, exactamente una), nunca el borde ni los muros de la base. El cruce recorre las celdas del muro y la de salida a su velocidad; el cooldown (10 s) y los 3 s sin comer no cambian. Modifica la decisión 26. Pedido en la prueba manual de los incrementos 21 a 25: con los mapas compactos, los muros de una celda eran pocos | HU-28, decisión 26 |
 | 73 | Las líneas de velocidad del acelerado van siempre del lado del que viene: a un costado si va de lado, debajo si sube y arriba si baja. Pedido en la misma prueba manual | HU-50, decisión 58 |
+| 74 | Máximo de la decisión 63: **12.480** en modo GhostMan (máximo exacto) y **50.000** en modo Pacman (tope práctico: la parte acotada suma 14.440, y las frutas y los fantasmas que reviven durante el PowerUp no tienen tope). Un puntaje inventado por debajo del tope sigue siendo la limitación conocida de la 63 | HU-39, decisión 63 |
 
 ---
 
@@ -227,14 +228,15 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Verificar: las validaciones de la sección 4.9 de la Entrega 01, el mensaje de error único en el login, la sesión que persiste al recargar y el menú inaccesible sin sesión (`ui/inc27-cuentas.js`)
 - [x] Verificar: un registro rechazado no deja la cuenta en estado parcial (también por la API, salteando el formulario)
 - [x] Registrar problemas en la tabla de la sesión
-- [ ] Commit del incremento
+- [x] Commit del incremento
 
 ### Incremento 28 — Tableros de puntaje (HU-38, HU-39)
-- [ ] Redactar y ejecutar el Prompt 27
-- [ ] Cargar los datos de prueba: usuarios y puntajes para verificar el orden, el top 10 y los modos sin puntajes
-- [ ] Verificar: el top 10 por modo, la alternancia con ←/→ y A/D, el tablero personal y la actualización inmediata al terminar una partida
-- [ ] Registrar problemas en la tabla de la sesión
-- [ ] Commit del incremento
+- [x] Redactar y ejecutar el Prompt 27 (decisión 74: máximo de cada modo)
+- [x] Aplicar la migración de `best_scores` y `submit_score` en los dos proyectos (D. Savoia, SQL Editor)
+- [x] Cargar los datos de prueba: los arma `ui/inc28-puntajes.js` por la API (11 usuarios fijos `v28fijo…` en el modo Pacman y `v28tope` en GhostMan). El modo sin puntajes se prueba interceptando la respuesta (tabla 7.5, fila 49)
+- [x] Verificar: el top 10 por modo, la alternancia con ←/→ y A/D, el tablero personal y la actualización inmediata al terminar una partida
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
 
 ### Incremento 29 — Opciones: skins, volumen, cerrar sesión y salir (HU-40, HU-41, HU-42)
 - [ ] Redactar y ejecutar el Prompt 28

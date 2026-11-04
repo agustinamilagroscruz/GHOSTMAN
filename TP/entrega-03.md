@@ -292,7 +292,7 @@ Extiende la sección 4.9 de la Entrega 01.
 | Tabla `best_scores` | Una fila por usuario y modo, con el mejor puntaje y la fecha en que se logró |
 | Tablero global | Top 10 de `best_scores` por modo. Cada jugador aparece una vez por modo |
 | Empates | Queda arriba el puntaje que se logró antes |
-| Registro de un puntaje | Solo mediante una función de la base de datos, que valida el modo, rechaza puntajes por encima del máximo posible del modo y actualiza solo si supera el mejor personal |
+| Registro de un puntaje | Solo mediante una función de la base de datos, que valida el modo, rechaza puntajes negativos o por encima del máximo de cada modo (12.480 en GhostMan, 50.000 en Pacman; decisión 74) y actualiza solo si supera el mejor personal |
 | Permisos | Con sesión iniciada se leen los usernames y los tableros. Cada usuario modifica solo sus preferencias. Nadie escribe puntajes directamente |
 | Salir del juego | Detiene el bucle y el audio y muestra "¡Gracias por jugar!" con un botón para volver a entrar. No cierra la sesión |
 | Sin conexión | Al terminar la partida se muestra el resultado con "No se pudo guardar el puntaje" y un botón para reintentar. En el registro y el login, un error general |
@@ -353,6 +353,7 @@ La numeración continúa la de la Entrega 02 (decisiones 17 a 40). Se aplica el 
 | 71 | *(Detectada durante la generación, tabla 7.5, fila 20.)* Con los mapas compactos, en modo GhostMan Pacman termina el nivel 1 en unos 130 s en lugar de 255 s, y el bot de balance pierde las 50 partidas sin usar el poder | En modo GhostMan, Pacman (IA) va un 15 % más lento: 3,825 celdas/s contra 4,5 del clásico | Es el espejo de la decisión 40, que le dio ventaja de velocidad a Pacman en el modo Pacman. Con el ajuste, el bot gana 5 de 10 partidas con el clásico, el saltarín y el acelerado, cerca de las 6 de 10 del incremento 20 | Aprobada por D. Savoia (31/10) · implementada |
 | 72 | *(Prueba manual de los incrementos 21 a 25, tabla 7.5, fila 40.)* Con los mapas compactos (decisión 69), la mayoría de los muros son bloques de dos o más celdas y el espectro tiene pocos lugares donde usar su poder | El espectro atraviesa muros de una **o dos** celdas, nunca de tres, ni el borde ni los muros de la base. El cooldown y los 3 s sin comer no cambian | Con el dibujo de la escala del original, un bloque de dos celdas se ve como un muro fino más, y el jugador espera poder cruzarlo. Modifica la decisión 26 | Aprobada por D. Savoia (31/10) · implementada |
 | 73 | *(Misma prueba manual, tabla 7.5, fila 41.)* Las líneas de velocidad del acelerado quedaban siempre a un costado, también cuando subía o bajaba | Las líneas van del lado del que viene: a un costado si va de lado, debajo si sube y arriba si baja | Las líneas indican el movimiento; a un costado, en un movimiento vertical, se leen como si fuera de lado | Aprobada por D. Savoia (31/10) · implementada |
+| 74 | La decisión 63 pide rechazar los puntajes por encima del "máximo posible" de cada modo, pero en el modo Pacman no hay máximo: las frutas del nivel 3 aparecen mientras dure el nivel y un fantasma que revive durante el PowerUp se puede volver a comer por 1600. Surgió al redactar el Prompt 27 | **Modo GhostMan: 12.480**, el máximo exacto (3 derrotas × 500 por nivel más 10 por esfera sin consumir: 262, 272 y 264 con las 2 esferas grandes dinámicas del nivel 3). **Modo Pacman: 50.000**, un tope práctico: la parte acotada (esferas 7840, esferas grandes 600, bonus por tiempo menos de 4500 y vidas 1500, en total 14.440) más un margen amplio para frutas y fantasmas | Acotar el juego cambiaría mecánicas ya probadas para resolver un problema de validación. El tope práctico rechaza los puntajes groseramente falsos; uno inventado por debajo del tope sigue siendo la limitación conocida de la decisión 63 | Aprobada por D. Savoia (03/11) · implementada |
 
 ---
 
@@ -954,6 +955,54 @@ suites del núcleo no cambian. Si algo es ambiguo, preguntame antes de generar
 código.
 ```
 
+#### Prompt 27 — Tableros de puntaje (HU-38, HU-39; decisiones 62, 63, 65 y 74)
+
+```
+Incremento 28. Agregá los tableros de puntaje (secciones 4.9 de la Entrega 01
+y 4.10 de este documento). La tabla profiles ya existe.
+
+1. Base de datos. Escribí la migración con la tabla best_scores (decisión
+   62): una fila por usuario y modo ("pacman" o "ghostman"), con el mejor
+   puntaje y la fecha en que se logró. Nadie la escribe directamente: el único
+   camino es una función submit_score(modo, puntaje) que toma al usuario de la
+   sesión, valida el modo, rechaza puntajes negativos o por encima del máximo
+   (12.480 en GhostMan, 50.000 en Pacman; decisión 74) y actualiza la fila
+   solo si el puntaje supera el mejor personal (un empate no la cambia, así
+   conserva la fecha). Devuelve el mejor personal y si se actualizó. Con
+   sesión iniciada se leen todas las filas. Como en el incremento 27, pará y
+   avisame para que la aplique en los dos proyectos.
+
+2. Registro del puntaje (HU-39). Al terminar una partida, con Game Over o
+   victoria, se envía el puntaje final una sola vez, también cuando se juega
+   de nuevo con "Volver a jugar". La pantalla de fin muestra si se guardó y si
+   es un nuevo récord personal. Sin conexión (decisión 65), "No se pudo guardar
+   el puntaje" y un botón para reintentar, sin cola local.
+
+3. Sección Puntajes (HU-38, HU-39), que reemplaza a la vacía del incremento 27.
+   - Tablero global: top 10 del modo, con posición, username y puntaje, de
+     mayor a menor; en un empate queda arriba el que se logró antes. Cada
+     jugador aparece una vez por modo. Con menos de 10, solo los que hay; sin
+     ninguno, un mensaje en lugar de la tabla.
+   - ← → y A/D alternan entre el modo Pacman y el GhostMan, con el modo
+     visible en pantalla. Arranca en Pacman.
+   - Debajo, el tablero personal: el mejor puntaje del usuario en cada modo, o
+     "Sin partidas" si no jugó ese modo (no 0).
+   - Se lee cada vez que se entra, así un puntaje recién guardado aparece
+     enseguida. Si falla la lectura, un error general. Esc y un botón vuelven
+     al menú principal.
+
+Agregá una suite de navegador del incremento 28. Los datos los arma ella
+misma por la API, con usuarios nuevos de prefijo propio: orden y empate en el
+top 10, corte en 10, un usuario por modo, tablero personal sin partidas, con un
+modo y después de un puntaje menor y uno mayor, ingreso inmediato al top 10,
+los rechazos de la función (modo inválido, negativo, por encima del máximo,
+sin sesión) y que no se puede escribir best_scores directamente. Por la
+interfaz: alternancia con las cuatro teclas, mensaje de tablero vacío
+(interceptando la respuesta), el puntaje guardado al terminar una partida y
+el reintento sin conexión. Si algo es ambiguo, preguntame antes de generar
+código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -1005,6 +1054,10 @@ código.
 | 43 | 27 | Prompt 26 | **Hueco de especificación:** "un registro rechazado no deja la cuenta en estado parcial" (HU-35) no dice qué pasa si alguien llama a la API de Supabase salteando el formulario | El trigger que crea el perfil valida el username (3 a 16 alfanuméricos) y que corresponda al email sintético; si falla, Supabase deshace el alta entera. La contraseña la valida la configuración del proyecto. `inc27-cuentas.js` prueba los tres rechazos por la API y que después la cuenta no existe | No |
 | 44 | 27 | Prompt 26 | **Cambio esperado en las suites anteriores:** las 9 suites de navegador abrían el juego directamente en la elección de modo, que ahora está detrás del login y del menú principal, y tiene una tercera opción, "Volver" | `helpers.js` inicia sesión con el usuario de prueba (de `.env.local`) y entra en "Jugar" antes de cada suite. `inc10-menu-carrusel.js` ajusta la navegación con flechas a las tres opciones. `inc25-audio.js` inicia sesión y recarga, porque el login ya es una interacción y habilitaba el audio antes de la comprobación "nada antes de la primera interacción" | No |
 | 45 | 27 | Prompt 26 | **Hueco de especificación:** la HU-37 no dice adónde vuelven "Menú principal" al terminar una partida ni Esc en el carrusel, ahora que hay dos menús | "Menú principal" vuelve al menú de la HU-37; Esc en el carrusel vuelve a la elección de modo, que es la pantalla anterior | No |
+| 46 | 28 — Tableros de puntaje | Prompt 27 | **Hueco de especificación:** la decisión 63 pide rechazar los puntajes por encima del "máximo posible" de cada modo, pero en el modo Pacman no hay máximo (frutas del nivel 3 sin tope y fantasmas que reviven durante el PowerUp). Se detectó al redactar el prompt | D. Savoia aprobó un tope práctico de 50.000 para Pacman y el máximo exacto, 12.480, para GhostMan (decisión 74) | No |
+| 47 | 28 | Prompt 27 | **Limitación del agente:** igual que en el incremento 27, la migración de `best_scores` y `submit_score` la aplicó D. Savoia | La suite `inc28-puntajes.js` verifica por la API los rechazos de la función y que nadie escribe la tabla directamente | Sí: aplicar la migración (previsto en el prompt) |
+| 48 | 28 | Prompt 27 | **Hueco de especificación:** ni la HU-39 ni la decisión 63 dicen qué pasa con un puntaje igual al mejor personal | Un empate no modifica el registro: "supera" es estrictamente mayor, y así se conserva la fecha en que se logró primero, que es la que ordena los empates del tablero global (decisión 62) | No |
+| 49 | 28 | Prompt 27 | **Verificación:** el tablero vacío (CP-127) no se puede reproducir en un proyecto de prueba que ya tiene puntajes, y el ingreso inmediato al top 10 (CP-131) necesita superar a los demás | La suite intercepta la respuesta del modo GhostMan para ver el mensaje de tablero vacío, y para el ingreso inmediato envía por la API el récord del modo Pacman más 1. Para la ejecución manual de CP-127 hace falta un proyecto sin puntajes en un modo | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 

@@ -57,11 +57,13 @@ Desde el incremento 27, para jugar hace falta sesión iniciada (decisión 66). `
 | Suite | Incremento | Qué verifica |
 |---|---|---|
 | `ui/inc27-cuentas.js` | 27 | Login y registro: campos vacíos, valores límite del username (2, 3, 16 y 17) y de la contraseña (7 y 8), espacios y símbolos, letras y números, confirmación, campos ocultos, registro exitoso con el username como se registró, username en uso con otras mayúsculas, rechazos del servidor sin cuenta parcial (contraseña débil y trigger del perfil, por la API), mensaje único para contraseña incorrecta y username inexistente, contraseña que distingue mayúsculas, error general sin conexión, sesión al recargar, menú inaccesible sin sesión y navegación del menú principal. Crea usuarios `v27…` en el proyecto de prueba |
+| `ui/inc28-puntajes.js` | 28 | Tableros de puntaje. Por la API: rechazos de `submit_score` (sin sesión, modo inválido, negativo, por encima de 50.000 y 12.480), el máximo de GhostMan aceptado, sin escritura directa en `best_scores` ni lectura sin sesión, mejor personal con un puntaje menor, un empate y uno mayor, corte en 10, orden y empate, un jugador por modo e ingreso inmediato al top 10. Por la interfaz: el tablero y el personal ("Sin partidas"), ← → A D, Esc y Volver, tablero vacío (interceptando la respuesta) y el puntaje de una partida guardado al reintentar sin conexión. Crea usuarios `v28…`: 11 fijos con puntajes del modo Pacman, `v28tope` y los de cada corrida |
 
 **Limitaciones conocidas:**
 - `inc10-pantallas-cierre.js` y `inc12-reglas-ghostman.js` esperan a que termine una partida sin intervención: tardan hasta 3 y 12 minutos. Desde el incremento 17, con la destrucción de paredes, la partida sin intervención del modo GhostMan pasó de unos 280 s a unos 500 a 540 s.
 - `inc13-estrella.js` mide los 10 s del cooldown con el reloj real. El bucle del juego limita cada cuadro a 250 ms, así que si el navegador se traba (por ejemplo, con el equipo muy cargado), el tiempo de juego atrasa y la medición puede fallar sin que haya un defecto.
 - Las suites no pueden leer el estado interno del juego: verifican por lo que muestra la página.
+- Desde el incremento 28, toda partida que termina guarda el puntaje del usuario de prueba en el proyecto de prueba. `inc28-puntajes.js` sube en 1 punto el récord del modo Pacman en cada corrida, para probar el ingreso inmediato al top 10.
 
 ## Balance del modo GhostMan
 

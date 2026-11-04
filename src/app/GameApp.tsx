@@ -13,6 +13,7 @@ import { GhostCarousel } from "./GhostCarousel";
 import { MainMenu } from "./MainMenu";
 import { ModeMenu } from "./ModeMenu";
 import { PlaceholderSection } from "./PlaceholderSection";
+import { ScoresSection } from "./ScoresSection";
 import { getSupabase } from "./supabase";
 import styles from "./Menu.module.css";
 
@@ -92,7 +93,7 @@ export function GameApp() {
     case "modes":
       return <ModeMenu onPacmanMode={startPacman} onGhostmanMode={goToCarousel} onBack={goToMenu} />;
     case "scores":
-      return <PlaceholderSection testId="scores-section" title="PUNTAJES" onBack={goToMenu} />;
+      return <ScoresSection userId={session.user.id} onBack={goToMenu} />;
     case "options":
       return <PlaceholderSection testId="options-section" title="OPCIONES" onBack={goToMenu} />;
     case "carousel":

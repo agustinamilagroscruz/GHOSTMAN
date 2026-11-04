@@ -275,3 +275,23 @@
   vertical-align: middle;
   filter: drop-shadow(0 0 3px #f8e34d);
 }
+
+.saveStatus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+  font-size: 14px;
+  color: #f8e34d;
+}
+
+.saveStatus .menuButton {
+  margin-top: 0;
+  padding: 4px 10px;
+  font-size: 13px;
+  border-width: 2px;
+}
+
+.saveError {
+  color: #ff7a7a;
+}
