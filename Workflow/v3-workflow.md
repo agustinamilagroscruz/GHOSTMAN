@@ -239,11 +239,12 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Commit del incremento
 
 ### Incremento 29 — Opciones: skins, volumen, cerrar sesión y salir (HU-40, HU-41, HU-42)
-- [ ] Redactar y ejecutar el Prompt 28
-- [ ] Verificar: los carruseles de skins, la persistencia de las skins y del volumen entre sesiones, los volúmenes independientes con efecto inmediato, el cierre de sesión y la pantalla de salida
-- [ ] Verificar: ninguna skin altera las mecánicas
-- [ ] Registrar problemas en la tabla de la sesión
-- [ ] Commit del incremento
+- [x] Redactar y ejecutar el Prompt 28
+- [x] Aplicar la migración de los volúmenes por defecto en los dos proyectos (D. Savoia, SQL Editor)
+- [x] Verificar: los carruseles de skins, la persistencia de las skins y del volumen entre sesiones, los volúmenes independientes con efecto inmediato, el cierre de sesión y la pantalla de salida (`ui/inc29-opciones.js`)
+- [x] Verificar: ninguna skin altera las mecánicas (`core/inc29.js`)
+- [x] Registrar problemas en la tabla de la sesión
+- [x] Commit del incremento
 
 ### Cierre de la etapa de generación
 - [ ] Completar la tabla de problemas con todas las filas de la sesión

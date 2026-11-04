@@ -2,7 +2,7 @@
 // API: melodías y efectos originales al estilo del Pac-Man, sin archivos de audio.
 import { SOUND_CHANNELS, type LoopSound, type SoundChannel, type SoundName } from "../game/sounds";
 
-/** Volumen inicial de cada canal, de 0 a 100 (la HU-41 permitirá cambiarlo). */
+/** Volumen inicial de cada canal, de 0 a 100, hasta leer las preferencias del usuario (HU-41). */
 const DEFAULT_VOLUMES: Record<SoundChannel, number> = { music: 60, effects: 80 };
 
 type Wave = OscillatorType;
@@ -12,6 +12,9 @@ const hz = (midi: number) => 440 * 2 ** ((midi - 69) / 12);
 
 interface AudioDebug {
   log: string[];
+  /** Volumen vigente de cada canal (HU-41) y ganancia que llega a la salida; null antes de habilitar el audio. */
+  volumes?: Record<SoundChannel, number>;
+  gains?: Record<SoundChannel, number> | null;
 }
 
 declare global {
@@ -81,12 +84,14 @@ class AudioEngine {
   }
 
   private applyVolumes(): void {
+    if (this.debug) this.debug.volumes = { ...this.volumes };
     if (!this.ctx || !this.master) return;
     this.master.gain.value = this.muted ? 0 : 1;
     for (const channel of ["music", "effects"] as const) {
       // Curva cuadrática: el oído percibe el volumen de forma logarítmica.
       this.channels[channel]!.gain.value = (this.volumes[channel] / 100) ** 2;
     }
+    if (this.debug) this.debug.gains = { music: this.channels.music!.gain.value, effects: this.channels.effects!.gain.value };
   }
 
   /** Pausa o pestaña oculta: el contexto se suspende y no suena nada (HU-48). */

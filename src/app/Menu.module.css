@@ -246,3 +246,75 @@
   border-radius: 6px;
   cursor: pointer;
 }
+
+.options {
+  gap: 10px;
+  width: 440px;
+}
+
+.optionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 10px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+}
+
+.optionRowSelected {
+  border-color: #f8e34d;
+}
+
+.optionLabel {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: #38f0e8;
+}
+
+.skinName {
+  font-size: 15px;
+  font-weight: bold;
+  color: #f8e34d;
+}
+
+.volumeBar {
+  position: relative;
+  width: 180px;
+  height: 10px;
+  border: 1px solid #1b5f5c;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.volumeBar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #f8e34d;
+}
+
+.volumeValue {
+  width: 3ch;
+  text-align: right;
+  font-size: 14px;
+}
+
+.optionActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.optionActions .option {
+  min-width: 0;
+  padding: 6px 12px;
+  font-size: 15px;
+}
+
+.saveLine {
+  min-height: 16px;
+  font-size: 12px;
+}

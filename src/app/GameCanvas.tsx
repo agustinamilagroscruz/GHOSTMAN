@@ -369,7 +369,7 @@ export function GameCanvas({ config, onMainMenu }: GameCanvasProps) {
       {isGhostman ? (
         <GhostmanStatusBar pacmanLives={ui.lives} powerReady={ui.powerReady} />
       ) : (
-        <PacmanStatusBar lives={ui.lives} />
+        <PacmanStatusBar lives={ui.lives} color={findPacmanSkin(config.pacmanSkin).body} />
       )}
     </div>
   );
@@ -405,10 +405,10 @@ function GhostmanStatusBar({ pacmanLives, powerReady }: { pacmanLives: number; p
 }
 
 /**
- * Modo Pacman, extremo inferior izquierdo: vidas del jugador con el ícono de Pacman (HU-09).
- * Corrige DEF-001: hasta la V2 estaban arriba a la derecha, como círculos amarillos.
+ * Modo Pacman, extremo inferior izquierdo: vidas del jugador con el ícono de Pacman (HU-09), del
+ * color de su skin (HU-40). Corrige DEF-001: hasta la V2 estaban arriba a la derecha, como círculos amarillos.
  */
-function PacmanStatusBar({ lives }: { lives: number }) {
+function PacmanStatusBar({ lives, color }: { lives: number; color: string }) {
   return (
     <div className={styles.statusBar} data-testid="pacman-status">
       <span className={styles.statusLabel}>Vidas</span>
@@ -416,7 +416,7 @@ function PacmanStatusBar({ lives }: { lives: number }) {
         {Array.from({ length: lives }, (_, i) => (
           <span key={i} data-testid="life-icon" data-icon="pacman" className={styles.lifeIconPacman} aria-label="vida">
             <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
-              <path d="M10 10 L18.5 5.1 A9.5 9.5 0 1 0 18.5 14.9 Z" fill="#f8e34d" />
+              <path d="M10 10 L18.5 5.1 A9.5 9.5 0 1 0 18.5 14.9 Z" fill={color} />
             </svg>
           </span>
         ))}

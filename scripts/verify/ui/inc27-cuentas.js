@@ -119,7 +119,7 @@ async function apiLogin(email, password) {
   check(true, "Esc en Puntajes vuelve al menú principal");
   await page.click("[data-testid=home-options]");
   check(await page.waitForSelector("[data-testid=options-section]").then(() => true), "Opciones lleva a la sección de configuración");
-  await page.click("[data-testid=options-section-back]");
+  await page.click("[data-testid=options-back]");
   await page.waitForSelector("[data-testid=main-menu]");
   check(true, "Volver de Opciones al menú principal");
   await page.close();

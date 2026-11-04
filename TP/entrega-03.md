@@ -1003,6 +1003,46 @@ el reintento sin conexión. Si algo es ambiguo, preguntame antes de generar
 código.
 ```
 
+#### Prompt 28 — Opciones: skins, volumen, cerrar sesión y salir (HU-40, HU-41, HU-42; decisiones 58, 62, 64 y 65)
+
+```
+Incremento 29. Llená la sección Opciones, que hoy está vacía (sección 4.10 de
+este documento). Las skins ya existen (incremento 23) y el motor de audio ya
+tiene un volumen por canal (incremento 25). Las preferencias se guardan en
+profiles, que cada usuario puede modificar solo para sí.
+
+1. Preferencias. Al iniciar sesión se leen de profiles la skin de Pacman, la
+   de los fantasmas y los dos volúmenes; las skins se usan en las partidas
+   siguientes y los volúmenes se aplican al motor de audio. Si no se pueden
+   leer, se usan los valores por defecto. Los valores por defecto de volumen
+   tienen que ser los del motor (60 la música y 80 los efectos): escribí la
+   migración que los alinea, y pará para que la aplique.
+
+2. Opciones, con el teclado del resto de los menús: ↑ ↓ eligen la fila, ← → y
+   A/D cambian el valor, Enter confirma, Esc vuelve al menú principal.
+   - Dos carruseles (HU-40): skins de Pacman y de los fantasmas, con una vista
+     previa dibujada con el mismo render que la partida. Las flechas recorren
+     y Enter confirma y guarda; lo que se recorre sin confirmar no se guarda.
+     La vista previa de los fantasmas muestra varios tipos y el estado
+     vulnerable, para que se vea que la skin conserva la distinción.
+   - Dos volúmenes (HU-41), de 0 a 100 en pasos de 10, con efecto inmediato y
+     guardados al cambiar. En 0 el canal queda en silencio.
+   - Cerrar sesión (HU-42): termina la sesión y lleva al login, sin borrar
+     puntajes ni preferencias.
+   - Salir del juego (decisión 64): detiene el audio y muestra "¡Gracias por
+     jugar!" con un botón para volver a entrar. No cierra la sesión.
+   - Si no se puede guardar una preferencia, un error general (decisión 65).
+
+Agregá una suite de navegador del incremento 29: carruseles (recorrer sin
+confirmar no guarda, Enter guarda), skin aplicada en la partida siguiente y
+conservada al cerrar y volver a iniciar sesión, volúmenes independientes con
+efecto inmediato en el motor y conservados entre sesiones, el volumen en 0,
+cerrar sesión (login, menú inaccesible, preferencias y puntajes conservados),
+salir del juego y volver a entrar, y el error al guardar sin conexión. Agregá
+al núcleo la comprobación de que una partida con otra skin evoluciona igual
+que con la clásica. Si algo es ambiguo, preguntame antes de generar código.
+```
+
 ### 7.5 Registro de problemas de la sesión de generación
 
 *A completar durante la sesión. Un renglón por problema, en el orden en que ocurrieron. Mismas columnas y criterios que la tabla 7.5 de la Entrega 02.*
@@ -1058,6 +1098,11 @@ código.
 | 47 | 28 | Prompt 27 | **Limitación del agente:** igual que en el incremento 27, la migración de `best_scores` y `submit_score` la aplicó D. Savoia | La suite `inc28-puntajes.js` verifica por la API los rechazos de la función y que nadie escribe la tabla directamente | Sí: aplicar la migración (previsto en el prompt) |
 | 48 | 28 | Prompt 27 | **Hueco de especificación:** ni la HU-39 ni la decisión 63 dicen qué pasa con un puntaje igual al mejor personal | Un empate no modifica el registro: "supera" es estrictamente mayor, y así se conserva la fecha en que se logró primero, que es la que ordena los empates del tablero global (decisión 62) | No |
 | 49 | 28 | Prompt 27 | **Verificación:** el tablero vacío (CP-127) no se puede reproducir en un proyecto de prueba que ya tiene puntajes, y el ingreso inmediato al top 10 (CP-131) necesita superar a los demás | La suite intercepta la respuesta del modo GhostMan para ver el mensaje de tablero vacío, y para el ingreso inmediato envía por la API el récord del modo Pacman más 1. Para la ejecución manual de CP-127 hace falta un proyecto sin puntajes en un modo | No |
+| 50 | 29 — Opciones: skins, volumen, cerrar sesión y salir | Prompt 28 | **Inconsistencia de la especificación:** la migración de `profiles` (incremento 27) ponía 100 como volumen por defecto, pero el motor de audio del incremento 25 arranca con 60 la música y 80 los efectos, la mezcla con la que se ajustaron los sonidos | Una migración alinea los valores por defecto de la base con los del motor y pasa a 60 y 80 los perfiles que tenían 100. La aplicó D. Savoia | Sí: aplicar la migración (previsto en el prompt) |
+| 51 | 29 | Prompt 28 | **Hueco de especificación:** la HU-40 dice que las flechas recorren el carrusel y Enter confirma, pero no qué pasa con una skin recorrida sin confirmar, ni cómo se navega una sección con dos carruseles, dos volúmenes y tres acciones | ↑ ↓ eligen la fila, ← → y A/D cambian el valor y Enter confirma. Lo recorrido sin confirmar no se guarda; la skin elegida se marca con ✓. Los volúmenes no necesitan confirmación: se aplican y se guardan al cambiar | No |
+| 52 | 29 | Prompt 28 | **Hueco detectado por el agente en la verificación:** con la skin Menta, los íconos de vidas del modo Pacman seguían amarillos (estaban dibujados con un color fijo) | Los íconos usan el color del cuerpo de la skin de Pacman. Se agregó la comprobación a `inc29-opciones.js` | No |
+| 53 | 29 | Prompt 28 | **Hueco de especificación:** la HU-42 no dice si cerrar sesión la cierra solo en ese navegador o en todos | Solo en ese navegador (`signOut` con alcance local): es lo que pide "dejar el equipo libre para otra persona", sin cerrar la sesión del usuario en otros equipos | No |
+| 54 | 29 | Prompt 28 | **Cambio esperado en las suites anteriores:** en la regresión falló `inc27-cuentas.js`, que volvía de la sección Opciones vacía con su botón (`options-section-back`); la sección nueva tiene otro botón Volver | La suite usa el botón nuevo (`options-back`). Con el cambio, las 12 suites de navegador pasan | No |
 
 ### 7.6 Observaciones sobre la implementación con AI
 
