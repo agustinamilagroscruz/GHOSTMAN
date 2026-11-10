@@ -6,7 +6,7 @@ Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo 
 
 La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 17, decisiones desde la 41, historias desde la HU-44 y casos de prueba desde el CP-164.
 
-> **Estado al 10/11/2026:** etapa de generación cerrada. Incrementos 18 a 29 ejecutados y subidos a `main` (el 21 y el 26 surgieron de la prueba manual). Decisiones 26, 34, 37, 38 y 41 a 74 aprobadas por D. Savoia. Sigue la etapa 2, la especificación detallada de los casos de prueba.
+> **Estado al 10/11/2026:** etapas de generación y de especificación de casos cerradas. Incrementos 18 a 29 ejecutados y subidos a `main` (el 21 y el 26 surgieron de la prueba manual). Decisiones 26, 34, 37, 38 y 41 a 74 implementadas. Casos de la V3, regresión y matriz en la planilla de la Entrega 3. Sigue la etapa 3, la preparación de la ejecución.
 
 ---
 
@@ -261,7 +261,7 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Agregar a todos los casos de la V1 y la V2 la precondición de sesión iniciada (decisión 66)
 - [x] Ajustar los casos afectados de la V1 y la V2. Como mínimo: CP-055 y CP-058 (espectro y mapas), CP-087 y CP-089 (saltarín), los del acelerado y el naval, y todos los que dependen de la posición de aparición de los fantasmas o de la cuenta de esferas
 - [x] Mutar los casos de prioridad Alta de la V1 y la V2 para la regresión
-- [ ] Construir la matriz de trazabilidad
+- [x] Construir la matriz de trazabilidad
 
 ---
 

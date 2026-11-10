@@ -43,3 +43,7 @@ next-env.d.ts
 # ruflo / claude-flow (estado local)
 .claude-flow/
 ruvector.db
+
+# Python
+__pycache__/
+*.pyc
