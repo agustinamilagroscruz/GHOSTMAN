@@ -1229,7 +1229,35 @@ Se mantiene la estrategia de la sección 9 de la Entrega 01: pruebas manuales de
 
 ## 9. Especificación de casos de prueba de la V3
 
-*A completar en la Etapa 2 del workflow:* detalle completo de los CP-106 a CP-140 y casos nuevos de las HU-44 a HU-50 desde el CP-164.
+Mismo formato que la sección 9 de la Entrega 02: cada caso tiene precondiciones, datos de prueba, pasos con su resultado esperado, técnica y prioridad, y el resultado esperado del último paso es el criterio de aprobación. La especificación se escribe en [`evidencia-entrega-03/scripts/spec_v3.py`](evidencia-entrega-03/scripts/spec_v3.py) y al cerrar la etapa 2 se vuelca a la planilla de la Entrega 3, una hoja por caso.
+
+### 9.1 Casos de la V3
+
+| Grupo | Casos | Cantidad | Estado |
+|---|---|---|---|
+| Casos previstos en la sección 10.4 de la Entrega 01 (HU-35 a HU-42), ajustados a las decisiones 60 a 66 y 74 | CP-106 a CP-140 | 35 (11 Alta, 16 Media, 8 Baja) | Detallados |
+| Casos nuevos de las HU-44 a HU-50 y de las decisiones de la V3 | Desde el CP-164 | — | *Parte 2 de la etapa* |
+
+Ajustes respecto de la versión sintética de la Entrega 01:
+- Los resultados esperados usan los textos reales de la aplicación (mensajes de error, botones y secciones).
+- **CP-110** prueba el username en uso con otra combinación de mayúsculas, porque la unicidad no las distingue (decisión 61).
+- **CP-116** verifica la ausencia de cuenta parcial por la interfaz, sin acceso a la base: el login con ese username falla y después se puede registrar con una contraseña válida.
+- **CP-124** verifica además el orden de un empate (decisión 62).
+- **CP-127** necesita un modo sin puntajes, así que se ejecuta antes de cargar los datos del modo GhostMan (tabla 7.5, fila 49).
+- **CP-136 y CP-137** escuchan el efecto del volumen en la partida siguiente: la sección Opciones no se abre durante una partida y no reproduce sonidos de muestra.
+- **CP-140** verifica la pantalla de salida de la decisión 64 y el silencio posterior.
+
+### 9.2 Datos de prueba de los tableros
+
+Se cargan en el proyecto de Supabase de prueba en la etapa 3, con usuarios propios, y no se mezclan con los que generan las suites de `scripts/verify/`.
+
+| ID | Datos |
+|---|---|
+| DP-1 | Modo Pacman, 12 jugadores (`tpac01` a `tpac12`): 3000, 2800, 2600, 2400, 2200, 2000 (`tpac06`, logrado primero), 2000 (`tpac07`, logrado después), 1800, 1500, 1200, 900 y 600 |
+| DP-2 | Modo GhostMan, 3 jugadores (`tgho01` a `tgho03`): 4000, 3500 y 3000 |
+| DP-3 | Usuario de prueba: 1000 en el modo Pacman y 2500 en el modo GhostMan |
+
+Los casos de registro usan un username nuevo en cada ejecución, con el número del caso y la fecha (por ejemplo, `cp1061011`), para poder repetirlos.
 
 ---
 
