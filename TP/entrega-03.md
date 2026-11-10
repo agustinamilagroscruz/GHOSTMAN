@@ -1068,7 +1068,7 @@ que con la clásica. Si algo es ambiguo, preguntame antes de generar código.
 | 17 | 21 | Prompt 20 | **Diseño de los mapas:** el primer borrador del nivel 1 que propuso el agente quedó casi igual al laberinto del original, contra la regla de diseño propio de `v3-mapas.md`, y sin ningún muro de una celda para el espectro | Se descartó. Los tres mapas se rediseñaron con un validador (conexión, simetría, marco fijo, callejones, espacios de 2 × 2, esferas y cruces del espectro) y se aprobaron con capturas dibujadas por el propio `render.ts` | No |
 | 18 | 21 | Prompt 20 | **Cambio esperado en las suites anteriores:** 9 de las 11 suites del núcleo fallaron por coordenadas que en los mapas nuevos son muro (las filas 1 y 5 del nivel 1 ya no son pasillos completos) y por velocidades escritas como literales (3,75) | Las coordenadas pasaron a posiciones equivalentes, sobre todo a la fila 3 del nivel 1, y las velocidades se calculan con las constantes o se actualizaron. Ninguna falla resultó ser un defecto del juego. Con la IA sola, Pacman completa los niveles en 79, 84 y 88 s, y en modo GhostMan con el jugador quieto completa el nivel 1 a los 170 s (antes, 255 s; 126 s sin la decisión 71) | No |
 | 19 | 21 | Prompt 20 | **Verificación del dibujo:** el contorno de los muros se dibuja con `Path2D`, que no existe en Node, así que las suites del núcleo no podían comprobar la regla | La regla quedó en una función pura (`wallOutlineSides`) que usa el dibujo y que verifica `core/inc21.js`: interior de un bloque, esquinas, bordes, pilares sueltos y el borde del mapa | No |
-| 20 | 21 | Corrección no planificada | **Balance:** con los mapas compactos, el bot de balance perdió las 50 partidas sin usar el poder y 49 de 50 usándolo, casi todas en el nivel 1. Pacman limpiaba el nivel en unos 130 s y el bot llegaba a derrotarlo 2 de las 3 veces necesarias | Se probó en una copia temporal Pacman al −15 % en modo GhostMan y se aprobó como decisión 71. La comprobación de huida de `core/inc11.js` aceptaba solo la huida hacia la derecha; con la velocidad nueva Pacman huye hacia arriba por la columna 8, que también es una huida válida, y se amplió | No |
+| 20 | 21 | Corrección no planificada (C-3) | **Balance:** con los mapas compactos, el bot de balance perdió las 50 partidas sin usar el poder y 49 de 50 usándolo, casi todas en el nivel 1. Pacman limpiaba el nivel en unos 130 s y el bot llegaba a derrotarlo 2 de las 3 veces necesarias | Se probó en una copia temporal Pacman al −15 % en modo GhostMan y se aprobó como decisión 71. La comprobación de huida de `core/inc11.js` aceptaba solo la huida hacia la derecha; con la velocidad nueva Pacman huye hacia arriba por la columna 8, que también es una huida válida, y se amplió | No |
 | 21 | 22 — Cuenta regresiva y modo de prueba | Prompt 21 | **Hueco de especificación:** la HU-46 dice que las teclas presionadas durante la cuenta no mueven a ningún personaje, pero no si la última dirección presionada se aplica al "¡ya!", como en el original | Se interpretó en el prompt de la forma más estricta: lo presionado durante la cuenta se descarta, también la barra espaciadora. Para moverse al "¡ya!" hay que presionar (o mantener, con la repetición del teclado) después de la cuenta | No |
 | 22 | 22 | Prompt 21 | **Alcance:** la decisión 59 dice que el modo de prueba también silencia el audio, pero el audio llega en el incremento 25 | El modo de prueba se resolvió con una sola función (`isTestMode`), que el incremento 25 tiene que usar para silenciar el audio. Queda anotado en el checklist de ese incremento | No |
 | 23 | 22 | Prompt 21 | **Cambio esperado en las suites de navegador:** con la cuenta, todas las suites tardarían 3,5 s más al empezar y 2 s más después de cada vida perdida, y varias miden tiempos | Las suites abren el juego con `?modoPrueba=1` y corren contra un build de prueba (`NEXT_PUBLIC_MODO_PRUEBA=1`). La suite nueva `inc22-cuenta.js` es la única que abre el juego sin el parámetro | No |
@@ -1166,7 +1166,31 @@ Las velocidades del naval y del espectro y las cargas de la decisión 22 siguen 
 
 El bot usa el poder apenas puede si Pacman está a 6 celdas o menos, sin elegir el momento. El **espectro**, con muchos más muros para cruzar (decisión 72), cruza más seguido y pasa más tiempo sin poder comer (3 s después de cada cruce). El **saltarín** probablemente cambió en el incremento 24, que no se midió: con el salto de 0,6 s (decisión 55) el bot salta al azar y queda en el aire mientras Pacman se aleja. Ninguno de los dos empeora sin usar el poder. Queda para la prueba manual ver si un jugador que elige cuándo usarlo los aprovecha.
 
-*El resto, a completar al cierre de la etapa de generación.*
+Los incrementos 27 a 29 no tocan las reglas del juego (cuentas, puntajes y opciones), y `core/inc29.js` verifica que las skins no cambian ninguna partida, así que el balance queda como después del incremento 26. Las velocidades del naval y del espectro, las cargas de la decisión 22 y el uso del poder del espectro y del saltarín quedan para el playtest de la decisión 51.
+
+**Resumen de la sesión de generación.** Doce incrementos (18 a 29) y 54 filas en la tabla 7.5:
+
+| Tipo de problema | Filas | Cantidad |
+|---|---|---|
+| Hueco o inconsistencia de la especificación | 1, 6, 7, 14, 21, 26, 31, 32, 36, 37, 43, 45, 46, 48, 50, 51, 53 | 17 |
+| Cambio esperado en las suites anteriores | 2, 3, 9, 18, 23, 44, 54 | 7 |
+| Defecto del código generado | 8, 34, 40, 52 | 4 |
+| Artefacto de la prueba o prueba inestable | 4, 24, 25, 33 | 4 |
+| Hallazgo o pedido de la prueba manual | 16, 39, 41 | 3 |
+| Primer borrador de diseño descartado o revisado | 17, 27 | 2 |
+| Alcance | 5, 22, 28 | 3 |
+| Herramienta, entorno o limitación del agente | 12, 29, 42, 47 | 4 |
+| Diseño, rendimiento u observación de implementación | 10, 11, 13, 15, 19, 30, 35, 38, 49 | 9 |
+| Balance (corrección no planificada C-3) | 20 | 1 |
+
+Solo 3 filas requirieron edición manual, y en las tres fue aplicar en Supabase una migración que el prompt ya preveía (filas 42, 47 y 50). Ninguna línea de código se escribió a mano. Hubo un solo prompt de corrección no planificado (C-3, anexo A), y dos incrementos nacieron de la prueba manual (21 y 26) pero se condujeron con prompts redactados como los planificados.
+
+**La hipótesis de la V1, contrastada con la V3.** La V1 concluyó que el agente acierta en los valores numéricos explícitos y falla en las interacciones entre estados que nadie escribió (sección 8.6 de la Entrega 01). En la V3:
+- **Los valores explícitos se siguieron implementando bien a la primera.** Ninguna fila de la tabla es un número mal implementado: velocidades, tiempos de la cuenta, duraciones de las animaciones, topes de puntaje y volúmenes por defecto salieron como estaban escritos. La única inconsistencia numérica (fila 50) estaba en la especificación, no en el código.
+- **Los defectos siguieron estando en las interacciones.** Los dos defectos de lógica (filas 8 y 40) son interacciones que ningún prompt escribía: un fantasma comido a mitad de un paso, y un fantasma que sale de la base y gira sin frenar. El segundo cruzaba tres reglas (la salida de la base, la decisión 44 y la decisión 67) y pasó la suite del incremento 19 porque la prueba frenaba contra el muro. Lo encontró la prueba manual.
+- **El cambio de la V3 es dónde aparecieron los huecos.** 17 de las 54 filas son huecos o inconsistencias de la especificación, y casi todos se detectaron al redactar el prompt o durante la generación, antes de convertirse en defectos: se resolvieron con una interpretación explícita en el prompt o con una decisión nueva (67, 71, 72, 73 y 74). Escribir las interacciones por adelantado, como se buscó con las decisiones 24 a 32 de la V2, corrió el trabajo de encontrar huecos de la ejecución a la especificación.
+- **Lo que las suites no ven.** Los hallazgos que cambiaron el rumbo de la V3 salieron de jugar, no de las suites: la escala del mapa y la duración de los niveles (fila 16), el audio que no se escuchaba (fila 39) y las líneas del acelerado (fila 41). Las suites verifican que se cumpla lo especificado; no pueden decir si el juego se siente como el original. Lo mismo vale para el arte: los dos borradores descartados (filas 17 y 27) se detectaron mirando capturas.
+- **Las suites anteriores como red de regresión.** 7 filas son suites anteriores que fallaron por un cambio buscado de las reglas, y ninguna de esas fallas fue un defecto. Cada vez hubo que distinguir a mano una regla que cambió a propósito de una regresión; esa revisión es la que tiene que repetir el equipo en la regresión de la V1 y la V2 (sección 8.2).
 
 ---
 
@@ -1229,15 +1253,36 @@ Se mantiene la estrategia de la sección 9 de la Entrega 01: pruebas manuales de
 
 ## 13. Conclusiones y próximos pasos
 
-### 13.1 Estado al 30/10/2026
+### 13.1 Estado al 10/11/2026
 
-Especificación de la V3 cerrada por D. Savoia (decisiones 41 a 66). Sin incrementos de la V3 ejecutados.
+**Generación de la V3 cerrada.** Están ejecutados los incrementos 18 a 29 y subidos a `main`:
+
+| Incremento | Commit | HU |
+|---|---|---|
+| 18 — Memoria de frutas falsas y salto hacia adelante | `f89353c` | HU-24, HU-29, HU-30, HU-43 |
+| 19 — Mapas nuevos, base de los fantasmas y túnel | `64a9dad` | HU-44, HU-45 |
+| 20 — Impulso del acelerado | `4158537` | HU-31, HU-49 |
+| 21 — Escala del original y mapas compactos | `2e69d79` | HU-44, HU-45, HU-50 |
+| 22 — Cuenta regresiva y modo de prueba | `b6e77e2` | HU-46 |
+| 23 — Sprites de pixel art | `b4bf2c0` | HU-50 |
+| 24 — Animaciones | `7519dd0` | HU-47, HU-49 |
+| 25 — Música y efectos de sonido | `59ab82e` | HU-48 |
+| 26 — Ajustes de la prueba manual | `84e1e34` | HU-28, HU-48, HU-50 |
+| 27 — Registro, inicio de sesión y menú principal | `488ab52` | HU-35, HU-36, HU-37 |
+| 28 — Tableros de puntaje | `e3c9f03` | HU-38, HU-39 |
+| 29 — Opciones: skins, volumen, cerrar sesión y salir | `36d82ce` | HU-40, HU-41, HU-42 |
+
+**Decisiones tomadas durante la sesión.** Las decisiones 67 a 74 surgieron durante la generación (tabla 7.5) y D. Savoia las aprobó. El equipo todavía no las revisó (pendiente 1).
+
+**Verificación usada en la sesión.** Igual que en la V2: suites del núcleo (`npm run verify`), de navegador (`npm run verify:ui`, contra un build de prueba) y el bot de balance (`npm run verify:balance`). `scripts/verify/README.md` describe cada suite. Desde el incremento 27 las suites de navegador necesitan el proyecto de Supabase de prueba y su usuario de prueba.
+
+**Siguiente etapa.** La especificación detallada de los casos de prueba de la V3 (etapa 2 del workflow).
 
 ### 13.2 Pendientes
 
 | # | Pendiente | Origen | Responsable |
 |---|---|---|---|
-| 1 | Revisar las decisiones 26, 34, 37, 38 y 41 a 66 y pasarlas a *Aprobada* o *Modificada* | Sección 5 | Equipo completo |
+| 1 | Revisar las decisiones 26, 34, 37, 38 y 41 a 74 y pasarlas a *Aprobada* o *Modificada* | Sección 5 | Equipo completo |
 | 2 | Revisar las decisiones 17 a 36 de la V2 | Pendiente 1 de la Entrega 02 | Equipo completo |
 | 3 | Validar la explosión de la fruta falsa como derrota en modo GhostMan | Pendiente 8 de la Entrega 02 | Equipo completo |
 | 4 | Decidir qué hacer con CP-032 (HU-08): marcarlo *No aplica* o reformular el criterio | Pendiente 14 de la Entrega 02 | Equipo completo |
@@ -1250,4 +1295,24 @@ Especificación de la V3 cerrada por D. Savoia (decisiones 41 a 66). Sin increme
 
 ## 14. Anexos
 
-*A completar.*
+### Anexo A — Prompts de corrección
+
+*Prompts no planificados usados durante la generación de la V3, numerados C-3 en adelante (C-1 es de la V1 y C-2 de la V2). Los incrementos 21 y 26, que surgieron de la prueba manual, tienen su prompt en la sección 7.4 (prompts 20 y 25).*
+
+#### C-3 — Balance del modo GhostMan con los mapas compactos (tabla 7.5, fila 20; decisión 71)
+
+*La corrección se dio dentro de la sesión del incremento 21, sin un prompt aparte. El agente detectó la caída del balance al volver a medirlo, probó el ajuste en una copia temporal y lo propuso; D. Savoia lo aprobó. El texto que sigue reúne esa instrucción en el formato de los prompts de la sección 7.4.*
+
+```
+Con los mapas compactos y la velocidad de la decisión 70, el bot de balance perdió las 50
+partidas del modo GhostMan sin usar el poder y 49 de 50 usándolo: Pacman (IA) limpia el
+nivel 1 en unos 130 s y el bot alcanza a derrotarlo 2 de las 3 veces necesarias.
+
+Aplicá la decisión 71: en modo GhostMan, Pacman (IA) va un 15 % más lento que el fantasma
+clásico (3,825 celdas/s contra 4,5), como espejo de la decisión 40. No cambies la velocidad
+de Pacman en el modo Pacman ni la de ningún fantasma.
+
+Actualizá las comprobaciones de velocidad de las suites del núcleo, agregá la de la
+decisión 71 a core/inc21.js y volvé a medir el balance con y sin poder, con las mismas
+semillas, para la sección 7.6.
+```

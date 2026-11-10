@@ -6,7 +6,7 @@ Los incrementos se integran sobre `main`, y cada push despliega en Vercel: todo 
 
 La numeración continúa la de la V2: incrementos desde el 18, prompts desde el 17, decisiones desde la 41, historias desde la HU-44 y casos de prueba desde el CP-164.
 
-> **Estado al 31/10/2026:** V2 cerrada. Especificación de la V3 cerrada por D. Savoia (decisiones 26, 34, 37, 38 y 41 a 73). Incrementos 18 a 20 ejecutados; el 21 (escala del original y mapas compactos) surgió de la prueba manual y corre la numeración de los siguientes.
+> **Estado al 10/11/2026:** etapa de generación cerrada. Incrementos 18 a 29 ejecutados y subidos a `main` (el 21 y el 26 surgieron de la prueba manual). Decisiones 26, 34, 37, 38 y 41 a 74 aprobadas por D. Savoia. Sigue la etapa 2, la especificación detallada de los casos de prueba.
 
 ---
 
@@ -247,10 +247,10 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Commit del incremento
 
 ### Cierre de la etapa de generación
-- [ ] Completar la tabla de problemas con todas las filas de la sesión
-- [ ] Redactar las observaciones sobre la implementación con AI
-- [ ] Transcribir en el anexo los prompts de corrección no planificados
-- [ ] Extender `scripts/verify/` con las suites de los incrementos 18 a 29
+- [x] Completar la tabla de problemas con todas las filas de la sesión
+- [x] Redactar las observaciones sobre la implementación con AI
+- [x] Transcribir en el anexo los prompts de corrección no planificados
+- [x] Extender `scripts/verify/` con las suites de los incrementos 18 a 29
 
 ---
 
