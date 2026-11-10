@@ -1236,7 +1236,9 @@ Mismo formato que la sección 9 de la Entrega 02: cada caso tiene precondiciones
 | Grupo | Casos | Cantidad | Estado |
 |---|---|---|---|
 | Casos previstos en la sección 10.4 de la Entrega 01 (HU-35 a HU-42), ajustados a las decisiones 60 a 66 y 74 | CP-106 a CP-140 | 35 (11 Alta, 16 Media, 8 Baja) | Detallados |
-| Casos nuevos de las HU-44 a HU-50 y de las decisiones de la V3 | Desde el CP-164 | — | *Parte 2 de la etapa* |
+| Casos nuevos de las HU-44 a HU-50 | CP-164 a CP-195 | 32 (8 Alta, 13 Media, 11 Baja) | Detallados |
+| Casos nuevos de criterios y decisiones de las HU-36 y HU-39 sin caso en la Entrega 01 | CP-196 a CP-199 | 4 (3 Media, 1 Baja) | Detallados |
+| **Total V3** | | **71** (19 Alta, 32 Media, 20 Baja) | |
 
 Ajustes respecto de la versión sintética de la Entrega 01:
 - Los resultados esperados usan los textos reales de la aplicación (mensajes de error, botones y secciones).
@@ -1246,6 +1248,13 @@ Ajustes respecto de la versión sintética de la Entrega 01:
 - **CP-127** necesita un modo sin puntajes, así que se ejecuta antes de cargar los datos del modo GhostMan (tabla 7.5, fila 49).
 - **CP-136 y CP-137** escuchan el efecto del volumen en la partida siguiente: la sección Opciones no se abre durante una partida y no reproduce sonidos de muestra.
 - **CP-140** verifica la pantalla de salida de la decisión 64 y el silencio posterior.
+
+Criterios de los casos nuevos:
+- **Posiciones** con «fila F, columna C», fila 0 arriba y columna 0 a la izquierda, como en las secciones 4.1 a 4.3.
+- **Duraciones reales.** Los casos de la cuenta regresiva y de las animaciones (CP-167, CP-180 a CP-186 y CP-190 a CP-192) se ejecutan sin `?modoPrueba=1`, que pone esas duraciones en 0 (sección 4.9).
+- **Tolerancias.** Los tiempos cronometrados a mano aceptan ± 0,5 s, salvo el «¡Listo!» (± 0,3 s), como en la V2.
+- **CP-173** verifica el laberinto según las decisiones 69 y 72 (bloques de muro con algunos muros de una o dos celdas), no según el último criterio de la HU-44, que todavía dice «muros de una celda de espesor en la mayor parte del mapa» (pendiente 9 de la sección 13.2).
+- **CP-196 a CP-199** cubren el criterio de campos vacíos del login (HU-36), los errores sin conexión y el reintento del puntaje (decisión 65) y el puntaje igual al mejor personal (decisión 62; tabla 7.5, fila 48).
 
 ### 9.2 Datos de prueba de los tableros
 
@@ -1318,6 +1327,7 @@ Los casos de registro usan un username nuevo en cada ejecución, con el número 
 | 6 | Subir el tag `v1.0` al remoto y crear el tag `v2.0` | Pendiente 15 de la Entrega 02 | Savoia |
 | 7 | Crear los proyectos de Supabase y pasar la URL y la clave pública de cada uno. Los dos están creados y configurados (03/11/2026). Falta cargar las variables en Vercel | Decisión 60 | Savoia |
 | 8 | Definir quién conduce los prompts y quién registra la sesión | Sección 7 | Equipo completo |
+| 9 | Actualizar el último criterio de la HU-44 ("muros de una celda de espesor en la mayor parte del mapa") a las decisiones 69 y 72, en la sección 6.2 y en el documento de historias de usuario | Sección 9.1, CP-173 | Savoia |
 
 ---
 
