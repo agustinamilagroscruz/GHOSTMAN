@@ -1213,17 +1213,59 @@ Se mantiene la estrategia de la sección 9 de la Entrega 01: pruebas manuales de
 
 ### 8.2 Regresión de la V1 y la V2
 
-*A completar en la Etapa 2 del workflow.* Como mínimo, estos casos cambian:
+Se reejecutan los **69 casos de prioridad Alta de la V1 y la V2** (35 y 34), mutados con una variante distinta de la de la Entrega 02, por la paradoja del pesticida (sección 9.4 de la Entrega 01). Como en la Entrega 02, conviene ejecutar también los de prioridad Media y Baja si el ciclo lo permite. La especificación está en `spec_v3.py` (`ADJ`, `MUT_V3`).
 
-| Caso | Cambio | Decisión |
-|---|---|---|
-| Todos los de la V1 y la V2 | Precondición nueva: sesión iniciada con el usuario de prueba | 66 |
-| Todos los que dependen de posiciones del mapa o de la cuenta de esferas | Se reescriben sobre los mapas nuevos | 26, 34 |
-| Los que verifican la reaparición a los 5 s o a los 8 s | Pasan a verificar los ojos que vuelven a la base y la espera del naval | 46 |
-| CP-055, CP-058 | El espectro se prueba sobre muros de una celda de los mapas nuevos | 26 |
-| CP-087, CP-089 | El destino del saltarín pasa a estar adelante | 38, 41 |
-| Los del *dash* del acelerado | El *dash* recorre las celdas en 0,25 s | 54 |
-| Los que miden tiempos desde el inicio del nivel | Se descuentan los 3,5 s de la cuenta regresiva | 52 |
+**Cambio común a los 128 casos (decisión 66).** La precondición «Elegir «Modo PacMan» en el menú principal y presionar Enter» pasa a ser «Iniciar sesión con el usuario de prueba, elegir «Jugar» en el menú principal y luego «Modo PacMan»». Los casos del modo GhostMan suman «Sesión iniciada con el usuario de prueba; desde el menú principal, «Jugar»».
+
+**Casos con resultado esperado, precondición o datos distintos (43).** El resto de los casos no cambia salvo por la precondición. CP-032 sigue Bloqueado (pendiente 4 de la sección 13.2).
+
+| Caso | Cambio y motivo |
+|---|---|
+| CP-008 | Pasos y resultado esperado. HU-02 ajustada por la decisión 48: el túnel lleva al borde opuesto |
+| CP-009 | Pasos y resultado esperado. Decisiones 44 y 48: los fantasmas salen de la base por la puerta y pueden usar el túnel |
+| CP-010 | Pasos y resultado esperado. Sección 4.1: el anillo de la base, el túnel y la aparición de Pacman son pasillos sin esfera |
+| CP-026 | Pasos y resultado esperado. HU-06 ajustada por la decisión 46: el fantasma comido vuelve como ojos a la base |
+| CP-027 | Precondición, pasos y resultado esperado. Decisión 46: la reaparición depende del viaje de los ojos, no de 5 s fijos |
+| CP-030 | Pasos y resultado esperado. Decisiones 44 y 53: posiciones de la base, animación de derrota y «¡Listo!» |
+| CP-033 | Pasos y resultado esperado. Decisión 44: posiciones iniciales de los fantasmas en la base |
+| CP-042 | Pasos y resultado esperado. Decisión 52: el reloj del bonus por tiempo arranca en el «¡ya!» y no corre durante la cuenta ni el «¡Listo!» |
+| CP-046 | Datos, pasos y resultado esperado. Mapas nuevos (decisión 69): 258 + 4 esferas en el nivel 1 y 268 + 4 en el nivel 2 |
+| CP-047 | Pasos y resultado esperado. Mapas nuevos y escala del original (decisiones 68 y 69) |
+| CP-050 | Pasos y resultado esperado. Decisión 46: los fantasmas comidos vuelven como ojos y reviven en la base |
+| CP-052 | Pasos y resultado esperado. Decisión 46: el tipo se sortea al revivir en la base |
+| CP-055 | Pasos y resultado esperado. Decisión 72: el espectro atraviesa muros de una o dos celdas de espesor; nunca la base ni el borde |
+| CP-058 | Pasos y resultado esperado. Decisiones 49 y 72: los muros de la base tampoco se atraviesan |
+| CP-067 | Precondición, pasos y resultado esperado. HU-37: la elección de modo está detrás del menú principal y tiene una tercera opción, «Volver» |
+| CP-069 | Pasos y resultado esperado. Decisión 66: al recargar la página la sesión sigue y se vuelve al menú principal |
+| CP-074 | Pasos y resultado esperado. Decisión 45: el fantasma del jugador arranca dentro de la base; mapas nuevos |
+| CP-075 | Pasos y resultado esperado. Mapas nuevos (decisión 69) y túnel (decisión 48) |
+| CP-077 | Pasos y resultado esperado. Decisiones 44 y 53: animación de derrota, «¡Listo!» y posiciones de la base |
+| CP-079 | Pasos y resultado esperado. Decisiones 52 y 53: animación de derrota y cuenta regresiva del nivel 2 |
+| CP-082 | Pasos y resultado esperado. HU-27 ajustada por la decisión 46: ojos que vuelven a la base y espera de 3 s del naval |
+| CP-084 | Precondición, pasos y resultado esperado. Decisión 72: el espectro atraviesa muros de una o dos celdas de espesor |
+| CP-086 | Pasos y resultado esperado. Decisiones 49 y 72: en la V3 todos los niveles tienen cruces; no hay destino a través de 3 celdas, de la base ni del borde |
+| CP-087 | Pasos y resultado esperado. Decisiones 38 y 41: el destino está estrictamente adelante, en la dirección de avance |
+| CP-089 | Pasos y resultado esperado. Decisión 55: el contacto se resuelve al aterrizar |
+| CP-090 | Precondición, pasos y resultado esperado. Decisión 37: Pacman no consume una fruta falsa que vio colocar a 8 celdas de recorrido o menos |
+| CP-095 | Pasos y resultado esperado. Decisión 54: el acelerado recorre las celdas en 0,25 s |
+| CP-096 | Pasos y resultado esperado. Velocidades de la decisión 70: 4,5 celdas/s y 2,25 durante la penalidad |
+| CP-097 | Precondición, pasos y resultado esperado. Decisiones 45 y 67: al empezar, el fantasma está dentro de la base, donde los poderes no se usan |
+| CP-101 | Pasos y resultado esperado. Decisión 49: los muros de la base y el borde son indestructibles |
+| CP-104 | Pasos y resultado esperado. Mapas nuevos: las esferas grandes del nivel 3 cambian de lugar (sección 4.1) |
+| CP-105 | Pasos y resultado esperado. Decisión 52: los temporizadores corren desde el «¡ya!» |
+| CP-142 | Datos, pasos y resultado esperado. Velocidades de la decisión 70 |
+| CP-146 | Precondición, pasos y resultado esperado. Decisiones 46 y 47: el fantasma comido vuelve como ojos; el cooldown sigue corriendo |
+| CP-147 | Pasos y resultado esperado. Decisión 53: durante la animación de derrota y el «¡Listo!» no corre el cooldown |
+| CP-152 | Pasos y resultado esperado. Decisión 46: el tipo se sortea al revivir |
+| CP-153 | Pasos y resultado esperado. Decisión 46: el tipo se sortea al revivir |
+| CP-154 | Pasos y resultado esperado. Sprites de pixel art (decisión 58): cada tipo tiene un rasgo de forma |
+| CP-155 | Pasos y resultado esperado. Decisiones 38 y 55: el saltarín de la IA salta hacia adelante, en 0,6 s |
+| CP-157 | Pasos y resultado esperado. Decisión 54: el dash recorre las celdas |
+| CP-159 | Pasos y resultado esperado. Decisión 46: los fantasmas comidos reviven en la base |
+| CP-162 | Pasos y resultado esperado, título. Decisión 37: la IA de Pacman recuerda las frutas falsas que vio colocar a 8 celdas o menos |
+| CP-163 | Pasos y resultado esperado. HU-37: «Menú principal» lleva al menú de Jugar, Puntajes y Opciones |
+
+**Revisados sin cambios.** Los casos que verifican tiempos medidos desde un evento (PowerUp de 8 s, parpadeo de 2 s, fruta de 15 s, cooldowns de 10 s, estado de gracia de 3 s) no cambian: la cuenta regresiva solo corre el instante de inicio. CP-035 tampoco: la vida se descuenta en el contacto, antes de la animación de derrota. CP-144 tampoco: el toque de un fantasma de la IA en modo GhostMan no tiene animación (decisión 19).
 
 ---
 

@@ -258,9 +258,9 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 
 - [x] Detallar los CP-106 a CP-140 con el formato completo, ajustados a las decisiones de la V3
 - [x] Agregar los casos nuevos de las HU-44 a HU-50 desde el CP-164
-- [ ] Agregar a todos los casos de la V1 y la V2 la precondición de sesión iniciada (decisión 66)
-- [ ] Ajustar los casos afectados de la V1 y la V2. Como mínimo: CP-055 y CP-058 (espectro y mapas), CP-087 y CP-089 (saltarín), los del acelerado y el naval, y todos los que dependen de la posición de aparición de los fantasmas o de la cuenta de esferas
-- [ ] Mutar los casos de prioridad Alta de la V1 y la V2 para la regresión
+- [x] Agregar a todos los casos de la V1 y la V2 la precondición de sesión iniciada (decisión 66)
+- [x] Ajustar los casos afectados de la V1 y la V2. Como mínimo: CP-055 y CP-058 (espectro y mapas), CP-087 y CP-089 (saltarín), los del acelerado y el naval, y todos los que dependen de la posición de aparición de los fantasmas o de la cuenta de esferas
+- [x] Mutar los casos de prioridad Alta de la V1 y la V2 para la regresión
 - [ ] Construir la matriz de trazabilidad
 
 ---
