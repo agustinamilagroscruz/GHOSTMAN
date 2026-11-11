@@ -21,7 +21,7 @@
 | Recurso | Enlace |
 |---|---|
 | Repositorio de código | https://github.com/agustinamilagroscruz/GHOSTMAN |
-| Aplicación desplegada | `[URL de despliegue]` |
+| Aplicación desplegada | https://ghostman-seven.vercel.app/ |
 | Planilla de casos de prueba y defectos | `[planilla de la Entrega 3]` |
 | Documento de la Entrega 01 (V1) | [`TP/entrega-01.md`](entrega-01.md) |
 | Documento de la Entrega 02 (V2) | [`TP/entrega-02.md`](entrega-02.md) |
@@ -1477,7 +1477,7 @@ Dos decisiones no tienen caso manual, porque no son observables por la interfaz:
 | 4 | Decidir qué hacer con CP-032 (HU-08): marcarlo *No aplica* o reformular el criterio | Pendiente 14 de la Entrega 02 | Equipo completo |
 | 5 | Confirmar y verificar DEF-002 con otro integrante | Pendiente 14 de la Entrega 02 | `[completar]` |
 | 6 | Subir el tag `v1.0` al remoto y crear el tag `v2.0` | Pendiente 15 de la Entrega 02 | Savoia |
-| 7 | ~~Crear los proyectos de Supabase y cargar las variables en Vercel~~ Proyectos creados el 03/11/2026; variables cargadas en Vercel el 11/11/2026. Falta la URL del despliegue en la portada | Decisión 60 | Savoia |
+| 7 | ~~Crear los proyectos de Supabase y cargar las variables en Vercel~~ Proyectos creados el 03/11/2026; variables cargadas en Vercel el 11/11/2026; el despliegue usa el proyecto de producción | Decisión 60 | Savoia |
 | 8 | Definir quién conduce los prompts y quién registra la sesión | Sección 7 | Equipo completo |
 | 9 | ~~Playtest de la decisión 51~~ Hecho el 11/11/2026: se mantienen las velocidades y las 5 cargas | Decisión 51 | Equipo completo |
 | 10 | ~~Reactivar el proyecto de Supabase de prueba~~ Reactivado el 11/11/2026; `npm run verify:ui` 12/12 OK | Etapa 3 | Savoia |

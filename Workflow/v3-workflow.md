@@ -276,8 +276,8 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 - [x] Correr `npm run verify:ui` contra un build de prueba **antes** de limpiar los tableros (después ya no, sección 9.2): 12/12 suites OK el 11/11/2026, con Chrome 157 (`CHROMIUM_PATH`)
 - [x] Cargar los casos de la V3 y la regresión en la planilla (199 casos; navegador Chrome 157.0.8103.40 y ejecutor Rodriguez Castro completados el 11/11/2026)
 - [x] Cargar las variables de Supabase en Vercel (pendiente 7), 11/11/2026
-- [ ] Poner la URL del despliegue en la portada de `entrega-03.md`
-- [ ] Confirmar los criterios de entrada (sección 9.7 de la Entrega 01). Cumplidos al 11/11/2026: la aplicación arranca y se juega (`npm run verify` 18/18, `npm run verify:ui` 12/12, build y lint), los casos están especificados y la planilla preparada. Falta comprobar el despliegue de Vercel (con la URL) y la revisión de los casos por otro integrante
+- [x] Poner la URL del despliegue en la portada de `entrega-03.md`: https://ghostman-seven.vercel.app/
+- [ ] Confirmar los criterios de entrada (sección 9.7 de la Entrega 01). Cumplidos al 11/11/2026: la aplicación arranca y se juega (`npm run verify` 18/18, `npm run verify:ui` 12/12, build y lint), los casos están especificados y la planilla preparada. Despliegue de Vercel comprobado el 11/11/2026: despliega `ded1dd4` (mismo código), muestra el login sin errores y usa el proyecto de producción. Falta la revisión de los casos por otro integrante
 
 ---
 
