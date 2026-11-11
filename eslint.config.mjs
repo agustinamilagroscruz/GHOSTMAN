@@ -5,9 +5,10 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Scripts de verificación (scripts/verify): CommonJS para Node, require() es lo esperado.
+  // Scripts de verificación (scripts/verify) y de la evidencia de las entregas (TP/): CommonJS para
+  // Node, require() es lo esperado.
   {
-    files: ["scripts/**/*.js"],
+    files: ["scripts/**/*.js", "TP/**/*.js"],
     rules: { "@typescript-eslint/no-require-imports": "off" },
   },
   // Override default ignores of eslint-config-next.

@@ -1297,6 +1297,7 @@ Criterios de los casos nuevos:
 - **Duraciones reales.** Los casos de la cuenta regresiva y de las animaciones (CP-167, CP-180 a CP-186 y CP-190 a CP-192) se ejecutan sin `?modoPrueba=1`, que pone esas duraciones en 0 (sección 4.9).
 - **Tolerancias.** Los tiempos cronometrados a mano aceptan ± 0,5 s, salvo el «¡Listo!» (± 0,3 s), como en la V2.
 - **CP-173** verifica el laberinto según las decisiones 69 y 72 (bloques de muro con algunos muros de una o dos celdas). El último criterio de la HU-44 decía «muros de una celda de espesor en la mayor parte del mapa» y se corrigió en la sección 6.2 y en el documento de historias de usuario.
+- **CP-126** espera 4 filas en el modo GhostMan: los 3 jugadores de DP-2 más el usuario de prueba, que en DP-3 tiene 2500 en ese modo. La especificación original decía 3 y se corrigió al cargar los datos, en la etapa 3 (11/11/2026), antes de ejecutar el caso.
 - **CP-196 a CP-199** cubren el criterio de campos vacíos del login (HU-36), los errores sin conexión y el reintento del puntaje (decisión 65) y el puntaje igual al mejor personal (decisión 62; tabla 7.5, fila 48).
 
 ### 9.2 Datos de prueba de los tableros
@@ -1310,6 +1311,17 @@ Se cargan en el proyecto de Supabase de prueba en la etapa 3, con usuarios propi
 | DP-3 | Usuario de prueba: 1000 en el modo Pacman y 2500 en el modo GhostMan |
 
 Los casos de registro usan un username nuevo en cada ejecución, con el número del caso y la fecha (por ejemplo, `cp1061011`), para poder repetirlos.
+
+**Carga.** Las suites de navegador escriben en los mismos tableros del proyecto de prueba (usuarios `v27…`, `v28…` y `v29…`; `v28fijo…` con más de 20.000 puntos en el modo Pacman y `v28tope` con 12.480 en GhostMan), así que DP-1 a DP-3 no se pueden cargar encima. El procedimiento está en [`evidencia-entrega-03/scripts/`](evidencia-entrega-03/scripts/):
+
+1. [`limpiar_tableros.sql`](evidencia-entrega-03/scripts/limpiar_tableros.sql), en el SQL Editor del proyecto de prueba: borra los usuarios de las suites y de los datos de prueba y todos los puntajes. El usuario de prueba conserva su cuenta.
+2. `node TP/evidencia-entrega-03/scripts/cargar_datos_prueba.js pacman`: DP-1 y el puntaje del modo Pacman de DP-3.
+3. Ejecutar CP-127 (tablero de GhostMan vacío).
+4. `node TP/evidencia-entrega-03/scripts/cargar_datos_prueba.js ghostman`: DP-2 y el puntaje del modo GhostMan de DP-3.
+
+El script registra a cada jugador y envía su puntaje con `submit_score`, en orden (`tpac06` antes que `tpac07`, por el empate), y al final compara el tablero con lo esperado. Se niega a correr si `.env.local` no apunta al proyecto de prueba o si el tablero tiene puntajes ajenos.
+
+**Orden de la ejecución.** Los datos se alteran al jugar: el usuario de prueba envía su puntaje al terminar cada partida (regresión) y CP-131 hace entrar a un jugador nuevo al top 10. Por eso CP-124, CP-125, CP-126 y CP-128 se ejecutan inmediatamente después de la carga, antes de CP-131 y de cualquier partida con el usuario de prueba. Si hace falta repetirlos, se vuelve a correr el procedimiento completo. Durante la etapa 4 no se corre `npm run verify:ui` contra el proyecto de prueba, porque la suite del incremento 28 vuelve a cargar sus datos.
 
 ---
 
@@ -1465,6 +1477,8 @@ Dos decisiones no tienen caso manual, porque no son observables por la interfaz:
 | 6 | Subir el tag `v1.0` al remoto y crear el tag `v2.0` | Pendiente 15 de la Entrega 02 | Savoia |
 | 7 | Crear los proyectos de Supabase y pasar la URL y la clave pública de cada uno. Los dos están creados y configurados (03/11/2026). Falta cargar las variables en Vercel | Decisión 60 | Savoia |
 | 8 | Definir quién conduce los prompts y quién registra la sesión | Sección 7 | Equipo completo |
+| 9 | Playtest de la decisión 51 (velocidades y las 5 cargas de la decisión 22). Se cierra antes de congelar `main` | Decisión 51 | Equipo completo |
+| 10 | ~~Reactivar el proyecto de Supabase de prueba~~ Reactivado el 11/11/2026; `npm run verify:ui` 12/12 OK | Etapa 3 | Savoia |
 
 ---
 

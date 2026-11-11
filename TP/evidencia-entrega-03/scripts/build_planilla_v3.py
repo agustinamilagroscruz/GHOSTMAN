@@ -29,11 +29,19 @@ spec_loader = importlib.util.spec_from_file_location("spec_v3", os.path.join(HER
 spec = importlib.util.module_from_spec(spec_loader)
 spec_loader.loader.exec_module(spec)
 
+# Resultados del ciclo 3 (resultados_v3.py): se vuelcan en la hoja de reporte y en la de cada caso.
+import datetime
+results_loader = importlib.util.spec_from_file_location("resultados_v3", os.path.join(HERE, "resultados_v3.py"))
+results_mod = importlib.util.module_from_spec(results_loader)
+results_loader.loader.exec_module(results_mod)
+RESULTS = {cid: {**r, "fecha": datetime.date(*r["fecha"])} for cid, r in results_mod.RESULTS.items()}
+
 OLD_REPORT = "Reporte de ejecución - Entrega2"
 REPORT = "Reporte de ejecución - Entrega3"
 AUTHOR = "Savoia"
 COMMIT = "[completar al congelar main, etapa 3]"
-BROWSER = "[completar: navegador y versión]"
+BROWSER = "Google Chrome 157.0.8103.40 (macOS)"
+EXECUTORS = "Rodriguez Castro"
 
 HU_TITLES = {
     "HU-35": "Registrarme en el juego", "HU-36": "Iniciar sesión", "HU-37": "Navegar el menú principal",
@@ -214,7 +222,9 @@ def build_case_sheet(row, index, report_row):
     put(ws, "A5", "Prioridad (Alta, Media, Baja)", "label"); put(ws, "B5", row["prio"], "prio")
     put(ws, "C5", "Técnica de diseño", "label"); put(ws, "D5", row["tech"], "value"); ws.merge_cells("D5:E5")
     # Registro de ejecución: ciclos anteriores y el ciclo 3 vacío.
-    log_rows = row["log"] + [["Ciclo 3", None, None, None, None, None]]
+    res = RESULTS.get(row["id"])
+    cycle3 = ["Ciclo 3", res["fecha"], res["ejecutor"], res["estado"], res["obtenido"], res["defecto"]] if res else ["Ciclo 3", None, None, None, None, None]
+    log_rows = row["log"] + [cycle3]
     for i, entry in enumerate(log_rows):
         r = 3 + i
         for j, col in enumerate("GHIJKL"):
@@ -319,10 +329,11 @@ for i, row in enumerate(rows):
     link.hyperlink = f"#'{row['id']}'!A1"
     for col, key in zip("BCDEFGH", ["type", "epic", "prio", "title", "hu", "happy", "prev"]):
         rput(f"{col}{r}", row[key], "cell")
-    rput(f"I{r}", None, "cell")
+    res = RESULTS.get(row["id"], {})
+    rput(f"I{r}", res.get("estado"), "cell")
     rput(f"J{r}", f'=IF(OR(H{r}="—",I{r}="",I{r}="No ejecutado"),"—",IF(H{r}=I{r},"No","Sí"))', "formula")
-    rput(f"K{r}", None, "cell"); rput(f"L{r}", None, "date", "dd/mm/yyyy"); rput(f"M{r}", None, "cell")
-    rput(f"N{r}", row["obs"], "wide")
+    rput(f"K{r}", res.get("ejecutor"), "cell"); rput(f"L{r}", res.get("fecha"), "date", "dd/mm/yyyy"); rput(f"M{r}", res.get("defecto"), "cell")
+    rput(f"N{r}", " ".join(t for t in (row["obs"], res.get("obs")) if t) or None, "wide")
 rep.auto_filter.ref = f"A3:N{LAST}"
 rep.freeze_panes = "B4"
 dv = DataValidation(type="list", formula1='"' + ",".join(STATES) + '"', allow_blank=True)
@@ -334,7 +345,7 @@ p = 3
 rput(f"P{p}", "Identificación del ciclo (sección 12.1)", "p_head"); rep.merge_cells(f"P{p}:S{p}")
 ident = [("Ciclo de ejecución", "Nº 3 (primer ciclo de la V3)"), ("Versión bajo prueba", "V3"), ("Commit", COMMIT),
          ("Entorno", "Build de prueba local (NEXT_PUBLIC_MODO_PRUEBA=1) contra el proyecto de Supabase de prueba, y una muestra sobre el despliegue de Vercel (etapa 4)"),
-         ("Navegador y versión", BROWSER), ("Fecha de inicio", None), ("Fecha de cierre", None), ("Ejecutores", "[completar]"),
+         ("Navegador y versión", BROWSER), ("Fecha de inicio", None), ("Fecha de cierre", None), ("Ejecutores", EXECUTORS),
          ("Forma de ejecución", "Manual, de caja negra, sobre la aplicación (sección 8 de la Entrega 03)")]
 for i, (k, v) in enumerate(ident):
     r = p + 1 + i
@@ -447,7 +458,7 @@ epic_total = summary_table(epic_top, "Resultados por épica (sección 12.5)", "�
 org = epic_total + 2
 rput(f"P{org}", "Organización del equipo de testing (sección 6.1)", "p_head"); rep.merge_cells(f"P{org}:S{org}")
 for i, (k, v) in enumerate([("Test Lead", "Savoia"), ("Diseño de casos de prueba (V3) y mutación de la regresión", AUTHOR),
-                            ("Ejecución y reporte de defectos (V3)", "[completar]")]):
+                            ("Ejecución y reporte de defectos (V3)", EXECUTORS)]):
     rput(f"P{org + 1 + i}", k, "p_label"); rput(f"Q{org + 1 + i}", v, "p_value"); rep.merge_cells(f"Q{org + 1 + i}:S{org + 1 + i}")
 
 for col, w in {"A": 11, "B": 22, "C": 7, "D": 9, "E": 44, "F": 10, "G": 8, "H": 12, "I": 12, "J": 9, "K": 10, "L": 11,
