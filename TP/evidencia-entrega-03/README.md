@@ -9,5 +9,6 @@
 
 - `scripts/ejecutar_tableros.js`: ejecución con script de navegador de CP-124, CP-125, CP-126 y CP-128 (tableros), con una captura por paso en `capturas/`.
 - `scripts/ejecutar_cuentas.js`: ejecución con script de navegador de CP-106 a CP-123, CP-138, CP-139 y CP-196 a CP-199 (cuentas, menú, volumen persistente, cerrar sesión y sin conexión). Acepta una lista de casos como argumento.
+- `scripts/ejecutar_juego.js`: ejecución con script de navegador de los casos de juego de la V3 de prioridad Alta (CP-164 a CP-168, CP-170, CP-172 y CP-175). Como en el ciclo 2, necesita un build con una línea extra que expone el estado del juego (`window.__gm`); la línea está en el encabezado del script y no se sube al repositorio.
 
 La ejecución (etapa 4) agrega acá las capturas y los resultados.

@@ -82,3 +82,30 @@ RESULTS.update({
     "CP-199": _script("Primera partida: Game Over con 0 y «¡Nuevo récord personal!»; «Tu mejor puntaje» muestra 0 (no «Sin partidas»). Segunda partida: 0 y «Puntaje guardado»; el mejor puntaje sigue en 0.",
                       "Usuario nuevo cp1991111."),
 })
+
+
+# Casos de juego de la V3 de prioridad Alta: script de navegador ejecutar_juego.js sobre el build de
+# prueba del commit 576c13f con la línea que expone el estado del juego (window.__gm), como en el ciclo 2.
+# El estado se usa para verificar y para preparar precondiciones; las acciones del caso se hacen con el
+# teclado real. Capturas en TP/evidencia-entrega-03/capturas/.
+def _juego(obtenido, obs=None):
+    nota = "Script de navegador ejecutar_juego.js (build con el estado expuesto, ver el encabezado del script)."
+    return dict(estado="Aprobado", fecha=(2026, 11, 11), ejecutor="Rodriguez Castro (script)", obtenido=obtenido,
+                defecto=None, obs=f"{nota} {obs}" if obs else nota)
+
+
+RESULTS.update({
+    "CP-164": _juego("Nivel 1: base en las filas 12 a 16 y las columnas 10 a 17, con la puerta de dos celdas arriba, en (12,13) y (12,14). Los niveles 2 y 3 tienen la base y la puerta en la misma posición.",
+                     "Se pasó de nivel desde el estado. Capturas CP-164-nivel1 a nivel3."),
+    "CP-165": _juego("Sobre la puerta (11,13) con ↓ durante 3 s, Pacman no pasa de la fila 11. En las 26 celdas del anillo, presionando hacia la base, no entra en ninguna. En modo GhostMan, nivel 2, durante 20 s de PowerUp con 5 cargas junto a los cuatro lados de la base, Pacman no entra y los muros de la base no cambian.",
+                     "Los fantasmas de la IA se dejaron en la base para que no interfirieran. En el paso 3 Pacman no rompió ningún muro en esos 20 s; la regla de los muros de la base también la verifica core/inc19.js."),
+    "CP-166": _juego("Espectro pegado al muro de la base con la barra espaciadora: no la atraviesa. Acelerado sobre la puerta mirando hacia abajo: el impulso no lo lleva adentro. Saltarín en la fila 10 mirando hacia abajo, 5 saltos: aterriza en (11,16), (11,10), (15,9), (13,8) y (11,14), ninguno dentro de la base."),
+    "CP-167": _juego("Durante la cuenta, blinky está afuera en (11,13) y los otros tres adentro. Empiezan a salir 3,02, 6,02 y 9,02 s después de que termina el «¡ya!» (3,52, 6,52 y 9,52 s desde que aparece) y quedan afuera unos 0,8 a 1,6 s después. Lo mismo tras perder una vida, con el «¡Listo!».",
+                     "Sin ?modoPrueba=1, con la cuenta real. Medido desde que aparece el «¡ya!», el primer fantasma sale 0,02 s fuera de la tolerancia de ± 0,5 s: la salida queda congelada durante todo el «¡ya!» (decisión 52) y el intervalo de 3 s empieza cuando termina. El equipo lo dio por aprobado (11/11/2026)."),
+    "CP-168": _juego("El fantasma del jugador arranca dentro de la base; uno de la IA está afuera y los otros dos empiezan a salir a los 3,01 y 6,01 s. Con ↑ durante 2 s, el del jugador sale y queda en (11,13); con ↓ sobre la puerta no vuelve a entrar."),
+    "CP-170": _juego("Pacman come la esfera grande en (1,1) y luego a blinky, que queda reducido a sus ojos. Al cruzarse con los ojos, Pacman no pierde vida ni suma puntos; los ojos van hacia la base, entran, el fantasma revive y vuelve a salir por la puerta, vulnerable porque el PowerUp seguía activo.",
+                     "El fantasma vulnerable se ubicó sobre Pacman desde el estado para provocar el encuentro."),
+    "CP-172": _juego("Sin presionar teclas, el fantasma del jugador queda dentro de la base todo el nivel. A los 170 s Pacman come la última esfera y la partida termina en Game Over: el jugador pierde."),
+    "CP-175": _juego("En los tres niveles el túnel está en la fila 13. Con ←, Pacman sale por la columna 0 y aparece en la 27 avanzando hacia la izquierda; con →, sale por la 27 y aparece en la 0 hacia la derecha. La velocidad no cambia: 4,5 celdas/s (medida en el cruce: 4,52).",
+                     "Captura CP-175-paso1 y paso2 del nivel 1."),
+})
