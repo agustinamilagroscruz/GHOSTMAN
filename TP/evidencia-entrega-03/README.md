@@ -8,5 +8,6 @@
 - `scripts/cargar_datos_prueba.js`: carga DP-1 a DP-3 (sección 9.2 de `entrega-03.md`) por la API pública, con `.env.local` apuntando al proyecto de prueba, y comprueba el tablero resultante. Fases `pacman` y `ghostman`, para ejecutar CP-127 entre las dos. Se niega a correr contra otro proyecto.
 
 - `scripts/ejecutar_tableros.js`: ejecución con script de navegador de CP-124, CP-125, CP-126 y CP-128 (tableros), con una captura por paso en `capturas/`.
+- `scripts/ejecutar_cuentas.js`: ejecución con script de navegador de CP-106 a CP-123, CP-138, CP-139 y CP-196 a CP-199 (cuentas, menú, volumen persistente, cerrar sesión y sin conexión). Acepta una lista de casos como argumento.
 
 La ejecución (etapa 4) agrega acá las capturas y los resultados.

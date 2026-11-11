@@ -282,7 +282,7 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 
 ## Etapa 4 — Ejecución del ciclo de la V3
 
-- [ ] Ejecutar los casos de prioridad Alta de la V3
+- [ ] Ejecutar los casos de prioridad Alta de la V3. Al 11/11/2026: 29 casos aprobados (CP-106 a CP-128, CP-138, CP-139 y CP-196 a CP-199; todos por script salvo CP-127), los que no dependen del playtest de la decisión 51. Faltan los de juego y los manuales de skins y audio (CP-132 a CP-137 y CP-140)
 - [ ] Ejecutar la regresión de la V1 y la V2
 - [ ] Ejecutar los casos de prioridad Media y Baja
 - [ ] Ejecutar al menos una muestra sobre el despliegue de Vercel, en lugar del build local
