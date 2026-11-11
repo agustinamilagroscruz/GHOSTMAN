@@ -39,7 +39,7 @@ RESULTS = {cid: {**r, "fecha": datetime.date(*r["fecha"])} for cid, r in results
 OLD_REPORT = "Reporte de ejecución - Entrega2"
 REPORT = "Reporte de ejecución - Entrega3"
 AUTHOR = "Savoia"
-COMMIT = "[completar al congelar main, etapa 3]"
+COMMIT = "576c13f"
 BROWSER = "Google Chrome 157.0.8103.40 (macOS)"
 EXECUTORS = "Rodriguez Castro"
 

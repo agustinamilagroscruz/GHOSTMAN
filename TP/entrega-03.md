@@ -331,7 +331,7 @@ La numeración continúa la de la Entrega 02 (decisiones 17 a 40). Se aplica el 
 | 48 | El túnel no estaba especificado: velocidad dentro del túnel y cómo cuentan las distancias que lo cruzan | Fantasmas al 50 % en las celdas del túnel; Pacman, los ojos y el *dash* sin reducción. Las distancias por recorrido cuentan el túnel; la Manhattan no | La reducción para los fantasmas es la del original y le da a Pacman una vía de escape real. La Manhattan no cuenta el túnel porque el ejecutor la verifica contando celdas en pantalla | Aceptada · implementada (incremento 19) |
 | 49 | No se define qué poderes y apariciones pueden ocurrir en la base y en el túnel | Las frutas reales y falsas no aparecen en la base ni en el túnel. El saltarín nunca cae en la base. La destrucción de muros nunca rompe la base ni el borde | Una fruta en el túnel tendría que dibujarse partida en los dos bordes. Romper la base anularía las decisiones 44 y 45 | Aceptada · implementada (incremento 19) |
 | 50 | No se define cómo se ve un personaje a mitad del túnel | Se dibuja recortado en el borde y aparece del otro lado, sin quedar sobre el HUD | Es lo que hace el original y evita que el sprite tape el HUD | Aceptada · implementada (incremento 19) |
-| 51 | Con mapas de muros finos, cada carga de destrucción de paredes (decisión 22) abre un camino nuevo. Además, las esferas grandes fijas del nivel 3 tenían coordenadas de los mapas de 17 × 15 | Se mantienen las 5 cargas y se vuelve a medir el balance con el bot después del incremento 19. Las 6 esferas grandes fijas del nivel 3 del modo GhostMan quedan en las 4 esquinas del boceto más (15,1) y (15,26) | Ajustar las cargas sin datos sería adivinar. El bot de balance de la V2 permite medir el efecto | Aceptada · implementada (incremento 19) (se mide con el bot; las cargas siguen pendientes del playtest) |
+| 51 | Con mapas de muros finos, cada carga de destrucción de paredes (decisión 22) abre un camino nuevo. Además, las esferas grandes fijas del nivel 3 tenían coordenadas de los mapas de 17 × 15 | Se mantienen las 5 cargas y se vuelve a medir el balance con el bot después del incremento 19. Las 6 esferas grandes fijas del nivel 3 del modo GhostMan quedan en las 4 esquinas del boceto más (15,1) y (15,26) | Ajustar las cargas sin datos sería adivinar. El bot de balance de la V2 permite medir el efecto | Aceptada · implementada (incremento 19). Playtest del equipo (11/11/2026): se mantienen las velocidades y las 5 cargas |
 | 52 | La partida arranca de inmediato al elegir el modo o el fantasma, sin tiempo para prepararse | Cuenta "3, 2, 1, ¡ya!" de 3,5 s al inicio de cada nivel y "¡Listo!" de 2 s después de perder una vida. Durante la cuenta todo queda congelado | El "READY!" del original cumple la misma función. Congelar todo evita que la cuenta altere el bonus por tiempo o los cooldowns | Aceptada · implementada (incremento 22) |
 | 53 | La derrota de Pacman no tiene animación | 0,5 s congelado, después Pacman se desarma durante 1,5 s sin fantasmas en pantalla. Se usa en los dos modos | Es la animación más reconocible del original. En modo GhostMan marca el logro del jugador | Aceptada · implementada (incremento 24) |
 | 54 | El *dash* del acelerado se ve como un teletransporte, no como un impulso | Recorre sus hasta 3 celdas en 0,25 s, con estela y colisión normal con Pacman en todo el trayecto | Al recorrer las celdas, la decisión 32 (contacto en cada celda del trayecto) pasa a ser visible para el jugador | Aceptada · implementada (incremento 20) |
@@ -1153,7 +1153,7 @@ Los valores a revisar después de jugar son las velocidades (decisiones 39 y 40)
 - **El espectro gana 2 de 10, contra 0 de 10 en el incremento 20.** Los muros de una celda que quedan los cruza bien. **El naval** sigue sin ganar: es el más lento (3,6 celdas/s contra 3,825 de Pacman) y su poder no compensa la diferencia.
 - **Usar el poder empeora al saltarín y al acelerado** cuando el bot lo usa apenas puede. Una explicación posible es que el salto al azar y el impulso en línea recta lo alejan de Pacman en los mapas con bloques más grandes; el bot no elige cuándo conviene usarlo.
 
-Las velocidades del naval y del espectro y las cargas de la decisión 22 siguen como pendientes del playtest (decisión 51).
+Las velocidades del naval y del espectro y las cargas de la decisión 22 quedaron pendientes del playtest (decisión 51). El equipo lo hizo el 11/11/2026 y las mantuvo sin cambios.
 
 **Balance después del incremento 26.** Mismo bot y mismas semillas. Sin usar el poder, los resultados son los mismos que con la decisión 71 (5, 2, 5, 0 y 5 victorias). Usando el poder:
 
@@ -1463,7 +1463,9 @@ Dos decisiones no tienen caso manual, porque no son observables por la interfaz:
 
 **Especificación de casos cerrada (etapa 2).** 71 casos nuevos de la V3 (sección 9), la regresión de los 128 casos de la V1 y la V2 con 43 ajustes y 69 mutaciones (sección 8.2) y la matriz de trazabilidad (sección 10), volcados en la planilla de la Entrega 3.
 
-**Siguiente etapa.** La preparación de la ejecución (etapa 3 del workflow): congelar `main`, cargar los datos DP-1 a DP-3 en el proyecto de prueba y completar en la planilla el commit, el navegador y los ejecutores.
+**Preparación de la ejecución (etapa 3, 11/11/2026).** `main` congelado en el commit `576c13f`, con el mismo código del juego que el incremento 29 (`36d82ce`): después solo cambiaron la documentación, los scripts de evidencia y la planilla. Datos DP-1 a DP-3 cargados en el proyecto de prueba (sección 9.2), `npm run verify` 18/18, `npm run verify:ui` 12/12, navegador Chrome 157.0.8103.40 (macOS) y ejecutor Rodriguez Castro. El playtest de la decisión 51 no cambió nada.
+
+**Siguiente etapa.** La ejecución del ciclo 3 (etapa 4 del workflow).
 
 ### 13.2 Pendientes
 
@@ -1475,9 +1477,9 @@ Dos decisiones no tienen caso manual, porque no son observables por la interfaz:
 | 4 | Decidir qué hacer con CP-032 (HU-08): marcarlo *No aplica* o reformular el criterio | Pendiente 14 de la Entrega 02 | Equipo completo |
 | 5 | Confirmar y verificar DEF-002 con otro integrante | Pendiente 14 de la Entrega 02 | `[completar]` |
 | 6 | Subir el tag `v1.0` al remoto y crear el tag `v2.0` | Pendiente 15 de la Entrega 02 | Savoia |
-| 7 | Crear los proyectos de Supabase y pasar la URL y la clave pública de cada uno. Los dos están creados y configurados (03/11/2026). Falta cargar las variables en Vercel | Decisión 60 | Savoia |
+| 7 | ~~Crear los proyectos de Supabase y cargar las variables en Vercel~~ Proyectos creados el 03/11/2026; variables cargadas en Vercel el 11/11/2026. Falta la URL del despliegue en la portada | Decisión 60 | Savoia |
 | 8 | Definir quién conduce los prompts y quién registra la sesión | Sección 7 | Equipo completo |
-| 9 | Playtest de la decisión 51 (velocidades y las 5 cargas de la decisión 22). Se cierra antes de congelar `main` | Decisión 51 | Equipo completo |
+| 9 | ~~Playtest de la decisión 51~~ Hecho el 11/11/2026: se mantienen las velocidades y las 5 cargas | Decisión 51 | Equipo completo |
 | 10 | ~~Reactivar el proyecto de Supabase de prueba~~ Reactivado el 11/11/2026; `npm run verify:ui` 12/12 OK | Etapa 3 | Savoia |
 
 ---

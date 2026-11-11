@@ -267,16 +267,17 @@ Un checklist por incremento. Cada uno se cierra con un commit propio sobre `main
 
 ## Etapa 3 — Preparación de la ejecución
 
-- [ ] Cerrar el playtest de la decisión 51 (velocidades y las 5 cargas de la decisión 22) antes de congelar: puede cambiar resultados esperados. Si cambia algo, regenerar la planilla
-- [ ] Congelar `main`: registrar el commit bajo prueba (`COMMIT` de `build_planilla_v3.py` y sección 13.1) y no hacer pushes que no sean correcciones de defectos registrados
+- [x] Cerrar el playtest de la decisión 51 (velocidades y las 5 cargas de la decisión 22) antes de congelar: hecho el 11/11/2026, sin cambios
+- [x] Congelar `main`: commit bajo prueba `576c13f` (mismo código del juego que `36d82ce`, incremento 29), en `build_planilla_v3.py` y en la sección 13.1. Desde acá no se cambia el código del juego salvo para corregir defectos registrados
 - [x] Reactivar el proyecto de Supabase de prueba (D. Savoia): estaba pausado por inactividad; reactivado el 11/11/2026
 - [x] Preparar la carga de los datos de prueba: `limpiar_tableros.sql` y `cargar_datos_prueba.js` en `TP/evidencia-entrega-03/scripts/`, con el orden de la sección 9.2
 - [x] Limpiar los tableros del proyecto de prueba (SQL Editor) y cargar la fase `pacman` (11/11/2026: 13 filas, top 10 según DP-1 con el empate en orden; GhostMan vacío). La fase `ghostman` se carga después de ejecutar CP-127
 - [x] CP-127 aprobado (11/11/2026) y fase `ghostman` cargada (4 filas). CP-126 corregido: espera 4 filas (DP-2 más el usuario de prueba de DP-3), no 3. Los resultados se registran en `resultados_v3.py` y se vuelcan con `build_planilla_v3.py`
 - [x] Correr `npm run verify:ui` contra un build de prueba **antes** de limpiar los tableros (después ya no, sección 9.2): 12/12 suites OK el 11/11/2026, con Chrome 157 (`CHROMIUM_PATH`)
 - [x] Cargar los casos de la V3 y la regresión en la planilla (199 casos; navegador Chrome 157.0.8103.40 y ejecutor Rodriguez Castro completados el 11/11/2026)
-- [ ] Cargar las variables de Supabase en Vercel (pendiente 7) y la URL del despliegue en la portada de `entrega-03.md`
-- [ ] Confirmar los criterios de entrada (sección 9.7 de la Entrega 01). Al 11/11/2026: `npm run verify` 18/18, `npm run lint` sin errores y `npm run build` OK; los casos están especificados y la planilla preparada. Falta la versión desplegada y accesible (Vercel) y la revisión de los casos
+- [x] Cargar las variables de Supabase en Vercel (pendiente 7), 11/11/2026
+- [ ] Poner la URL del despliegue en la portada de `entrega-03.md`
+- [ ] Confirmar los criterios de entrada (sección 9.7 de la Entrega 01). Cumplidos al 11/11/2026: la aplicación arranca y se juega (`npm run verify` 18/18, `npm run verify:ui` 12/12, build y lint), los casos están especificados y la planilla preparada. Falta comprobar el despliegue de Vercel (con la URL) y la revisión de los casos por otro integrante
 
 ---
 
