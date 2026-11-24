@@ -1,0 +1,15 @@
+{
+  "name": "ghostman-automatizacion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Casos de prueba automatizados de GhostMan con Playwright (caja negra, navegador visible)",
+  "scripts": {
+    "postinstall": "playwright install ffmpeg",
+    "test": "playwright test",
+    "cp060": "playwright test cp-060",
+    "reporte": "playwright show-report reporte"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
