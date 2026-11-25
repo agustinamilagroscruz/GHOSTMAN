@@ -1,0 +1,773 @@
+{
+  "CP-001": {
+    "ok": true,
+    "notes": [
+      "→ ↓ ← ↑ desde la aparición: right en (23,13), down en (23,18), left en (28,19), up en (29,9); recorrió la fila 23, la columna 19, la fila 29 y la columna 8 en la dirección de cada tecla"
+    ]
+  },
+  "CP-002": {
+    "ok": true,
+    "notes": [
+      "A S D W desde la aparición: left en (23,13), down en (23,9), right en (28,8), up en (29,18); por la fila 23, la columna 8, la fila 29 y la columna 19, igual que con las flechas"
+    ]
+  },
+  "CP-003": {
+    "ok": true,
+    "notes": [
+      "→ presionada y soltada: Pacman avanzó solo por la fila 23 de la columna 13 a la 26 en 3 s, hasta el muro"
+    ]
+  },
+  "CP-004": {
+    "ok": true,
+    "notes": [
+      "avanzando a la derecha por la fila 23 con ↑ presionado antes, giró hacia arriba al llegar a la intersección de la columna 21 sin detenerse"
+    ]
+  },
+  "CP-005": {
+    "ok": true,
+    "notes": [
+      "avanzando a la izquierda por la fila 23 con ↓ contra el muro de abajo: sigue a la left, de la columna 12 a la 10, sin detenerse"
+    ]
+  },
+  "CP-006": {
+    "ok": true,
+    "notes": [
+      "a mitad de celda (columna 15, 0.42) ← invierte la marcha de inmediato: dirección left"
+    ]
+  },
+  "CP-007": {
+    "ok": true,
+    "notes": [
+      "→ mantenida 5 s contra el borde derecho de la fila 23: quedó en la columna 26 (progreso 0, a la derecha un muro), y con ← se movió con normalidad"
+    ]
+  },
+  "CP-008": {
+    "ok": true,
+    "notes": [
+      "contra cada borde fuera de la fila 13 Pacman no sale del mapa: izquierdo (fila 5): quedó en (5,1); inferior: quedó en (29,6); derecho (fila 25): quedó en (25,26); superior: quedó en (1,6)"
+    ]
+  },
+  "CP-009": {
+    "ok": true,
+    "notes": [
+      "60 s en el nivel 3: ningún fantasma dentro de un muro salvo el espectro con su poder (67 cuadros de cruce), ninguno fuera del mapa, 5 salidas de la base, todas por la puerta, y 0 cruces de borde, todos por el túnel de la fila 13"
+    ]
+  },
+  "CP-010": {
+    "ok": true,
+    "notes": [
+      "las 262 esferas están en celdas transitables y alcanzables; las 40 celdas transitables sin esfera son el anillo de la base (30), el túnel (8) y la aparición (2)"
+    ]
+  },
+  "CP-011": {
+    "ok": true,
+    "notes": [
+      "primera esfera a la derecha de la aparición (23,15): desaparece, puntaje 0 → 10 y esferas 262 → 261"
+    ]
+  },
+  "CP-012": {
+    "ok": true,
+    "notes": [
+      "20 esferas consumidas; un fantasma alcanzó a Pacman (vidas 3 → 2), los personajes volvieron a su posición (Pacman en 23,13) y ninguna esfera consumida reapareció"
+    ]
+  },
+  "CP-013": {
+    "ok": true,
+    "notes": [
+      "30 s con Pacman quieto: los fantasmas pasaron por 143 celdas; el contador sigue en 262 y las esferas siguen en el mapa"
+    ]
+  },
+  "CP-014": {
+    "ok": true,
+    "notes": [
+      "última esfera en (4,21), mitad derecha",
+      "al consumir la última esfera el nivel se completa, la partida se detiene y se muestra «¡Nivel 1 completado!» con el puntaje (1200)"
+    ]
+  },
+  "CP-015": {
+    "ok": true,
+    "notes": [
+      "con solo la esfera grande de (23,26): el nivel no se completa y el contador indica 1 («Esferas: 1»)"
+    ]
+  },
+  "CP-016": {
+    "ok": true,
+    "notes": [
+      "con 1 vida y 30 puntos se completa el nivel 1 («¡Nivel 1 completado!»); empieza el nivel 2 con 1220 puntos (los 30 más la última esfera y el bonus por tiempo) y 1 vida"
+    ]
+  },
+  "CP-017": {
+    "ok": true,
+    "notes": [
+      "partida N1 → N2 → N3 sobre los mapas nuevos (Nivel 1 (262 esferas), Nivel 2 (272 esferas), Nivel 3 (262 esferas)): al consumir la última esfera del nivel 3 se muestra «¡Victoria!» con el puntaje final"
+    ]
+  },
+  "CP-018": {
+    "ok": true,
+    "notes": [
+      "esfera grande de (1,26) sin otra tecla: PowerUp activo, +50, 4 fantasmas vulnerables que se alejan de Pacman (distancias en 3 s 23/21/16/11 → 30/30/16/16, total 71 → 92)"
+    ]
+  },
+  "CP-019": {
+    "ok": true,
+    "notes": [
+      "esfera grande de (1,23... fila 23, columna 1): a los 6,5 s vulnerables y parpadeando (1.47 s restantes); a los 8,5 s el PowerUp terminó y los fantasmas volvieron a la normalidad: duración de 8 s"
+    ]
+  },
+  "CP-020": {
+    "ok": true,
+    "notes": [
+      "el fantasma celeste, que se acercaba (distancia 2 → 2), con el PowerUp se alejó: 2 → 7 en 1,5 s"
+    ]
+  },
+  "CP-021": {
+    "ok": true,
+    "notes": [
+      "segunda esfera grande a los 5 s: el PowerUp sigue a los 7,5 s del segundo consumo (true) y termina antes de los 8,5 s (false): 8 s completos desde el segundo"
+    ]
+  },
+  "CP-022": {
+    "ok": true,
+    "notes": [
+      "primer fantasma +200; tras la segunda esfera grande, el siguiente +200 (no 400)"
+    ]
+  },
+  "CP-023": {
+    "ok": true,
+    "notes": [
+      "esfera grande de (1,1) y los cuatro fantasmas comidos junto a la base: 200, 400, 800, 1600"
+    ]
+  },
+  "CP-024": {
+    "ok": true,
+    "notes": [
+      "en tres PowerUp seguidos, terminando cada uno, el primer fantasma comido suma 200, 200, 200: el del tercero suma 200, no 400"
+    ]
+  },
+  "CP-025": {
+    "ok": true,
+    "notes": [
+      "con 1 vida y el PowerUp, tocar un fantasma lo come (ojos), el contador sigue en 1 y el nivel no se reinicia"
+    ]
+  },
+  "CP-026": {
+    "ok": true,
+    "notes": [
+      "al comerlo quedan sus ojos; vuelven solos a la base, revive y sale por la puerta vulnerable (el PowerUp sigue activo)"
+    ]
+  },
+  "CP-027": {
+    "ok": true,
+    "notes": [
+      "comido junto a la base +200; revivió y salió vulnerable con 6.55 s de PowerUp; comido otra vez +400: la escala continúa"
+    ]
+  },
+  "CP-028": {
+    "ok": true,
+    "notes": [
+      "a los 5 s el diseño vulnerable es estable (BBBBBBBB); a los 7 s alterna con el blanco (BBBWWWBB), distinto del estable y del normal"
+    ]
+  },
+  "CP-029": {
+    "ok": true,
+    "notes": [
+      "durante el parpadeo (BBBWWWBB) se consume la segunda esfera grande: el parpadeo cesa (BBBBBBBB) y el PowerUp vuelve a 7.97 s"
+    ]
+  },
+  "CP-030": {
+    "ok": true,
+    "notes": [
+      "contacto con el fantasma naranja: animación de derrota; tras el «¡Listo!» vidas 3 → 2, puntaje 20 conservado, Pacman en (23,13) y los fantasmas en la base: 1 sobre la puerta y 3 adentro"
+    ]
+  },
+  "CP-031": {
+    "ok": true,
+    "notes": [
+      "de frente por la fila 23 contra un fantasma: un único contacto y el contador queda en 2"
+    ]
+  },
+  "CP-033": {
+    "ok": true,
+    "notes": [
+      "con 30 esferas consumidas se pierde una vida: sigue el nivel 1, puntaje 300, esferas 232 (las consumidas siguen ausentes), Pacman en (23,13) y 1 fantasma afuera, sobre la puerta"
+    ]
+  },
+  "CP-034": {
+    "ok": true,
+    "notes": [
+      "abajo a la izquierda, debajo del tablero: «Vidas» con 3 íconos de Pacman, sin número"
+    ]
+  },
+  "CP-035": {
+    "ok": true,
+    "notes": [
+      "en el momento de cada pérdida (al empezar la animación) el contador mostró 2, 1, 0 íconos"
+    ]
+  },
+  "CP-036": {
+    "ok": true,
+    "notes": [
+      "última vida perdida en el nivel 3: contador sin íconos, pantalla de Game Over con el puntaje (2700) y 5 s después nada se reinició"
+    ]
+  },
+  "CP-037": {
+    "ok": true,
+    "notes": [
+      "en el nivel 3 la partida termina con la misma pantalla de Game Over que en el nivel 1 (desglose, «Volver a jugar» y «Menú principal»)"
+    ]
+  },
+  "CP-038": {
+    "ok": true,
+    "notes": [
+      "HUD: 0 → 10 (+10 esfera) → 60 (+50 esfera grande) → 260 (+200 fantasma), actualizado tras cada acción"
+    ]
+  },
+  "CP-039": {
+    "ok": true,
+    "notes": [
+      "puntaje 50; tras perder una vida 50; al inicio del nivel 2 1240: no disminuye"
+    ]
+  },
+  "CP-040": {
+    "ok": true,
+    "notes": [
+      "fruta en (13,21) del nivel 3: desaparece, +100 y el contador de esferas sigue en 262"
+    ]
+  },
+  "CP-041": {
+    "ok": true,
+    "notes": [
+      "fruta en (1,8): a los 14 s sigue (true); a los 16 s ya no está (false)"
+    ]
+  },
+  "CP-042": {
+    "ok": true,
+    "notes": [
+      "nivel 1 completado en 2.75 s de juego (desde el «¡ya!», sin la cuenta): bonus por tiempo 1170 = 10 × 117 s enteros restantes"
+    ]
+  },
+  "CP-043": {
+    "ok": true,
+    "notes": [
+      "nivel 1 completado a los 125.25 s: bonus por tiempo 0, no negativo"
+    ]
+  },
+  "CP-044": {
+    "ok": true,
+    "notes": [
+      "victoria con 2 vidas: Esferas 30, Fantasmas comidos 0, Frutas 0, Bonus por tiempo 4470, Bonus por vidas 1000, Total 5500; la suma de los componentes da 5500"
+    ]
+  },
+  "CP-045": {
+    "ok": true,
+    "notes": [
+      "Game Over: bonus por vidas 0"
+    ]
+  },
+  "CP-046": {
+    "ok": true,
+    "notes": [
+      "contador: 262 al empezar, 257 tras 5 esferas, 0 con la última y 272 al empezar el nivel 2"
+    ]
+  },
+  "CP-047": {
+    "ok": true,
+    "notes": [
+      "Nivel 1: colores dominantes 0,3,3 | 3,0,0 | 3,3,3; Nivel 2: colores dominantes 0,1,3 | 0,1,2 | 3,3,3; Nivel 3: colores dominantes 0,3,0 | 0,2,0 | 3,3,3",
+      "los niveles se juegan en orden 1, 2 y 3 con el HUD indicando cada uno; cada mapa con su laberinto, la base y el túnel en el mismo lugar y su paleta (1 celeste y rojo, 2 azul, 3 verde; capturas revisadas)"
+    ]
+  },
+  "CP-048": {
+    "ok": true,
+    "notes": [
+      "el mapa del nivel 1 de una partida nueva es idéntico al anterior (muros, esferas y esferas grandes)"
+    ]
+  },
+  "CP-049": {
+    "ok": true,
+    "notes": [
+      "25 s del nivel 1 con Pacman quieto en la aparición: tipos classic, velocidad 3.8249999999999997 celdas/s para los cuatro, sin cruces, saltos, frutas falsas ni dash"
+    ]
+  },
+  "CP-050": {
+    "ok": true,
+    "notes": [
+      "5 fantasmas comidos en el nivel 1: sus ojos vuelven a la base y reviven como classic, classic, classic, classic, classic"
+    ]
+  },
+  "CP-051": {
+    "ok": true,
+    "notes": [
+      "nivel 2 tras completar el 1 con 1 vida: classic, classic, classic, classic"
+    ]
+  },
+  "CP-052": {
+    "ok": true,
+    "notes": [
+      "tipos al revivir: classic, classic, specter, accelerated, accelerated, classic, jumper, jumper, classic, jumper, classic, specter, accelerated, naval",
+      "14 fantasmas comidos en el nivel 2 (al menos 10, hasta ver los cuatro tipos): 9 reviven con poderes (64 %; specter, accelerated, jumper, naval) y 5 clásicos"
+    ]
+  },
+  "CP-053": {
+    "ok": true,
+    "notes": [
+      "nivel 3 tras perder una vida en el 2: specter, jumper, naval, accelerated, uno de cada tipo"
+    ]
+  },
+  "CP-054": {
+    "ok": true,
+    "notes": [
+      "el espectro se tomó fijando el tipo del fantasma rosa (sección 4.4: 70 % de la velocidad del clásico)",
+      "6 celdas de la fila 20: clásico 1.57 s, espectro 2.23 s, un 43 % más"
+    ]
+  },
+  "CP-055": {
+    "ok": true,
+    "notes": [
+      "90 s en el nivel 3: 1 cruces del espectro, de 2 celdas; ninguno de 3 o más, de la base ni del borde"
+    ]
+  },
+  "CP-056": {
+    "ok": true,
+    "notes": [
+      "con el espectro junto a un muro de una celda en (20,3) y Pacman del otro lado, repetido cada 0,4 s durante 24 s: cruzó 2 veces, con 10.08 s entre cruces (al menos 10 s)"
+    ]
+  },
+  "CP-057": {
+    "ok": true,
+    "notes": [
+      "el espectro atravesó un muro; a los 2 s del cruce (0.98 s de gracia restantes, se ve translúcido) el contacto no descontó vidas (3 → 3); pasados los 3 s descontó una (3 → 2)"
+    ]
+  },
+  "CP-058": {
+    "ok": true,
+    "notes": [
+      "90 s observando a los espectros: ninguno fuera del mapa, dentro de un muro de la base ni detenido dentro de un bloque (1 cruces completos)"
+    ]
+  },
+  "CP-059": {
+    "ok": true,
+    "notes": [
+      "el espectro pasó a vulnerable; comido después de otro fantasma (+200) suma +400 y las vidas siguen en 3"
+    ]
+  },
+  "CP-060": {
+    "ok": true,
+    "notes": [
+      "Game Over en el nivel 2: contador sin íconos, desglose (Esferas, Fantasmas comidos, Frutas, Bonus por tiempo, Bonus por vidas, Total), «Volver a jugar» y «Menú principal», que lleva al menú"
+    ]
+  },
+  "CP-061": {
+    "ok": true,
+    "notes": [
+      "victoria con 3 vidas: «¡Victoria!» con el desglose (Esferas 30, Fantasmas comidos 0, Frutas 0, Bonus por tiempo 4470, Bonus por vidas 1500, Total 6000); «Volver a jugar» empezó una partida nueva en el nivel 1"
+    ]
+  },
+  "CP-062": {
+    "ok": true,
+    "notes": [
+      "«Volver a jugar» dos veces seguidas tras un Game Over: nivel/vidas/puntaje/esferas/frutas = 1/3/0/262/0 y 1/3/0/262/0; el nivel 2 empieza completo con 272 esferas"
+    ]
+  },
+  "CP-063": {
+    "ok": true,
+    "notes": [
+      "ESC: cartel «PAUSA», personajes inmóviles 5 s, las flechas no mueven a Pacman y el segundo ESC reanuda"
+    ]
+  },
+  "CP-064": {
+    "ok": true,
+    "notes": [
+      "pausa a los 2 s con 5.98 s de PowerUp; 15 s después sigue con 5.98 s; al reanudar dura 6.01 s más"
+    ]
+  },
+  "CP-065": {
+    "ok": true,
+    "notes": [
+      "con 60 s de pausa el tiempo de juego pasó de 1.53 a 1.53 s; nivel completado en 1.77 s efectivos y bonus 1180"
+    ]
+  },
+  "CP-066": {
+    "ok": true,
+    "notes": [
+      "10 veces la barra espaciadora: puntaje, vidas, pausa, PowerUp y posición sin cambios; la página no hizo scroll (scrollY 0)"
+    ]
+  },
+  "CP-067": {
+    "ok": true,
+    "notes": [
+      "con ↓ ↓ ↓ y Enter (vuelta completa del menú circular a «Jugar»): ▶Modo PacMan, Modo GhostMan, Volver, con «▶Modo PacMan» seleccionada; Enter empezó el nivel 1 en modo Pacman, movido con las flechas, con 3 íconos de Pacman"
+    ]
+  },
+  "CP-068": {
+    "ok": true,
+    "notes": [
+      "S pasa a «▶Modo GhostMan»; Enter abre el carrusel con «Clásico» en el centro"
+    ]
+  },
+  "CP-069": {
+    "ok": true,
+    "notes": [
+      "modo PacMan: «Vidas» con 3 íconos de Pacman; tras recargar (la sesión sigue y vuelve al menú) y elegir GhostMan con el espectro: «Vidas de Pacman» con 3 íconos de fantasma"
+    ]
+  },
+  "CP-070": {
+    "ok": true,
+    "notes": [
+      "al abrir: «Clásico» en el centro con su descripción; con ← cuatro veces: Acelerado, Naval, Saltarín, Espectro, cada uno con su nombre y la descripción de su poder (el orden es Clásico, Espectro, Saltarín, Naval y Acelerado)"
+    ]
+  },
+  "CP-071": {
+    "ok": true,
+    "notes": [
+      "← Acelerado, D Clásico, A Acelerado: circular en los dos sentidos"
+    ]
+  },
+  "CP-072": {
+    "ok": true,
+    "notes": [
+      "→ hasta «Acelerado» y Enter: partida en modo GhostMan con el Acelerado como fantasma del jugador"
+    ]
+  },
+  "CP-073": {
+    "ok": true,
+    "notes": [
+      "← → A D Enter durante 5 s: el fantasma se movió (quedó en 11,16), no se abrió el carrusel; tras pausar y reanudar sigue siendo el Saltarín"
+    ]
+  },
+  "CP-074": {
+    "ok": true,
+    "notes": [
+      "↑ sale por la puerta y en la fila 11 ← lo lleva a la izquierda (11,12,left); D lo lleva a la derecha y W lo hace subir en el primer cruce, en la columna 18: WASD igual que las flechas"
+    ]
+  },
+  "CP-075": {
+    "ok": true,
+    "notes": [
+      "↓ 3 s en el borde inferior: queda en la fila 29; ← y → contra muros interiores: se detiene en celdas transitables (23,1 y 23,26); ↓ contra la puerta: no vuelve a entrar"
+    ]
+  },
+  "CP-076": {
+    "ok": true,
+    "notes": [
+      "20 s sin teclas en el nivel 2: Pacman se movió solo y comió 59 esferas; los fantasmas de la IA se movieron y el del jugador quedó quieto en 14,13"
+    ]
+  },
+  "CP-077": {
+    "ok": true,
+    "notes": [
+      "con 8 esferas consumidas y el Naval: vidas 3 → 2, +500, animación de derrota; tras el «¡Listo!» Pacman en (23,13), el jugador en la base, 1 fantasma de la IA sobre la puerta y las esferas sin cambios (254)"
+    ]
+  },
+  "CP-078": {
+    "ok": true,
+    "notes": [
+      "nivel 2: «Vidas de Pacman» con 3; tras el toque de un fantasma de la IA sigue en 3; tras el del jugador queda en 2"
+    ]
+  },
+  "CP-079": {
+    "ok": true,
+    "notes": [
+      "tercera derrota en el nivel 2: el contador llega a 0, «¡Nivel 2 completado!»; empieza el nivel 3 con la cuenta (start) y el contador en 3"
+    ]
+  },
+  "CP-080": {
+    "ok": true,
+    "notes": [
+      "con Pacman con 3 vidas, al consumir la última esfera la partida termina: Game Over con el puntaje y «Volver a jugar»"
+    ]
+  },
+  "CP-081": {
+    "ok": true,
+    "notes": [
+      "Pacman comió la esfera grande y el Espectro del jugador pasó a vulnerable; al tocarlo no lo derrota (vidas de Pacman 3): el jugador es comido"
+    ]
+  },
+  "CP-082": {
+    "ok": true,
+    "notes": [
+      "Clásico comido: «Volviendo a la base…», los ojos vuelven solos y revive con control inmediato; Naval: Reaparecés en 3, Reaparecés en 2, Reaparecés en 1 durante 3.01 s antes de poder salir"
+    ]
+  },
+  "CP-083": {
+    "ok": true,
+    "notes": [
+      "Saltarín comido por Pacman: vidas de Pacman, esferas y posición sin cambios (3, 260, 11, 13): el nivel no se reinicia"
+    ]
+  },
+  "CP-084": {
+    "ok": true,
+    "notes": [
+      "nivel 3, Espectro en (11,6) junto a un muro de dos celdas: con la barra espaciadora entró al muro, lo atravesó completo y quedó en una celda transitable del otro lado (11,10)"
+    ]
+  },
+  "CP-085": {
+    "ok": true,
+    "notes": [
+      "contacto a los 2 s del cruce: Pacman no perdió una vida (3 → 3; espectro translúcido con contorno punteado, captura); espacio a los 8 s: nada (cooldown 1.9 s); el poder vuelve a los 10.43 s"
+    ]
+  },
+  "CP-086": {
+    "ok": true,
+    "notes": [
+      "muro de 3 o más celdas a la derecha de (2,1)",
+      "espacio contra muros sin destino válido: muro de 3 o más celdas: (2,1), ⭐ encendida; muro de la base: (14,9), ⭐ encendida; borde izquierdo: (5,1), ⭐ encendida: no atraviesa y el poder no se consume"
+    ]
+  },
+  "CP-087": {
+    "ok": true,
+    "notes": [
+      "10 saltos avanzando hacia arriba: (29,6)→(22,6) (29,21)→(27,26) (29,1)→(23,4) (29,26)→(23,25) (29,6)→(23,3) (29,21)→(23,18) (29,1)→(27,8) (29,26)→(20,25) (29,12)→(27,8) (29,15)→(26,19); todos a distancia ≤ 10, en filas menores que el origen, en celdas transitables fuera de la base"
+    ]
+  },
+  "CP-088": {
+    "ok": true,
+    "notes": [
+      "espacio a los 9 s: no salta; el poder se reactiva a los 10.01 s y salta"
+    ]
+  },
+  "CP-089": {
+    "ok": true,
+    "notes": [
+      "la sombra del destino coincidió con la celda de Pacman (20,6): al aterrizar Pacman perdió una vida (3 → 2)"
+    ]
+  },
+  "CP-090": {
+    "ok": true,
+    "notes": [
+      "nivel 2: fruta falsa colocada en (23,20) con Pacman lejos (no la registró); Pacman pasó por ahí, la consumió y perdió una vida (3 → 2), con el reinicio del nivel"
+    ]
+  },
+  "CP-091": {
+    "ok": true,
+    "notes": [
+      "fruta falsa consumida en el último segundo del PowerUp: desaparece sin efecto (vidas 3, puntaje 0)"
+    ]
+  },
+  "CP-092": {
+    "ok": true,
+    "notes": [
+      "fruta junto al cruce (20,6): cuenta regresiva desde los 6.9 s y explosión a los 9.9 s sobre 13 celdas, las que están a 3 pasos o menos sin atravesar paredes"
+    ]
+  },
+  "CP-093": {
+    "ok": true,
+    "notes": [
+      "a los 3 s no se coloca otra (1); a los 5 s sí (2); el tercer intento no supera el máximo: nunca hubo más de 2"
+    ]
+  },
+  "CP-094": {
+    "ok": true,
+    "notes": [
+      "fruta real (23,6) y falsa (23,9) en el nivel 3 se diferencian (rojo/violeta: 216/0 y 0/153; captura revisada)"
+    ]
+  },
+  "CP-095": {
+    "ok": true,
+    "notes": [
+      "hacia la izquierda con espacio libre: de la columna 9 a la 6 (3 celdas) en 0.23 s; con la pared a 1 celda: se detuvo en la columna 1, la última transitable"
+    ]
+  },
+  "CP-096": {
+    "ok": true,
+    "notes": [
+      "pasillo vertical: columna 6, desde la fila 1",
+      "columna 6, en vertical: en los 5 s posteriores al dash 2.26 celdas/s; después 4.52 celdas/s"
+    ]
+  },
+  "CP-097": {
+    "ok": true,
+    "notes": [
+      "recién iniciada, dentro de la base y sin moverse: espacio no desplaza al Acelerado y la ⭐ sigue disponible"
+    ]
+  },
+  "CP-098": {
+    "ok": true,
+    "notes": [
+      "⭐ encendida abajo a la izquierda, junto a las vidas; se apaga al usar el poder y se enciende a los 9.98 s"
+    ]
+  },
+  "CP-099": {
+    "ok": true,
+    "notes": [
+      "Clásico: la barra muestra «Vidas de Pacman👻👻👻», sin estrella; espacio no hace nada"
+    ]
+  },
+  "CP-100": {
+    "ok": true,
+    "notes": [
+      "5 espacios durante el cooldown: ninguna fruta nueva (1) y el cooldown siguió bajando (4.88 → 4.13 s), sin reiniciarse"
+    ]
+  },
+  "CP-101": {
+    "ok": true,
+    "notes": [
+      "muros rotos en ese PowerUp natural: 0",
+      "nivel 3: con la esfera grande Pacman recibe 5 cargas y rompe 1 muros interiores (2,6), ninguno del borde ni de la base; cada celda rota queda transitable"
+    ]
+  },
+  "CP-102": {
+    "ok": true,
+    "notes": [
+      "nivel 1, segunda esfera grande (23,26): PowerUp sin cargas (0) y ninguna pared destruida hasta el final"
+    ]
+  },
+  "CP-103": {
+    "ok": true,
+    "notes": [
+      "con 1 pared rota (3,6), al derrotar a Pacman el nivel se reinicia y la pared vuelve a existir"
+    ]
+  },
+  "CP-104": {
+    "ok": true,
+    "notes": [
+      "esferas grandes: nivel 1 4, nivel 2 4, nivel 3 6 (1,1 1,26 15,1 15,26 29,1 29,26)"
+    ]
+  },
+  "CP-105": {
+    "ok": true,
+    "notes": [
+      "nivel 3: esferas grandes nuevas a los 14.78 s y 29.78 s del «¡ya!» en 16,18 y 13,9 (transitables, fuera de la base y del túnel), contador 262 → 264; con solo una dinámica sin consumir el nivel no termina"
+    ]
+  },
+  "CP-141": {
+    "ok": true,
+    "notes": [
+      "↑ ↓ W S Enter durante 5 s: el fantasma se mueve y no aparecen el menú ni el carrusel; tras pausar y reanudar sigue en modo GhostMan con «Vidas de Pacman» y el mismo fantasma"
+    ]
+  },
+  "CP-142": {
+    "ok": true,
+    "notes": [
+      "10 celdas: Clásico 2.22 s, Naval 2.79 s (un 20 % más lento)"
+    ]
+  },
+  "CP-143": {
+    "ok": true,
+    "notes": [
+      "tercera derrota de Pacman en el nivel 3 con el Naval: se completa el nivel y aparece «¡Victoria!» con el desglose del modo GhostMan (Derrotas de Pacman 500, Esferas sin consumir 2570, Total 3070)"
+    ]
+  },
+  "CP-144": {
+    "ok": true,
+    "notes": [
+      "Pacman con 2 vidas en (16,6): tocado por un fantasma de la IA vuelve a (23,14) sin perder vidas; puntaje, esferas y posición del jugador sin cambios"
+    ]
+  },
+  "CP-145": {
+    "ok": true,
+    "notes": [
+      "nivel 1 con 3 derrotas y 257 esferas restantes: 4070 = 1500 + 10 × 257; desglose final Derrotas de Pacman 1500, Esferas sin consumir 2570, Total 4070"
+    ]
+  },
+  "CP-146": {
+    "ok": true,
+    "notes": [
+      "espacio mientras los ojos vuelven: sin desplazamiento ni cambio; al revivir la ⭐ sigue disponible"
+    ]
+  },
+  "CP-147": {
+    "ok": true,
+    "notes": [
+      "Saltarín: tras la derrota de Pacman y el «¡Listo!» la ⭐ sigue apagada; vuelve a los 14.06 s del uso (10 s de juego más 4 s de derrota y «¡Listo!»)"
+    ]
+  },
+  "CP-148": {
+    "ok": true,
+    "notes": [
+      "con 2 frutas falsas, al derrotar a Pacman el nivel se reinicia y desaparecen sin explotar"
+    ]
+  },
+  "CP-149": {
+    "ok": true,
+    "notes": [
+      "Acelerado en la columna 6 de la fila 20 con Pacman a 1 celda por delante (columna 5): el dash de 3 celdas lo llevó más allá y Pacman perdió una vida (3 → 2): el contacto se evalúa en todo el trayecto"
+    ]
+  },
+  "CP-150": {
+    "ok": true,
+    "notes": [
+      "contra el muro: espacio sin desplazamiento ni cooldown (0); en el pasillo libre el dash se ejecutó de inmediato (columna 8 → 11)"
+    ]
+  },
+  "CP-151": {
+    "ok": true,
+    "notes": [
+      "Pacman rompió (3,6) con destello y escombros (captura); el fantasma del jugador pasó por esa celda (llegó a la columna 7)"
+    ]
+  },
+  "CP-152": {
+    "ok": true,
+    "notes": [
+      "tipos: naval, classic, jumper, naval, classic, classic, specter, classic, jumper, classic, jumper, accelerated, classic, specter, classic, accelerated, classic, jumper, classic, naval",
+      "20 reapariciones en el nivel 2 (al menos 20): 11 con poderes (55 %; naval, jumper, specter, accelerated) y 9 clásicas"
+    ]
+  },
+  "CP-153": {
+    "ok": true,
+    "notes": [
+      "nivel 3: specter, jumper, naval, accelerated; después de perder una vida: specter, jumper, naval, accelerated; los comidos reviven como naval, naval, specter, specter, nunca clásicos"
+    ]
+  },
+  "CP-154": {
+    "ok": true,
+    "notes": [
+      "los cuatro fantasmas del nivel 3 se dibujan distintos entre sí y del clásico (gorro del naval, espectro semitransparente, resortes del saltarín, líneas del acelerado; captura revisada)"
+    ]
+  },
+  "CP-155": {
+    "ok": true,
+    "notes": [
+      "con Pacman a ≤ 10 celdas, el saltarín saltó en arco de (23,4) a (21,10), transitable y adelante; no volvió a saltar en los 14 s siguientes antes de los 10 s"
+    ]
+  },
+  "CP-156": {
+    "ok": true,
+    "notes": [
+      "el naval se dejó a 1 celda/s para que no alcance a Pacman (quieto en un rincón) durante la observación",
+      "en 15 s el naval colocó 2 frutas falsas, con 5 s entre una y otra; nunca hubo más de 2; Pacman sin PowerUp comió la de (17,9) y perdió una vida"
+    ]
+  },
+  "CP-157": {
+    "ok": true,
+    "notes": [
+      "con Pacman a ≤ 6 celdas el acelerado se impulsó 3 celdas; quedó a la mitad de velocidad 4.98 s y no repitió el dash"
+    ]
+  },
+  "CP-158": {
+    "ok": true,
+    "notes": [
+      "esfera grande de la fila 29 junto a los fantasmas: 4 vulnerables; durante el PowerUp ninguno saltó, colocó frutas, hizo un dash ni atravesó muros"
+    ]
+  },
+  "CP-159": {
+    "ok": true,
+    "notes": [
+      "6 fantasmas comidos en el nivel 1 reviven classic, classic, classic, classic, classic, classic; no aparecen frutas falsas ni fantasmas con poderes"
+    ]
+  },
+  "CP-160": {
+    "ok": true,
+    "notes": [
+      "Pacman bajaba por la columna 6 hacia las esferas; con el fantasma subiendo desde abajo, cambió de dirección (up) al quedar a 4 celdas, y en los 2 s siguientes se alejó: quedó a 11 celdas del punto donde estaba el fantasma (el fantasma lo siguió persiguiendo)"
+    ]
+  },
+  "CP-161": {
+    "ok": true,
+    "notes": [
+      "con el PowerUp y el fantasma del jugador quieto en (20,1), a 6 celdas, Pacman se dirigió hacia él (distancia 6 → 1) y lo comió"
+    ]
+  },
+  "CP-162": {
+    "ok": true,
+    "notes": [
+      "fruta colocada a 4 celdas de Pacman: la registró y no la consumió (vidas 3); otra colocada a más de 8 celdas: al pasar a 5 o menos se desvió, la consumió y perdió una vida"
+    ]
+  },
+  "CP-163": {
+    "ok": true,
+    "notes": [
+      "Game Over en el nivel 2 con el Espectro; «Volver a jugar»: modo GhostMan, Espectro, nivel 1, 3 vidas de Pacman, puntaje 0; al terminar, «Menú principal» muestra Jugar, Puntajes, Opciones"
+    ]
+  }
+}

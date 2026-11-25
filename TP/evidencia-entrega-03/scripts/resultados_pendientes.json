@@ -1,0 +1,233 @@
+{
+  "CP-132": {
+    "ok": true,
+    "notes": [
+      "paso 1: «Skin de Pacman» en «Clásico ✓» y «Skin de los fantasmas» en «Clásica ✓», con vista previa",
+      "paso 2: «Menta ✓» y «Pastel ✓» marcadas, «Guardado»",
+      "paso 3: en la partida Pacman es menta (1359 píxeles menta, 0 del amarillo clásico), los íconos de vidas son menta (#5ef2b5) y los cuatro fantasmas tienen los colores pastel (1152, 1134, 1134, 1134 píxeles)"
+    ]
+  },
+  "CP-134": {
+    "ok": true,
+    "notes": [
+      "paso 1: skins clásicas, 10 celdas en 2.22 s (4.5 celdas/s) y 5 esferas de 10, 10, 10, 10, 10 puntos",
+      "paso 2: con Menta ✓ / Pastel ✓, 10 celdas en 2.22 s y 5 esferas de 10, 10, 10, 10, 10 puntos: los mismos valores",
+      "paso 3: con las dos skins el PowerUp vuelve vulnerables a los fantasmas (4 y 4), comer uno suma 200 y 200, y el contacto sin PowerUp quita 1 y 1 vida"
+    ]
+  },
+  "CP-135": {
+    "ok": true,
+    "notes": [
+      "paso 1: carrusel con la skin Pastel: Clásico, Espectro, Saltarín, Naval, Acelerado (capturas CP-135-carrusel-1 a 5, revisadas: cada tipo con su silueta y sus marcas)",
+      "paso 1: los 5 tipos se recorren y se distinguen (silueta y marcas, ver capturas)",
+      "paso 2: con la esfera grande los 4 fantasmas se ven con el diseño vulnerable, distinto del normal, y en los últimos 2 s parpadean (capturas CP-135-paso2-*, revisadas)"
+    ]
+  },
+  "CP-136": {
+    "ok": true,
+    "notes": [
+      "paso 1: «Música» 60 → 50 → 40 → 30 → 20 → 10 → 0 y «Efectos» sigue en 80",
+      "paso 2: canal de música con ganancia 0 (jingle y sirena, que suenan por ese canal, no se escuchan) y efectos con 0.64 (se escucha el waka de 6 esferas)",
+      "paso 3: Música 60 y Efectos 0: ganancia de música 0.36 (jingle y sirena audibles) y de efectos 0 (sin waka): cada control regula solo su categoría"
+    ]
+  },
+  "CP-137": {
+    "ok": true,
+    "notes": [
+      "paso 1: con ← de más, Música 0 y Efectos 0: no bajan de 0",
+      "paso 2: esfera grande y vida perdida con las dos ganancias en 0 y 0: no se escucha ningún sonido",
+      "paso 3: con 10 y 10 las ganancias son 0.01 y 0.01: los sonidos vuelven, bajos"
+    ]
+  },
+  "CP-140": {
+    "ok": true,
+    "notes": [
+      "paso 1: pantalla de salida con «GHOSTMAN», «¡Gracias por jugar!» y «Volver a entrar»",
+      "paso 2: 10 s en la pantalla de salida sin ningún sonido (registro vacío) y sin partida montada",
+      "paso 3: «Volver a entrar» lleva al menú principal con la sesión iniciada (Hola, verificador), sin partida en curso"
+    ]
+  },
+  "CP-169": {
+    "ok": true,
+    "notes": [
+      "paso 1: el fantasma salió girando a la izquierda y quedó sobre la puerta (11,13)",
+      "paso 2 (jugador adentro: false, reingresos: 0): con ↓ 3 s el fantasma del jugador no cruzó la puerta, y en 30 s ningún fantasma vivo de la IA volvió a entrar (4 afuera al final, 1800 cuadros)"
+    ]
+  },
+  "CP-171": {
+    "ok": true,
+    "notes": [
+      "paso 1: comido el Naval quedan sus ojos y se muestra «Volviendo a la base…»",
+      "paso 2: con los ojos en la base se muestra Reaparecés en 3, Reaparecés en 2, Reaparecés en 1 durante 3.01 s, y recién después el Naval puede salir",
+      "paso 3: el Clásico revive sin «Reaparecés en N» y puede salir de inmediato; el Naval espera unos 3 s"
+    ]
+  },
+  "CP-173": {
+    "ok": true,
+    "notes": [
+      "paso 1: esferas comunes al empezar cada nivel: 258, 268, 258 (más 4, 4, 4 grandes)",
+      "paso 2: 3 laberintos distintos, simétricos (true, true, true), con bloques de muro y 129, 157, 94 celdas de muro de una o dos de espesor entre pasillos"
+    ]
+  },
+  "CP-174": {
+    "ok": true,
+    "notes": [
+      "paso 1: dentro de la base, ← / → con la barra espaciadora: no salta (cooldown 0) y el ⭐ sigue encendido",
+      "paso 2: afuera, avanzando, la barra espaciadora ejecuta el salto (cooldown 9.9 s): el intento de adentro no lo había consumido"
+    ]
+  },
+  "CP-176": {
+    "ok": true,
+    "notes": [
+      "paso 1: 8 celdas de la fila 20 fuera del túnel en 1.78 s",
+      "paso 2: de la columna 4 a la 23 por el borde: de entrar a la columna 3 a salir de la 24 tarda 3.53 s y sale por el borde opuesto hacia la left",
+      "paso 3: en el otro sentido tarda 3.53 s: cruza en los dos sentidos al 50 % dentro del túnel"
+    ]
+  },
+  "CP-177": {
+    "ok": true,
+    "notes": [
+      "paso 1: perseguido hacia la fila 13, Pacman cruzó el túnel y siguió del otro lado",
+      "paso 2: en 60 s de observación al menos un fantasma de la IA también cruzó el túnel (1 partida)"
+    ]
+  },
+  "CP-178": {
+    "ok": true,
+    "notes": [
+      "paso 1: 120 frutas reales generadas en el nivel 3 (57 celdas distintas), ninguna en el túnel (8 celdas de la fila 13)",
+      "paso 2: con el Naval en (13,2) la barra espaciadora no coloca la fruta falsa en el túnel (0 frutas falsas, ninguna en el túnel)"
+    ]
+  },
+  "CP-179": {
+    "ok": true,
+    "notes": [
+      "paso 1: a mitad del cruce se ve una parte de Pacman en el borde izquierdo (819 píxeles) y otra en el derecho (774)",
+      "paso 2: el sprite queda recortado dentro del tablero, sin tapar el HUD (captura CP-179-paso1)"
+    ]
+  },
+  "CP-180": {
+    "ok": true,
+    "notes": [
+      "paso 1: modo Pacman, nivel 1: 3 0.95 s, 2 1 s, 1 1 s, ¡ya! 0.48 s",
+      "paso 2: nivel 2: 3 1.01 s, 2 1 s, 1 1 s, ¡ya! 0.48 s",
+      "paso 3: modo GhostMan, nivel 1: 3 0.94 s, 2 1 s, 1 1 s, ¡ya! 0.48 s"
+    ]
+  },
+  "CP-181": {
+    "ok": true,
+    "notes": [
+      "paso 1: al tocarlo un fantasma se ve la animación de derrota (1.97 s)",
+      "paso 2: después se muestra «¡Listo!» durante 2.02 s y la partida continúa",
+      "paso 3: con la última vida no se muestra «¡Listo!»: después de la animación aparece el Game Over"
+    ]
+  },
+  "CP-182": {
+    "ok": true,
+    "notes": [
+      "paso 1: durante la cuenta (3.41 s, 206 cuadros) Pacman y los fantasmas no se movieron y ninguno salió de la base",
+      "paso 2: el primer fantasma de la IA que esperaba en la base empezó a salir a los 3 s del «¡ya!», no de la aparición del «3»",
+      "paso 3: saltó, tocó a Pacman (derrota y «¡Listo!» de unos 4.03 s) y el ⭐ volvió a los 14.03 s del salto (10 s de cooldown más 4 s), no a los 10 s"
+    ]
+  },
+  "CP-183": {
+    "ok": true,
+    "notes": [
+      "paso 1: con ← presionada varias veces durante la cuenta, Pacman no se movió",
+      "paso 2: 2 s después del «¡ya!» sigue quieto en la columna 13, sin dirección: las teclas de la cuenta se descartaron",
+      "al presionar ← después del «¡ya!» se mueve (columna 12)"
+    ]
+  },
+  "CP-184": {
+    "ok": true,
+    "notes": [
+      "paso 1: ESC con el «2» en pantalla: aparece la pausa y la cuenta queda detenida (2.47 s restantes antes y después de 5 s)",
+      "paso 2: al quitar la pausa sigue desde el «2»: 2, 1, ¡ya!"
+    ]
+  },
+  "CP-185": {
+    "ok": true,
+    "notes": [
+      "paso 1: al tocarlo todo queda congelado 0.5 s con los fantasmas visibles (captura CP-185-congelado)",
+      "paso 2: los fantasmas desaparecen y Pacman se desarma hasta desaparecer: animación de 1.5 s después del congelado, con su sonido (captura CP-185-animacion)",
+      "paso 3: al terminar se muestra «¡Listo!», y con la última vida, la pantalla de Game Over"
+    ]
+  },
+  "CP-186": {
+    "ok": true,
+    "notes": [
+      "paso 1: al tocar a Pacman con el fantasma del jugador se ve la misma animación de derrota (captura CP-186-paso1)",
+      "paso 2: el puntaje pasó de 0 a 500 una sola vez y no cambió durante la animación"
+    ]
+  },
+  "CP-187": {
+    "ok": true,
+    "notes": [
+      "paso 1: suena el jingle de inicio durante la cuenta y desde el «¡ya!» la sirena (unlock, play:gameStart, play:countdownBeep, play:countdownBeep, play:countdownGo, loop:siren:on)",
+      "paso 2: el waka suena con cada esfera (3 veces)",
+      "paso 3: con la esfera grande la sirena cambia por la del PowerUp y al terminar vuelve la normal"
+    ]
+  },
+  "CP-188": {
+    "ok": true,
+    "notes": [
+      "paso 1: modo Pacman: play:powerPellet ✓, play:ghostEaten ✓, loop:eyes:on ✓, play:fruit ✓, play:pacmanDeath ✓ (bucle de los ojos mientras vuelven a la base)",
+      "paso 2: specter: play:phase",
+      "paso 2: jumper: play:jump",
+      "paso 2: naval: play:fakeFruitPlaced y, a los 10 s, play:explosion ✓",
+      "paso 2: accelerated: play:dash",
+      "paso 2: nivel 2, Pacman rompe un muro: play:wallBreak. Los seis eventos (play:phase, play:jump, play:fakeFruitPlaced, play:dash, play:explosion, play:wallBreak) son sonidos distintos entre sí, cada uno con su propia síntesis (sección 4.7)"
+    ]
+  },
+  "CP-189": {
+    "ok": true,
+    "notes": [
+      "paso 1: ESC: suspend, loop:siren:off; nada suena durante la pausa",
+      "paso 2: con la pestaña oculta 5 s el audio se suspende y no suena nada (suspend); al volver, resume"
+    ]
+  },
+  "CP-190": {
+    "ok": true,
+    "notes": [
+      "paso 1: el acelerado recorre las celdas en 0.23 s, pasando por 3 celdas intermedias (no aparece de golpe), con estela (captura CP-190-estela)",
+      "paso 2: subiendo, las líneas de velocidad quedan debajo, y bajando, arriba (capturas CP-190-subiendo y CP-190-bajando, revisadas)"
+    ]
+  },
+  "CP-191": {
+    "ok": true,
+    "notes": [
+      "paso 1: salto en arco de 0.58 s hacia (20,9), con la sombra en el destino y polvo al caer (captura CP-191-arco)",
+      "paso 2: salto desde (20,2) hasta (20,9), por encima de Pacman en (20,4): Pacman no perdió una vida",
+      "paso 3: salto que aterriza en la celda de Pacman (20,4): la derrota llega recién al aterrizar (cuadro 36, último en el aire 35)"
+    ]
+  },
+  "CP-192": {
+    "ok": true,
+    "notes": [
+      "paso 1: el espectro atravesó el muro y se ve semitransparente y ondulado mientras lo cruza (captura CP-192-espectro, revisada)",
+      "paso 2: aparición al colocarla, parpadeo rojo en los últimos 2 s y la explosión muestra su radio (7 celdas; capturas CP-192-naval-*, revisadas)",
+      "paso 3: nivel 2, Pacman rompe un muro y se ven escombros sobre la celda (captura CP-192-muro-roto, revisada)"
+    ]
+  },
+  "CP-193": {
+    "ok": true,
+    "notes": [
+      "paso 1: desde el cruce (20,6) en las cuatro direcciones (left, up, right, down) Pacman abre y cierra la boca (5 siluetas distintas mientras avanza) con la boca hacia donde va (capturas CP-193-*, revisadas)",
+      "paso 2: los ojos de los fantasmas miran hacia donde avanzan (down, down, down, down; captura CP-193-fantasmas, revisada)"
+    ]
+  },
+  "CP-194": {
+    "ok": true,
+    "notes": [
+      "paso 1: los 5 tipos del carrusel con su rasgo de forma, además del color (capturas CP-194-tipo-1 a 5, revisadas)",
+      "paso 2: el fantasma comido se ve solo con sus ojos, distinto de un fantasma vivo (captura CP-194-ojos, revisada)",
+      "paso 3: en el nivel 3, la fruta falsa (columna 21) se distingue de la real (columna 6) (captura CP-194-frutas, revisada)"
+    ]
+  },
+  "CP-195": {
+    "ok": false,
+    "notes": [
+      "FALLA: paso 1: ventana de 1280 × 720: el tablero se dibuja a 564 px de ancho (escala 0.84 del canvas de 672 px, image-rendering pixelated): cada píxel del sprite ocupa 2.52 px de pantalla",
+      "paso 2: ventana maximizada (1920 × 1080): tablero de 672 px (escala 1), cada píxel del sprite ocupa 3 px de pantalla"
+    ]
+  }
+}

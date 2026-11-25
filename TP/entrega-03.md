@@ -1272,7 +1272,7 @@ Se reejecutan los **69 casos de prioridad Alta de la V1 y la V2** (35 y 34), mut
 
 ## 9. Especificación de casos de prueba de la V3
 
-Mismo formato que la sección 9 de la Entrega 02: cada caso tiene precondiciones, datos de prueba, pasos con su resultado esperado, técnica y prioridad, y el resultado esperado del último paso es el criterio de aprobación. La especificación está en [`evidencia-entrega-03/scripts/spec_v3.py`](evidencia-entrega-03/scripts/spec_v3.py), y `build_planilla_v3.py` la vuelca a la planilla de la Entrega 3, una hoja por caso: [`GhostMan - Reporte de Casos de Prueba y Ejecución - Entrega 3.xlsx`](GhostMan%20-%20Reporte%20de%20Casos%20de%20Prueba%20y%20Ejecuci%C3%B3n%20-%20Entrega%203.xlsx). La planilla tiene los 71 casos de la V3 y los 128 de la regresión (sección 8.2), con el estado de la Entrega 2, la columna de la Entrega 3 para la etapa 4 y el panel de resultados con sus gráficos. El commit, el navegador y los ejecutores quedan como `[completar]` hasta la etapa 3. Si se cambia la especificación, se vuelve a generar la planilla antes de empezar a ejecutar.
+Mismo formato que la sección 9 de la Entrega 02: cada caso tiene precondiciones, datos de prueba, pasos con su resultado esperado, técnica y prioridad, y el resultado esperado del último paso es el criterio de aprobación. La especificación está en [`evidencia-entrega-03/scripts/spec_v3.py`](evidencia-entrega-03/scripts/spec_v3.py), y `build_planilla_v3.py` la vuelca a la planilla de la Entrega 3, una hoja por caso: [`GhostMan - Reporte de Casos de Prueba y Ejecución - Entrega 3.xlsx`](GhostMan%20-%20Reporte%20de%20Casos%20de%20Prueba%20y%20Ejecuci%C3%B3n%20-%20Entrega%203.xlsx). La planilla tiene los 71 casos de la V3 y los 128 de la regresión (sección 8.2), con el estado de la Entrega 2, el de la Entrega 3 (sección 11) y el panel de resultados con sus gráficos. Si se cambia la especificación, se vuelve a generar la planilla antes de empezar a ejecutar.
 
 ### 9.1 Casos de la V3
 
@@ -1426,19 +1426,111 @@ Dos decisiones no tienen caso manual, porque no son observables por la interfaz:
 
 ## 11. Reporte de ejecución de casos de prueba
 
-*A completar en la Etapa 4 del workflow.*
+### 11.1 Identificación del ciclo
+
+| Dato | Valor |
+|---|---|
+| Ciclo | Nº 3 (primer ciclo de la V3) |
+| Versión y commit | V3, `576c13f` (mismo código del juego que el incremento 29) |
+| Fechas | 11/11/2026 (casos de cuentas, tableros y juego de prioridad Alta) a 25/11/2026 (resto de la V3 y regresión) |
+| Ejecutores | Rodriguez Castro (11/11) y Luzzi (25/11) |
+| Navegador | Chrome 157 (macOS) el 11/11; Chrome for Testing 153 sin interfaz (Linux) el 25/11 |
+| Forma de ejecución | Scripts de navegador con el teclado real sobre el build de prueba (sección 11.3). CP-060 también automatizado de caja negra sobre Vercel (sección 11.4) |
+| Planilla | [`GhostMan - Reporte de Casos de Prueba y Ejecución - Entrega 3.xlsx`](GhostMan%20-%20Reporte%20de%20Casos%20de%20Prueba%20y%20Ejecuci%C3%B3n%20-%20Entrega%203.xlsx): estado, resultado obtenido y evidencia de cada caso |
+
+### 11.2 Resultados
+
+| Tipo de prueba | Diseñados | Ejecutados | Aprobados | Fallidos | Bloqueados | No ejecutados |
+|---|---|---|---|---|---|---|
+| Casos nuevos de la V3 | 71 | 67 | 66 | 1 | 0 | 4 |
+| Regresión de la V1, prioridad Alta (mutados) | 35 | 35 | 35 | 0 | 0 | 0 |
+| Regresión de la V2, prioridad Alta (mutados) | 34 | 34 | 34 | 0 | 0 | 0 |
+| Regresión de la V1, prioridad Media y Baja | 31 | 31 | 30 | 0 | 1 | 0 |
+| Regresión de la V2, prioridad Media y Baja | 28 | 28 | 28 | 0 | 0 | 0 |
+| **Total** | **199** | **195** | **193** | **1** | **1** | **4** |
+
+| Entrega | Ejecutados | PASSED | FAILED | BLOCKED |
+|---|---|---|---|---|
+| Entrega 1 (V1) | 66 | 64 (97,0 %) | 1 (1,5 %) | 1 (1,5 %) |
+| Entrega 2 (V2) | 129 | 128 (99,2 %) | 0 (0 %) | 1 (0,8 %) |
+| **Entrega 3 (V3)** | **195** | **193 (99,0 %)** | **1 (0,5 %)** | **1 (0,5 %)** |
+
+**Casos que no quedaron aprobados:**
+
+| Caso | HU | Estado | Detalle |
+|---|---|---|---|
+| CP-195 | HU-50 | Fallido | Con la ventana de 1280 × 720 el tablero se dibuja a 564 px (escala 0,84 del canvas de 672 px): cada píxel del sprite ocupa 2 o 3 px de pantalla. No hay difuminado, pero la escala no es entera. Maximizada, la escala es 1. DEF-004 |
+| CP-032 | HU-08 | Bloqueado | Sigue igual desde la Entrega 1: la precondición no se puede dar en el juego (pendiente 4) |
+| CP-129, CP-130, CP-131, CP-133 | HU-39, HU-40 | No ejecutado | Necesitan el proyecto de Supabase de prueba (puntajes y preferencias guardados en la base), que no estuvo disponible el 25/11/2026 (pendiente 11) |
+
+**Cambios de estado respecto de la Entrega 2.** Ninguno: los 127 casos de regresión ejecutados siguen aprobados y CP-032 sigue bloqueado. La V3 cambió mapas, posiciones, velocidades y agregó la cuenta regresiva, y los 43 casos ajustados (sección 8.2) pasaron con los valores nuevos.
+
+### 11.3 Ejecución con scripts de navegador
+
+Como en el ciclo 2, los casos se ejecutaron con scripts que manejan el juego con el teclado real y verifican cada resultado esperado. Para verificar y para preparar precondiciones (ubicar a un personaje, dejar pocas esferas, fijar el azar) leen y modifican el estado del juego, que un build de prueba expone en `window.__gm` (la línea está en el encabezado de `ejecutar_juego.js` y no se sube al repositorio). Cada caso guarda capturas en `evidencia-entrega-03/capturas/`.
+
+| Script | Casos | Fecha |
+|---|---|---|
+| `ejecutar_cuentas.js` | CP-106 a CP-123, CP-138, CP-139, CP-196 a CP-199 | 11/11/2026 |
+| `ejecutar_tableros.js` | CP-124 a CP-128 | 11/11/2026 |
+| `ejecutar_juego.js` | CP-164 a CP-168, CP-170, CP-172, CP-175 | 11/11/2026 |
+| `ejecutar_pendientes.js` | CP-132, CP-134 a CP-137, CP-140, CP-169, CP-171, CP-173, CP-174, CP-176 a CP-195 | 25/11/2026 |
+| `ejecutar_regresion.js` | Los 127 casos de regresión ejecutables (CP-032 sigue bloqueado) | 25/11/2026 |
+
+Particularidades de la corrida del 25/11/2026:
+- **Sin el proyecto de Supabase de prueba.** Los casos de Opciones (CP-132, CP-134 a CP-137 y CP-140) solo usan el guardado de preferencias dentro de la sesión, así que se ejecutaron con un doble de Supabase en memoria dentro del build de prueba. Los que dependen de datos guardados en la base (CP-129 a CP-131 y CP-133) quedaron sin ejecutar.
+- **Audio.** Los builds de prueba anotan cada sonido y la ganancia de cada canal en `window.__ghostmanAudio`. CP-136, CP-137, CP-140 y CP-187 a CP-189 verifican ese registro en lugar de escuchar.
+- **Casos visuales.** CP-135, CP-179, CP-185, CP-190 a CP-195 combinan comprobaciones del estado con capturas revisadas a mano.
+- **Muestras aleatorias.** CP-052 y CP-152 piden «al menos» 10 y 20 reapariciones: se siguió comiendo fantasmas hasta ver los cuatro tipos (22 y 20 reapariciones, con 45 % y 55 % con poderes).
+- **Mutaciones que no aplican tal cual.** CP-067 pide llegar a la elección de modo «con ↓ y Enter»: el menú principal es circular, así que se usó ↓ ↓ ↓ (vuelta completa a «Jugar») y Enter. CP-074 sale de la base y gira a la izquierda en la fila 11, como dice la mutación, y verifica WASD con D y W.
+
+Los resultados de cada corrida quedan en `resultados_pendientes.json` y `resultados_regresion.json`, y `resultados_v3.py` los vuelca a la planilla al regenerarla con `build_planilla_v3.py`.
+
+### 11.4 Automatización de casos de regresión
+
+La entrega pide seleccionar casos de la V1 y la V2 para automatizarlos. Los scripts de la sección 11.3 aceleran la ejecución, pero son de caja blanca: leen el estado interno y corren sobre un build de prueba. Para la automatización de caja negra, que maneja la aplicación publicada igual que un usuario, se eligió un caso con estos criterios:
+
+| Criterio | Por qué |
+|---|---|
+| Prioridad Alta | Lo que se automatiza se corre en cada versión: tiene que cubrir una regla central |
+| Observable por la interfaz | El resultado tiene que verse en pantalla, sin leer el estado interno |
+| Determinista | Que no dependa del azar ni de la habilidad del jugador |
+| Duración razonable | Que termine en un minuto o dos |
+| Valor de regresión | Que recorra varias partes a la vez: inicio de sesión, menú, partida y pantalla de cierre |
+
+| Candidato | Evaluación |
+|---|---|
+| **CP-060 · Pantalla de Game Over (HU-19)** | **Elegido.** Recorre inicio de sesión, menú, partida, pérdida de las tres vidas y pantalla de cierre, y termina en alrededor de un minuto |
+| CP-061 · Pantalla de Victoria (HU-19) | Descartado: habría que ganar los tres niveles jugando solo, lo que lleva varios minutos y puede perder |
+| CP-030 · Descuento de una vida (HU-08) | Válido, pero queda incluido en CP-060 |
+| CP-011 · Consumo de una esfera (HU-03) | Válido, pero cubre una sola regla |
+
+El script `automatizacion/tests/cp-060-game-over.spec.js` usa **Playwright** (se consideraron también Selenium WebDriver y Cypress; Playwright ya estaba en el proyecto, espera sola a que aparezcan los elementos y graba video y traza). Abre Google Chrome, inicia sesión en la aplicación desplegada en Vercel, elige «Jugar» y «Modo PacMan», lleva a Pacman hacia los fantasmas hasta perder las tres vidas y verifica el contador sin íconos, la pantalla de Game Over con el desglose y los botones «Volver a jugar» y «Menú principal», y que este último vuelve al menú. La salida es la consola, con el resultado esperado y el obtenido de cada paso, y un reporte HTML con el estado, una captura por paso, el video y la traza. La carpeta `automatizacion/` tiene su propio `package.json` y su README explica cómo instalarlo y correrlo con `npm run cp060`; el usuario de prueba va en un `.env` que no se sube al repositorio.
+
+**Resultado (25/11/2026):** Passed 1, Failed 0, en 1,2 minutos sobre `https://ghostman-seven.vercel.app/`.
 
 ---
 
 ## 12. Reporte de defectos
 
-*A completar en las Etapas 4 y 5 del workflow.*
+| ID | Título | Caso | HU | Severidad / Prioridad | Estado |
+|---|---|---|---|---|---|
+| DEF-001 | Contador de vidas arriba a la derecha con círculos amarillos | CP-034 | HU-09 | Menor / Media | Verificado (V1, corregido en la V2). CP-034 sigue aprobado en la V3 |
+| DEF-002 | El menú elige la opción que tiene el puntero encima al cargar la página | Exploratoria | HU-22 | Menor / Media | Corregido (V2). Confirmación sobre la V3 aprobada; falta que lo verifique otro integrante |
+| DEF-003 | El toque de un fantasma de la IA no le descuenta una vida a Pacman | Exploratoria | HU-25 | Mayor / Media | Rechazado: funciona según la decisión 19 |
+| **DEF-004** | **Con la ventana de 1280 × 720 los sprites se escalan por un factor no entero** | **CP-195** | **HU-50** | **Menor / Baja** | **Nuevo (V3)** |
+
+**DEF-004.** El ancho del tablero es `min(672 px, 94vw, (100vh − 96 px) × 28/31)`. Con 720 px de alto queda en 564 px y el canvas de 672 px se reduce por 0,84: con `image-rendering: pixelated` no se difumina, pero los píxeles del sprite (3 px del canvas) quedan de 2 o 3 px de pantalla, alternados, y el criterio de la HU-50 pide una escala entera. Con la ventana maximizada (1920 × 1080) el tablero mide 672 px y la escala es 1. No impide jugar. Corrección sugerida: redondear el ancho del tablero hacia abajo a un múltiplo de 224 px (el mapa original) cuando no entra a 672 px. Detalle en la hoja DEF-004 de la planilla.
+
+**Testing de confirmación.** DEF-001 sigue corregido: CP-034 aprobado en la regresión. Para DEF-002, `confirmar_def002.js` deja el puntero quieto sobre la segunda opción del menú principal y de la elección de modo, recarga la página y verifica que la seleccionada siga siendo la primera: aprobado el 25/11/2026 por Luzzi, que también lo reportó, así que falta que otro integrante lo verifique para pasarlo a Verificado.
+
+**Defectos de la V3 por funcionalidad:** sprites de pixel art (HU-50): 1. Ninguna otra funcionalidad de la V3 tuvo defectos en los casos ejecutados.
 
 ---
 
 ## 13. Conclusiones y próximos pasos
 
-### 13.1 Estado al 10/11/2026
+### 13.1 Estado al 25/11/2026
 
 **Generación de la V3 cerrada.** Están ejecutados los incrementos 18 a 29 y subidos a `main`:
 
@@ -1465,7 +1557,7 @@ Dos decisiones no tienen caso manual, porque no son observables por la interfaz:
 
 **Preparación de la ejecución (etapa 3, 11/11/2026).** `main` congelado en el commit `576c13f`, con el mismo código del juego que el incremento 29 (`36d82ce`): después solo cambiaron la documentación, los scripts de evidencia y la planilla. Datos DP-1 a DP-3 cargados en el proyecto de prueba (sección 9.2), `npm run verify` 18/18, `npm run verify:ui` 12/12, navegador Chrome 157.0.8103.40 (macOS) y ejecutor Rodriguez Castro. El playtest de la decisión 51 no cambió nada.
 
-**Siguiente etapa.** La ejecución del ciclo 3 (etapa 4 del workflow).
+**Ejecución del ciclo 3 (etapa 4, 11/11 y 25/11/2026).** 195 de los 199 casos ejecutados: 193 aprobados (99,0 %), 1 fallido (CP-195, DEF-004) y 1 bloqueado (CP-032); 4 sin ejecutar por falta del proyecto de Supabase de prueba. La regresión completa de la V1 y la V2 pasó sin cambios de estado. CP-060 quedó automatizado con Playwright sobre el despliegue de Vercel (sección 11.4).
 
 ### 13.2 Pendientes
 
@@ -1475,12 +1567,15 @@ Dos decisiones no tienen caso manual, porque no son observables por la interfaz:
 | 2 | Revisar las decisiones 17 a 36 de la V2 | Pendiente 1 de la Entrega 02 | Equipo completo |
 | 3 | Validar la explosión de la fruta falsa como derrota en modo GhostMan | Pendiente 8 de la Entrega 02 | Equipo completo |
 | 4 | Decidir qué hacer con CP-032 (HU-08): marcarlo *No aplica* o reformular el criterio | Pendiente 14 de la Entrega 02 | Equipo completo |
-| 5 | Confirmar y verificar DEF-002 con otro integrante | Pendiente 14 de la Entrega 02 | `[completar]` |
+| 5 | Verificar DEF-002 con un integrante distinto de Luzzi (la confirmación sobre la V3 pasó, sección 12) | Pendiente 14 de la Entrega 02 | Equipo completo |
 | 6 | Subir el tag `v1.0` al remoto y crear el tag `v2.0` | Pendiente 15 de la Entrega 02 | Savoia |
 | 7 | ~~Crear los proyectos de Supabase y cargar las variables en Vercel~~ Proyectos creados el 03/11/2026; variables cargadas en Vercel el 11/11/2026; el despliegue usa el proyecto de producción | Decisión 60 | Savoia |
 | 8 | Definir quién conduce los prompts y quién registra la sesión | Sección 7 | Equipo completo |
 | 9 | ~~Playtest de la decisión 51~~ Hecho el 11/11/2026: se mantienen las velocidades y las 5 cargas | Decisión 51 | Equipo completo |
 | 10 | ~~Reactivar el proyecto de Supabase de prueba~~ Reactivado el 11/11/2026; `npm run verify:ui` 12/12 OK | Etapa 3 | Savoia |
+| 11 | Ejecutar CP-129, CP-130, CP-131 y CP-133 contra el proyecto de Supabase de prueba (sección 11.2) | Etapa 4 | Rodriguez Castro |
+| 12 | Corregir DEF-004 (escala no entera de los sprites con ventanas chicas) y confirmarlo con CP-195 | Sección 12 | Equipo completo |
+| 13 | Mantener activos los proyectos de Supabase: en el plan gratuito se pausan tras una semana sin uso (el de producción estuvo pausado el 24/11/2026) | Sección 11.4 | Savoia |
 
 ---
 

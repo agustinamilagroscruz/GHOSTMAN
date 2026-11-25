@@ -109,3 +109,74 @@ RESULTS.update({
     "CP-175": _juego("En los tres niveles el túnel está en la fila 13. Con ←, Pacman sale por la columna 0 y aparece en la 27 avanzando hacia la izquierda; con →, sale por la 27 y aparece en la 0 hacia la derecha. La velocidad no cambia: 4,5 celdas/s (medida en el cruce: 4,52).",
                      "Captura CP-175-paso1 y paso2 del nivel 1."),
 })
+
+
+# ---------------------------------------------------------------------------------------------------
+# Etapa 4, segunda parte (25/11/2026, Luzzi): los casos de la V3 de prioridad Media y Baja que
+# faltaban (ejecutar_pendientes.js) y la regresión completa de la V1 y la V2 (ejecutar_regresion.js),
+# con el mismo método de ejecutar_juego.js: script de navegador sobre el build de prueba del commit
+# 576c13f con el estado del juego expuesto; las acciones del caso se hacen con el teclado real y el
+# estado se usa para verificar y para preparar precondiciones. Los resultados de cada corrida quedan en
+# resultados_pendientes.json y resultados_regresion.json; las capturas, en capturas/ y capturas/regresion/.
+import json as _json
+import os as _os
+
+_HERE = _os.path.dirname(_os.path.abspath(__file__))
+_FECHA = (2026, 11, 25)
+_EJECUTOR = "Luzzi (script)"
+_SUPABASE = ("Las cuentas se reemplazaron por un doble de Supabase en memoria dentro del build de prueba, porque el "
+             "proyecto de prueba no estaba disponible para esta corrida; el caso solo usa el guardado de preferencias "
+             "de la sesión, no la base de datos.")
+
+
+def _texto(notas):
+    partes = []
+    for n in notas:
+        n = n.replace("FALLA: ", "")
+        n = n[0].upper() + n[1:] if n else n
+        partes.append(n if n.endswith(".") else n + ".")
+    return " ".join(partes)
+
+
+def _cargar(archivo, script, extra_obs=None):
+    ruta = _os.path.join(_HERE, archivo)
+    if not _os.path.exists(ruta):
+        return
+    with open(ruta, encoding="utf-8") as f:
+        datos = _json.load(f)
+    for cid, r in datos.items():
+        obs = f"Script de navegador {script}."
+        if extra_obs and cid in extra_obs:
+            obs += " " + extra_obs[cid]
+        RESULTS[cid] = dict(estado="Aprobado" if r["ok"] else "Fallido", fecha=_FECHA, ejecutor=_EJECUTOR,
+                            obtenido=_texto(r["notes"]), defecto=None, obs=obs)
+
+
+_cargar("resultados_pendientes.json", "ejecutar_pendientes.js", {
+    **{c: _SUPABASE for c in ("CP-132", "CP-134", "CP-135", "CP-136", "CP-137", "CP-140")},
+    "CP-135": _SUPABASE + " Capturas CP-135-carrusel-1 a 5 y CP-135-paso2-* revisadas.",
+    "CP-136": _SUPABASE + " El audio se verificó con el registro del motor (window.__ghostmanAudio): ganancia de cada canal y sonidos emitidos.",
+    "CP-137": _SUPABASE + " El audio se verificó con el registro del motor (window.__ghostmanAudio).",
+    "CP-187": "Audio verificado con el registro del motor (window.__ghostmanAudio).",
+    "CP-188": "Audio verificado con el registro del motor (window.__ghostmanAudio).",
+    "CP-189": "Audio verificado con el registro del motor; la pestaña oculta se simuló con el evento visibilitychange.",
+    "CP-191": "El destino de cada salto se eligió fijando el azar (sección 4.4).",
+    "CP-195": "Ventanas emuladas de 1280 × 720 y 1920 × 1080 con escala de dispositivo 1.",
+})
+_cargar("resultados_regresion.json", "ejecutar_regresion.js")
+
+if "CP-195" in RESULTS and RESULTS["CP-195"]["estado"] == "Fallido":
+    RESULTS["CP-195"]["defecto"] = "DEF-004"
+
+# Casos que dependen del proyecto de Supabase de prueba (puntajes guardados en la base y persistencia
+# entre sesiones): no se pudieron ejecutar en esta corrida.
+for _cid in ("CP-129", "CP-130", "CP-131", "CP-133"):
+    RESULTS.setdefault(_cid, dict(
+        estado="No ejecutado", fecha=_FECHA, ejecutor="Luzzi", obtenido="—", defecto=None,
+        obs="Pendiente: necesita el proyecto de Supabase de prueba (puntajes y preferencias guardados en la base), "
+            "que no estuvo disponible el 25/11/2026. Se ejecuta con ejecutar_cuentas.js en cuanto esté activo."))
+
+RESULTS.setdefault("CP-032", dict(
+    estado="Bloqueado", fecha=_FECHA, ejecutor="Luzzi", obtenido="—", defecto=None,
+    obs="Sigue bloqueado desde la Entrega 1: la precondición (perder una vida con el PowerUp activo) no es alcanzable, "
+        "porque los fantasmas que reaparecen durante el PowerUp vuelven vulnerables. Pendiente 4 de la sección 13.2."))

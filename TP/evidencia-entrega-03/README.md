@@ -11,4 +11,8 @@
 - `scripts/ejecutar_cuentas.js`: ejecución con script de navegador de CP-106 a CP-123, CP-138, CP-139 y CP-196 a CP-199 (cuentas, menú, volumen persistente, cerrar sesión y sin conexión). Acepta una lista de casos como argumento.
 - `scripts/ejecutar_juego.js`: ejecución con script de navegador de los casos de juego de la V3 de prioridad Alta (CP-164 a CP-168, CP-170, CP-172 y CP-175). Como en el ciclo 2, necesita un build con una línea extra que expone el estado del juego (`window.__gm`); la línea está en el encabezado del script y no se sube al repositorio.
 
-La ejecución (etapa 4) agrega acá las capturas y los resultados.
+- `scripts/ejecutar_pendientes.js`: ejecución con script de navegador de los casos de la V3 de prioridad Media y Baja que faltaban (CP-132, CP-134 a CP-137, CP-140, CP-169, CP-171, CP-173, CP-174 y CP-176 a CP-195), con el mismo método que `ejecutar_juego.js`. Los de las HU-46 a HU-49 que piden duraciones reales se abren sin `?modoPrueba=1`; el audio se verifica con el registro del motor (`window.__ghostmanAudio`). Resultados en `resultados_pendientes.json`.
+- `scripts/ejecutar_regresion.js`: regresión de la V1 y la V2 sobre la V3 (los 127 casos ejecutables, con las mutaciones y los ajustes de `spec_v3.py`). Capturas en `capturas/regresion/` y resultados en `resultados_regresion.json`.
+- `scripts/confirmar_def002.js`: prueba de confirmación de DEF-002 sobre la V3.
+
+`resultados_v3.py` carga los dos JSON y `build_planilla_v3.py` los vuelca a la planilla. La automatización de caja negra de CP-060, con Playwright sobre el despliegue de Vercel, está en la carpeta `automatizacion/` de la raíz del repositorio.

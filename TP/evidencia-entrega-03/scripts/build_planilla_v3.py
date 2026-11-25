@@ -41,7 +41,7 @@ REPORT = "Reporte de ejecución - Entrega3"
 AUTHOR = "Savoia"
 COMMIT = "576c13f"
 BROWSER = "Google Chrome 157.0.8103.40 (macOS)"
-EXECUTORS = "Rodriguez Castro"
+EXECUTORS = "Rodriguez Castro, Luzzi"
 
 HU_TITLES = {
     "HU-35": "Registrarme en el juego", "HU-36": "Iniciar sesión", "HU-37": "Navegar el menú principal",
@@ -64,6 +64,11 @@ NOT_HAPPY = {"CP-107", "CP-109", "CP-110", "CP-111", "CP-112", "CP-113", "CP-114
              "CP-120", "CP-123", "CP-127", "CP-130", "CP-137", "CP-165", "CP-166", "CP-169", "CP-174", "CP-178",
              "CP-183", "CP-184", "CP-196", "CP-197", "CP-198", "CP-199"}
 STATES = ["Aprobado", "Fallido", "Bloqueado", "No ejecutado", "No aplica"]
+AUTO_NEW = ("Ejecutado con script de navegador (ejecutar_cuentas.js, ejecutar_tableros.js, ejecutar_juego.js o "
+            "ejecutar_pendientes.js, según el caso; sección 11 de la Entrega 03)")
+AUTO_REG = "Ejecutado con script de navegador sobre los mapas de la V3 (ejecutar_regresion.js, sección 11 de la Entrega 03)"
+AUTO_CP060 = (AUTO_REG + ". Además, automatizado de caja negra con Playwright sobre el despliegue de Vercel: "
+              "automatizacion/tests/cp-060-game-over.spec.js (sección 11.4)")
 
 wb = openpyxl.load_workbook(SRC)
 old_report = wb[OLD_REPORT]
@@ -135,7 +140,7 @@ for c in spec.CASES:
         hu=c["hu"], happy="No" if c["id"] in NOT_HAPPY else "Sí", prev="—", desc=f"{c['hu']} · {HU_TITLES.get(c['hu'], '')}",
         creator=AUTHOR, version="1", tech=c["tech"], pre=["Abrir la aplicación en un navegador de escritorio.", c["pre"]],
         data=data, steps=c["steps"], log=[], mut=None, adj=None, obs="",
-        auto="No automatizado (ejecución manual). Cobertura de caja blanca en scripts/verify/ según la sección 9.1"))
+        auto=AUTO_NEW))
 
 for cid, o in old_rows.items():
     sh = old_sheets[cid]
@@ -174,7 +179,7 @@ for cid, o in old_rows.items():
         title=adj.get("title", o["title"]), hu=o["hu"], happy=o["happy"], prev=o["state"], desc=sh["desc"],
         creator=creator, version="3" if (adj or mut) else "2", tech=sh["tech"], pre=pre, data=env + rest,
         steps=adj.get("steps", sh["steps"]), log=sh["log"], mut=mut, adj=adj.get("why"), obs=" ".join(obs),
-        auto="No automatizado en la V3 (los scripts de la Entrega 2 usan los mapas de la V2)"))
+        auto=AUTO_CP060 if cid == "CP-060" else AUTO_REG))
 
 rows.sort(key=lambda r: r["id"])
 FIRST, LAST = 4, 3 + len(rows)
@@ -233,7 +238,7 @@ def build_case_sheet(row, index, report_row):
     last_log = 2 + len(log_rows)
     note_row = max(6, last_log + 1)
     put(ws, f"G{note_row}", "Ciclo 1 = Entrega 1 (V1). Ciclo 2 = Entrega 2 (V2): ejecución con script de navegador. "
-        "Ciclo 3 = Entrega 3 (V3): ejecución manual sobre el build de prueba y una muestra sobre Vercel.", "note")
+        "Ciclo 3 = Entrega 3 (V3): ejecución con script de navegador sobre el build de prueba (sección 11 de la Entrega 03).", "note")
     ws.merge_cells(f"G{note_row}:L{note_row + 1}")
     for i, entry in enumerate(log_rows):
         ws.row_dimensions[3 + i].height = max(30, height(entry[4], 50))
@@ -344,9 +349,11 @@ rep.add_data_validation(dv)
 p = 3
 rput(f"P{p}", "Identificación del ciclo (sección 12.1)", "p_head"); rep.merge_cells(f"P{p}:S{p}")
 ident = [("Ciclo de ejecución", "Nº 3 (primer ciclo de la V3)"), ("Versión bajo prueba", "V3"), ("Commit", COMMIT),
-         ("Entorno", "Build de prueba local (NEXT_PUBLIC_MODO_PRUEBA=1) contra el proyecto de Supabase de prueba, y una muestra sobre el despliegue de Vercel (etapa 4)"),
-         ("Navegador y versión", BROWSER), ("Fecha de inicio", None), ("Fecha de cierre", None), ("Ejecutores", EXECUTORS),
-         ("Forma de ejecución", "Manual, de caja negra, sobre la aplicación (sección 8 de la Entrega 03)")]
+         ("Entorno", "Build de prueba local (NEXT_PUBLIC_MODO_PRUEBA=1) contra el proyecto de Supabase de prueba (11/11/2026). El 25/11/2026, build de prueba con el estado del juego expuesto; para 6 casos de Opciones, con un doble de Supabase en memoria (ver sus observaciones). CP-060 también automatizado de caja negra sobre el despliegue de Vercel"),
+         ("Navegador y versión", BROWSER + "; Chrome for Testing 153 sin interfaz (Linux) para los scripts del 25/11/2026"),
+         ("Fecha de inicio", datetime.date(2026, 11, 11)), ("Fecha de cierre", datetime.date(2026, 11, 25)), ("Ejecutores", EXECUTORS),
+         ("Forma de ejecución", "Script de navegador con el teclado real sobre el build de prueba, con el estado del juego expuesto "
+          "para verificar y preparar precondiciones (sección 11 de la Entrega 03)")]
 for i, (k, v) in enumerate(ident):
     r = p + 1 + i
     rput(f"P{r}", k, "p_label")
@@ -450,9 +457,21 @@ rput(f"P{chg}", "Casos que cambiaron de estado entre la Entrega 2 y la Entrega 3
 for col, h in zip("PQRS", ["Caso", "Entrega 2", "Entrega 3", "Motivo"]):
     rput(f"{col}{chg + 1}", h, "t_head")
 rep.merge_cells(f"S{chg + 1}:V{chg + 1}")
-rput(f"P{chg + 2}", "A completar en la etapa 4.", "p_note"); rep.merge_cells(f"P{chg + 2}:V{chg + 2}")
+changed = [(r["id"], r["prev"], RESULTS[r["id"]]["estado"]) for r in rows
+           if r["prev"] not in ("—", None) and r["id"] in RESULTS and RESULTS[r["id"]]["estado"] not in ("No ejecutado", r["prev"])]
+if changed:
+    for i, (cid, a, b) in enumerate(changed):
+        rr = chg + 2 + i
+        rput(f"P{rr}", cid, "t_label"); rput(f"Q{rr}", a, "t_num"); rput(f"R{rr}", b, "t_num")
+        rput(f"S{rr}", RESULTS[cid].get("defecto") or "", "t_label"); rep.merge_cells(f"S{rr}:V{rr}")
+    note_row = chg + 2 + len(changed)
+else:
+    rput(f"P{chg + 2}", "Ninguno: los 127 casos de regresión ejecutados mantienen el estado de la Entrega 2 (Aprobado) y CP-032 "
+         "sigue Bloqueado. Los cambios de estado de la V3 están en los casos nuevos, que no tenían estado anterior.", "p_note")
+    rep.merge_cells(f"P{chg + 2}:V{chg + 2}")
+    note_row = chg + 2
 
-epic_top = chg + 4
+epic_top = note_row + 2
 epic_total = summary_table(epic_top, "Resultados por épica (sección 12.5)", "Épica", [(full, code) for code, full in EPICS], "C")
 
 org = epic_total + 2
@@ -472,6 +491,39 @@ defects["A1"].value = "GhostMan - Entrega 3 - Registro de defectos (V1 a V3, cic
 defects["A2"].value = ("Una fila por defecto, en orden de detección. Los defectos de la V3 continúan la numeración de la V1 y la V2 "
                        "(sección 12 de la Entrega 03). Campos de la sección 13.3; severidad y prioridad según 13.1; estado según 13.2. "
                        "El detalle completo va en la hoja con el ID del defecto.")
+# DEF-002: prueba de confirmación en la V3. DEF-004: defecto nuevo de la V3 (CP-195).
+defects["N6"].value = (defects["N6"].value + " Prueba de confirmación sobre la V3 (25/11/2026, Luzzi, script confirmar_def002.js): "
+                       "con el puntero quieto sobre la segunda opción al recargar, el menú principal y la elección de modo "
+                       "siguen seleccionando la primera. Falta que otro integrante lo verifique.")
+for c in range(1, 15):
+    src, dst = defects.cell(7, c), defects.cell(8, c)
+    dst._style = copy.copy(src._style)
+DEF004 = ["DEF-004", "Con la ventana de 1280 × 720 los sprites se escalan por un factor no entero (0,84) y cada píxel del sprite "
+          "ocupa 2 o 3 píxeles de pantalla", "CP-195", "HU-50", "Menor", "Baja", "Nuevo", f"V3 - {COMMIT}",
+          "Chrome for Testing 153 sin interfaz (Linux), 1280 × 720 y 1920 × 1080", "Siempre", "Luzzi", None, datetime.date(2026, 11, 25),
+          "El tablero mide min(672 px, 94 % del ancho, (alto − 96 px) × 28/31): con 720 px de alto queda en 564 px, y el "
+          "canvas de 672 px se reduce por 0,84. Con image-rendering: pixelated no se difumina, pero los píxeles del sprite "
+          "(3 px del canvas) quedan de 2 o 3 px de pantalla, alternados. Con la ventana maximizada (1920 × 1080) el tablero "
+          "mide 672 px y la escala es 1: cada píxel ocupa 3 px. Sugerencia: redondear el ancho del tablero a un múltiplo de 224 px."]
+for c, v in enumerate(DEF004, start=1):
+    defects.cell(8, c).value = v
+defects.cell(8, 13).number_format = "dd/mm/yyyy"
+d4 = wb.copy_worksheet(wb["DEF-003"])
+d4.title = "DEF-004"
+wb.move_sheet(d4, offset=wb.sheetnames.index("DEF-003") + 1 - wb.sheetnames.index("DEF-004"))
+for row, v in zip(range(4, 23), [
+        "DEF-004", DEF004[1], "CP-195 (ciclo 3)", "HU-50 - «Los sprites se dibujan sin difuminar, escalados por un número entero»",
+        "Menor", "Baja", "Nuevo", f"V3 - {COMMIT}", "Chrome for Testing 153 sin interfaz (Linux); ventanas de 1280 × 720 y 1920 × 1080, escala de dispositivo 1",
+        "Partida en curso en modo Pacman, nivel 1.",
+        "1) Abrir el juego en una ventana de 1280 × 720.\n2) Iniciar una partida en modo Pacman.\n3) Capturar la pantalla y ampliar la captura sobre Pacman.",
+        "Cada píxel del sprite ocupa la misma cantidad de píxeles de pantalla (escala entera), como en la ventana maximizada.",
+        "El tablero se dibuja a 564 px de ancho (escala 0,84 del canvas de 672 px): los píxeles del sprite quedan de 2 o 3 px de "
+        "pantalla, alternados. No hay difuminado (image-rendering: pixelated). Maximizada, la escala es 1 y cada píxel ocupa 3 px.",
+        "Siempre", "Capturas CP-195-1280x720 y CP-195-maximizada (evidencia-entrega-03/capturas).", "Luzzi", "—",
+        datetime.date(2026, 11, 25), "No aplica (defecto nuevo de la V3)."]):
+    d4.cell(row, 2).value = v
+d4.cell(21, 2).number_format = "dd/mm/yyyy"
+
 tpl = wb["CP - Plantilla"]
 tpl["A3"].value = "Reporte de ejecución 3"
 tpl["C3"].value = "Estado en la Entrega 3"
